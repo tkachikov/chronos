@@ -1,0 +1,28 @@
+{
+    "name": "tkachikov/laravel-commands",
+    "description": "Settings commands for scheduling",
+    "keywords": ["laravel", "command", "schedule"],
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Tkachikov\\LaravelCommands\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ткачиков Александр",
+            "email": "a.tkachikov@mail.ru"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "tkachikov/memory": "^1.2"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tkachikov\\LaravelCommands\\Providers\\LaravelCommandsServiceProvider"
+            ]
+        }
+    }
+}
