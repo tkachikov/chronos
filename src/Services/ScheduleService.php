@@ -36,16 +36,17 @@ class ScheduleService
     public function schedule(ScheduleConsole $scheduleConsole)
     {
         foreach ($this->scheduleRepository->get() as $schedule) {
-            if (!app($schedule->class)->runInSchedule()) {
+            $object = app($schedule->command->class);
+            if (method_exists($object, 'runInSchedule') && !$object->runInSchedule()) {
                 continue;
             }
             $event = $scheduleConsole
-                ->command($schedule->class, $schedule->preparedArgs)
+                ->command($schedule->command->class, $schedule->preparedArgs)
                 ->{$schedule->time_method}(...([$schedule->time_params] ?? []));
-            foreach (['without_overlapping', 'run_in_background'] as $property) {
+            foreach (['without_overlapping' => [2], 'run_in_background' => []] as $property => $params) {
                 if ($schedule->$property) {
                     $method = str($property)->camel()->toString();
-                    $event->$method();
+                    $event->$method(...$params);
                 }
             }
         }
