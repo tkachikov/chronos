@@ -1,5 +1,5 @@
 {
-    "name": "tkachikov/laravel-commands",
+    "name": "tkachikov/laravel-pulse",
     "description": "Settings commands for scheduling",
     "keywords": ["laravel", "command", "schedule"],
     "license": "MIT",
