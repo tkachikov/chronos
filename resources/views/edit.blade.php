@@ -40,7 +40,7 @@
     @endif
     <div class="row w-100 mx-auto mb-3">
         <div class="col d-flex align-items-center">
-            <a class="btn btn-link text-decoration-none" href="{{ route('pulse.index') }}">
+            <a class="btn btn-link text-decoration-none" href="{{ route('pulse.main') }}">
                 <h1 class="h1 m-0">
                     Commands
                 </h1>

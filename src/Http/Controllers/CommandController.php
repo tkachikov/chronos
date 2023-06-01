@@ -81,7 +81,7 @@ class CommandController extends Controller
         $this->service->saveSchedule($request->validated());
 
         return redirect()
-            ->route('commands.edit', [
+            ->route('pulse.edit', [
                 'command' => $command,
                 'schedule' => $request->get('id'),
             ]);
@@ -91,7 +91,7 @@ class CommandController extends Controller
     {
         Schedule::find($schedule)->delete();
 
-        return redirect()->route('commands.edit', $command);
+        return redirect()->route('pulse.edit', $command);
     }
 
     public function run(int $id, ScheduleRunRequest $request)
@@ -108,7 +108,7 @@ class CommandController extends Controller
         }
 
         return redirect()
-            ->route('commands.edit', $id)
+            ->route('pulse.edit', $id)
             ->with(["{$out['type']}-message" => $out['message']]);
     }
 }

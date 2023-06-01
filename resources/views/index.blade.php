@@ -2,7 +2,7 @@
 @section('content')
     <div class="row w-100 mx-auto mb-3">
         <div class="col px-0">
-            <a class="btn btn-link text-decoration-none" href="{{ route('pulse.index') }}">
+            <a class="btn btn-link text-decoration-none" href="{{ route('pulse.main') }}">
                 <h1 class="h1 m-0">Commands</h1>
             </a>
         </div>

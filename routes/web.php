@@ -7,7 +7,7 @@ use Tkachikov\LaravelPulse\Http\Controllers\CommandController;
 Route::controller(CommandController::class)
     ->name('pulse.')
     ->group(function () {
-        Route::get('', 'index')->name('index');
+        Route::get('', 'index')->name('main');
         Route::prefix('{command}')->group(function () {
             Route::get('', 'edit')->name('edit');
             Route::post('', 'update')->name('update');
