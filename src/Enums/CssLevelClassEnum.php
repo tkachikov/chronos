@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Enums;
+namespace Tkachikov\LaravelPulse\Enums;
 
 enum CssLevelClassEnum: string
 {

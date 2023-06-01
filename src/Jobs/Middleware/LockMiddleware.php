@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Jobs\Middlewares;
+namespace Tkachikov\LaravelPulse\Jobs\Middleware;
 
 use Throwable;
 use Illuminate\Support\Facades\Cache;

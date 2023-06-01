@@ -1,23 +1,23 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands;
+namespace Tkachikov\LaravelPulse;
 
 use Throwable;
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Laravel\Telescope\Telescope;
 use Laravel\Telescope\IncomingEntry;
-use Tkachikov\LaravelCommands\Decorators\IncomeEntryDecorator;
-use Tkachikov\LaravelCommands\Enums\TypeMessageEnum;
 use Tkachikov\Memory\Memory as MemoryHelper;
-use Tkachikov\LaravelCommands\Models\CommandLog;
-use Tkachikov\LaravelCommands\Models\CommandRun;
+use Tkachikov\LaravelPulse\Models\CommandLog;
+use Tkachikov\LaravelPulse\Models\CommandRun;
+use Tkachikov\LaravelPulse\Enums\TypeMessageEnum;
+use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
 use Laravel\Telescope\Contracts\EntriesRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Tkachikov\LaravelCommands\Helpers\DatabaseHelper;
-use Tkachikov\LaravelCommands\Models\Command as CommandModel;
+use Tkachikov\LaravelPulse\Models\Command as CommandModel;
+use Tkachikov\LaravelPulse\Decorators\IncomeEntryDecorator;
 
 class CommandHandler extends Command
 {

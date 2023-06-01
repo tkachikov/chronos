@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Helpers;
+namespace Tkachikov\LaravelPulse\Helpers;
 
-use Illuminate\Filesystem\Filesystem;
+use Throwable;
 use ReflectionClass;
 use ReflectionException;
+use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Finder\SplFileInfo;
-use Throwable;
 
 class ClassHelper
 {

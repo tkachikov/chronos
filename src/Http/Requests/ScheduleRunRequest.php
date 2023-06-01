@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Http\Requests;
+namespace Tkachikov\LaravelPulse\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 

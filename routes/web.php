@@ -2,11 +2,10 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Tkachikov\LaravelCommands\Http\Controllers\CommandController;
+use Tkachikov\LaravelPulse\Http\Controllers\CommandController;
 
-Route::prefix('commands')
-    ->name('commands.')
-    ->controller(CommandController::class)
+Route::controller(CommandController::class)
+    ->name('pulse.')
     ->group(function () {
         Route::get('', 'index')->name('index');
         Route::prefix('{command}')->group(function () {

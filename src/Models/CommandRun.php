@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Models;
+namespace Tkachikov\LaravelPulse\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Tkachikov\LaravelCommands\CommandHandler;
+use Tkachikov\LaravelPulse\CommandHandler;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CommandRun extends Model

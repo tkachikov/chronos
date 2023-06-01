@@ -1,8 +1,8 @@
-@extends('commands::layout', ['title' => 'test'])
+@extends('pulse::layout', ['title' => 'test'])
 @section('content')
     <div class="row w-100 mx-auto mb-3">
         <div class="col px-0">
-            <a class="btn btn-link text-decoration-none" href="{{ route('commands.index') }}">
+            <a class="btn btn-link text-decoration-none" href="{{ route('pulse.index') }}">
                 <h1 class="h1 m-0">Commands</h1>
             </a>
         </div>
@@ -44,7 +44,7 @@
                         </thead>
                         <tbody>
                             @if(request('sortKey'))
-                                @include('commands::for-group', ['group' => $commands])
+                                @include('pulse::for-group', ['group' => $commands])
                             @else
                                 @foreach($commands as $title => $group)
                                     <tr>
@@ -52,7 +52,7 @@
                                             <h2 class="h2 {{ $loop->index ? 'mt-5' : '' }}">{{ $title }}</h2>
                                         </td>
                                     </tr>
-                                    @include('commands::for-group', ['group' => $group])
+                                    @include('pulse::for-group', ['group' => $group])
                                 @endforeach
                             @endif
                         </tbody>

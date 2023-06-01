@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Services;
+namespace Tkachikov\LaravelPulse\Services;
 
 use Throwable;
 use Exception;
@@ -10,16 +10,16 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\Finder\SplFileInfo;
-use Tkachikov\LaravelCommands\CommandHandler;
-use Tkachikov\LaravelCommands\Models\Schedule;
-use Tkachikov\LaravelCommands\Models\CommandLog;
-use Tkachikov\LaravelCommands\Models\CommandRun;
+use Tkachikov\LaravelPulse\CommandHandler;
+use Tkachikov\LaravelPulse\Models\Schedule;
+use Tkachikov\LaravelPulse\Models\CommandLog;
+use Tkachikov\LaravelPulse\Models\CommandRun;
+use Tkachikov\LaravelPulse\Helpers\ClassHelper;
+use Tkachikov\LaravelPulse\Models\CommandMetric;
 use Symfony\Component\Console\Input\InputOption;
-use Tkachikov\LaravelCommands\Helpers\ClassHelper;
-use Tkachikov\LaravelCommands\Models\CommandMetric;
-use Tkachikov\LaravelCommands\Models\Command as CommandModel;
+use Tkachikov\LaravelPulse\Models\Command as CommandModel;
+use Tkachikov\LaravelPulse\Repositories\ScheduleRepository;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
-use Tkachikov\LaravelCommands\Repositories\ScheduleRepository;
 
 class ScheduleService
 {

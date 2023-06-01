@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Jobs;
+namespace Tkachikov\LaravelPulse\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
@@ -10,8 +10,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
-use Tkachikov\LaravelCommands\Services\ScheduleService;
-use Tkachikov\LaravelCommands\Jobs\Middlewares\LockMiddleware;
+use Tkachikov\LaravelPulse\Services\ScheduleService;
+use Tkachikov\LaravelPulse\Jobs\Middlewares\LockMiddleware;
 
 class CommandRunJob implements ShouldQueue, ShouldBeUnique
 {

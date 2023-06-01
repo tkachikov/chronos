@@ -1,9 +1,9 @@
 @php
     use Illuminate\Support\Js;
 @endphp
-@extends('commands::layout')
+@extends('pulse::layout')
 @section('content')
-    <form id="updateForm" method="POST" action="{{ route('commands.update', $command['model']->id) }}">
+    <form id="updateForm" method="POST" action="{{ route('pulse.update', $command['model']->id) }}">
         @csrf
         <input type="hidden" name="command_id" value="{{ $command['model']->id }}">
         @if($schedule?->id)
@@ -11,13 +11,13 @@
         @endif
     </form>
     @if($schedule?->id)
-        <form id="deleteForm" method="POST" action="{{ route('commands.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $schedule->id]) }}">
+        <form id="deleteForm" method="POST" action="{{ route('pulse.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $schedule->id]) }}">
             @csrf
             @method('DELETE')
         </form>
     @endif
     @if(!method_exists($command['object'], 'runInManual') || $command['object']->runInManual())
-        <form id="runCommand" method="POST" action="{{ route('commands.run', $command['model']->id) }}">
+        <form id="runCommand" method="POST" action="{{ route('pulse.run', $command['model']->id) }}">
             @csrf
         </form>
         <div class="modal fade" id="runCommandModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -28,7 +28,7 @@
                         <button type="button" data-bs-dismiss="modal" class="btn-close" aria-label="Close"></button>
                     </div>
                     <div class="text-center m-3 modal-body">
-                        @include('commands::args', ['command' => $command, 'form' => 'runCommand'])
+                        @include('pulse::args', ['command' => $command, 'form' => 'runCommand'])
                     </div>
                     <div class="modal-footer">
                         <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">Close</button>
@@ -40,7 +40,7 @@
     @endif
     <div class="row w-100 mx-auto mb-3">
         <div class="col d-flex align-items-center">
-            <a class="btn btn-link text-decoration-none" href="{{ route('commands.index') }}">
+            <a class="btn btn-link text-decoration-none" href="{{ route('pulse.index') }}">
                 <h1 class="h1 m-0">
                     Commands
                 </h1>
@@ -61,11 +61,11 @@
                                 @if(!method_exists($command['object'], 'runInManual') || $command['object']->runInManual())
                                     @if($command['useHandler'] && ($command['signature']['arguments'] || $command['signature']['options']))
                                         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#runCommandModal">
-                                            @include('commands::icons.play')
+                                            @include('pulse::icons.play')
                                         </button>
                                     @else
                                         <button type="submit" class="btn btn-success" form="runCommand">
-                                            @include('commands::icons.play')
+                                            @include('pulse::icons.play')
                                         </button>
                                     @endif
                                 @endif
@@ -154,7 +154,7 @@
                                 <label for="args">Args</label>
                             </div>
                             <div class="col-8">
-                                @include('commands::args', ['command' => $command, 'form' => 'updateForm'])
+                                @include('pulse::args', ['command' => $command, 'form' => 'updateForm'])
                             </div>
                         </div>
                     @endif
@@ -164,10 +164,10 @@
                                 <a data-bs-toggle="modal" data-bs-target="#deleteModal_{{ $schedule->id }}" class="btn btn-danger w-100">
                                     Delete
                                 </a>
-                                @include('commands::delete-modal', ['id' => 'deleteModal_has_'.$schedule->id, 'action' => route('commands.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $schedule->id])])
+                                @include('pulse::delete-modal', ['id' => 'deleteModal_has_'.$schedule->id, 'action' => route('pulse.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $schedule->id])])
                             </div>
                             <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-                                <a href="{{ route('commands.edit', $command['model']->id) }}" class="btn btn-secondary w-100">New</a>
+                                <a href="{{ route('pulse.edit', $command['model']->id) }}" class="btn btn-secondary w-100">New</a>
                             </div>
                         @endif
                         <div class="col-12 col-md-6 col-lg-4 col-xl-3">
@@ -275,15 +275,15 @@
                                         <td @class($border)>
                                             <div class="row w-100 mx-auto">
                                                 <div class="col">
-                                                    <a href="{{ route('commands.edit', ['command' => $command['model']->id, 'schedule' => $item->id]) }}">
-                                                        @include('commands::icons.edit')
+                                                    <a href="{{ route('pulse.edit', ['command' => $command['model']->id, 'schedule' => $item->id]) }}">
+                                                        @include('pulse::icons.edit')
                                                     </a>
                                                 </div>
                                                 <div class="col">
                                                     <a data-bs-toggle="modal" data-bs-target="#deleteModal_{{ $item->id }}" class="text-danger">
-                                                        @include('commands::icons.bucket')
+                                                        @include('pulse::icons.bucket')
                                                     </a>
-                                                    @include('commands::delete-modal', ['id' => 'deleteModal_'.$item->id, 'action' => route('commands.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $item->id])])
+                                                    @include('pulse::delete-modal', ['id' => 'deleteModal_'.$item->id, 'action' => route('pulse.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $item->id])])
                                                 </div>
                                             </div>
                                         </td>

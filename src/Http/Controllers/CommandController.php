@@ -1,20 +1,20 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Http\Controllers;
+namespace Tkachikov\LaravelPulse\Http\Controllers;
 
 use Throwable;
 use Exception;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Tkachikov\LaravelCommands\Models\Command;
-use Tkachikov\LaravelCommands\Models\Schedule;
-use Tkachikov\LaravelCommands\Http\Requests\ScheduleRunRequest;
-use Tkachikov\LaravelCommands\Http\Requests\ScheduleSaveRequest;
-use Tkachikov\LaravelCommands\Models\CommandLog;
-use Tkachikov\LaravelCommands\Models\CommandRun;
-use Tkachikov\LaravelCommands\Jobs\CommandRunJob;
-use Tkachikov\LaravelCommands\Services\ScheduleService;
+use Tkachikov\LaravelPulse\Models\Command;
+use Tkachikov\LaravelPulse\Models\Schedule;
+use Tkachikov\LaravelPulse\Models\CommandLog;
+use Tkachikov\LaravelPulse\Models\CommandRun;
+use Tkachikov\LaravelPulse\Jobs\CommandRunJob;
+use Tkachikov\LaravelPulse\Services\ScheduleService;
+use Tkachikov\LaravelPulse\Http\Requests\ScheduleRunRequest;
+use Tkachikov\LaravelPulse\Http\Requests\ScheduleSaveRequest;
 
 class CommandController extends Controller
 {
@@ -29,7 +29,7 @@ class CommandController extends Controller
             ? $this->service->getSorted(...$request->only(['sortKey', 'sortBy']))
             : $this->service->getGroups();
 
-        return view('commands::index', [
+        return view('pulse::index', [
             'commands' => $commands,
             'times' => $this->service->getTimes(),
         ]);
@@ -66,7 +66,7 @@ class CommandController extends Controller
             $logs[$run->id] = CommandLog::whereCommandRunId($run->id)->simplePaginate(5, pageName: "logs_{$run->id}");
         }
 
-        return view('commands::edit', [
+        return view('pulse::edit', [
             'command' => $commandInfo,
             'data' => $viewData,
             'times' => $this->service->getTimes(),

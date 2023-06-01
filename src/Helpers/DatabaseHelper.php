@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Helpers;
+namespace Tkachikov\LaravelPulse\Helpers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;

@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Repositories;
+namespace Tkachikov\LaravelPulse\Repositories;
 
-use Tkachikov\LaravelCommands\Models\Schedule;
-use Tkachikov\LaravelCommands\Helpers\DatabaseHelper;
+use Tkachikov\LaravelPulse\Models\Schedule;
+use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
 
 class ScheduleRepository
 {

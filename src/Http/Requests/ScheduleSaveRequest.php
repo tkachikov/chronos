@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Http\Requests;
+namespace Tkachikov\LaravelPulse\Http\Requests;
 
+use Tkachikov\LaravelPulse\Models\Command;
 use Illuminate\Foundation\Http\FormRequest;
-use Tkachikov\LaravelCommands\Models\Command;
-use Tkachikov\LaravelCommands\Models\Schedule;
+use Tkachikov\LaravelPulse\Models\Schedule;
 
 class ScheduleSaveRequest extends FormRequest
 {

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Decorators;
+namespace Tkachikov\LaravelPulse\Decorators;
 
 use Laravel\Telescope\IncomingEntry;
 

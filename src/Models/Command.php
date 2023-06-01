@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Models;
+namespace Tkachikov\LaravelPulse\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Command extends Model
 {

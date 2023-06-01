@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelCommands\Models;
+namespace Tkachikov\LaravelPulse\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Tkachikov\LaravelCommands\Enums\TypeMessageEnum;
+use Tkachikov\LaravelPulse\Enums\TypeMessageEnum;
 
 class CommandLog extends Model
 {

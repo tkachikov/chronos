@@ -1,11 +1,11 @@
 {
     "name": "tkachikov/laravel-pulse",
     "description": "Settings commands for scheduling",
-    "keywords": ["laravel", "command", "schedule"],
+    "keywords": ["laravel", "command", "schedule", "pulse"],
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Tkachikov\\LaravelCommands\\": "src/"
+            "Tkachikov\\LaravelPulse\\": "src/"
         }
     },
     "authors": [
@@ -21,7 +21,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Tkachikov\\LaravelCommands\\Providers\\LaravelCommandsServiceProvider"
+                "Tkachikov\\LaravelPulse\\Providers\\LaravelPulseServiceProvider"
             ]
         }
     }
