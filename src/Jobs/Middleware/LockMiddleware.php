@@ -12,7 +12,7 @@ class LockMiddleware
     protected string $keyLock;
 
     /**
-     * Применяет блокировку задач в параллельных процессах, которыми управляет Horizon
+     * Use blocking in parallels processes in Horizon
      *
      * @param $job
      * @param $next
@@ -47,8 +47,11 @@ class LockMiddleware
     public function initKeyLock($job): void
     {
         $prefix = method_exists($job, 'uniqueId')
-            ? '-'.$job->uniqueId()
+            ? $job->uniqueId()
             : '';
-        $this->keyLock = 'lock-jobs-'.$job::class.$prefix;
+        $this->keyLock = str('lock_jobs_')
+            ->append($job::class)
+            ->append($prefix)
+            ->toString();
     }
 }

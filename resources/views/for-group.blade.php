@@ -47,7 +47,7 @@
         </td>
         @foreach(['time', 'memory'] as $type)
             @foreach(['avg', 'min', 'max'] as $key)
-                <td @class($border)>{{ $command['statistics'][$type.'_'.$key] ?? '' }}</td>
+                <td @class($border)>{{ $command['model']->metrics->{$type.'_'.$key} ?? '' }}</td>
             @endforeach
         @endforeach
     </tr>

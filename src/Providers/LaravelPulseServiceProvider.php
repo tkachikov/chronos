@@ -5,7 +5,10 @@ namespace Tkachikov\LaravelPulse\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Tkachikov\LaravelPulse\Console\Commands\PulseTestCommand;
 use Tkachikov\LaravelPulse\Console\Commands\PulseInstallCommand;
+use Tkachikov\LaravelPulse\Console\Commands\PulseFreeLogsCommand;
+use Tkachikov\LaravelPulse\Console\Commands\PulseUpdateMetricsCommand;
 
 class LaravelPulseServiceProvider extends ServiceProvider
 {
@@ -39,6 +42,11 @@ class LaravelPulseServiceProvider extends ServiceProvider
                 PulseInstallCommand::class,
             ]);
         }
+        $this->commands([
+            PulseTestCommand::class,
+            PulseFreeLogsCommand::class,
+            PulseUpdateMetricsCommand::class,
+        ]);
     }
 
     /**

@@ -11,7 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Tkachikov\LaravelPulse\Services\ScheduleService;
-use Tkachikov\LaravelPulse\Jobs\Middlewares\LockMiddleware;
+use Tkachikov\LaravelPulse\Jobs\Middleware\LockMiddleware;
 
 class CommandRunJob implements ShouldQueue, ShouldBeUnique
 {
@@ -52,7 +52,9 @@ class CommandRunJob implements ShouldQueue, ShouldBeUnique
      */
     public function middleware(): array
     {
-        return [new LockMiddleware()];
+        return [
+            new LockMiddleware(),
+        ];
     }
 
     /**
@@ -60,6 +62,9 @@ class CommandRunJob implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId(): string
     {
-        return $this->command;
+        return str($this->command)
+            ->classBasename()
+            ->prepend('_')
+            ->toString();
     }
 }

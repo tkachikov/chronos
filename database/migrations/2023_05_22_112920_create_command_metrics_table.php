@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('i_command_metrics', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('class');
+            $table->unsignedBigInteger('command_id');
             foreach (['time', 'memory'] as $type) {
                 foreach (['avg', 'min', 'max'] as $key) {
                     $table->string($type.'_'.$key);

@@ -247,13 +247,13 @@ class ScheduleService
     {
         $metrics = CommandMetric::query()
             ->get()
-            ->keyBy('command')
+            ->keyBy('command_id')
             ->toArray();
         $newMetrics = $this->getStatistics();
         $rows = [];
         $now = now()->format('Y-m-d H:i:s');
-        foreach ($newMetrics as $command => $values) {
-            $row = ['command' => $command, 'created_at' => $now, 'updated_at' => $now];
+        foreach ($newMetrics as $commandId => $values) {
+            $row = ['command_id' => $commandId, 'created_at' => $now, 'updated_at' => $now];
             foreach (['time', 'memory'] as $type) {
                 foreach (['avg', 'min', 'max'] as $key) {
                     $index = $type.'_'.$key;
@@ -286,7 +286,7 @@ class ScheduleService
     {
         $diffDate = 'timestampdiff(second, created_at, updated_at)';
         $select = [
-            'class',
+            'command_id',
             DB::raw("round(avg($diffDate)) time_avg"),
             DB::raw("min($diffDate) time_min"),
             DB::raw("max($diffDate) time_max"),
@@ -297,9 +297,9 @@ class ScheduleService
 
         return CommandRun::query()
             ->select($select)
-            ->groupBy('class')
+            ->groupBy('command_id')
             ->get()
-            ->keyBy('class')
+            ->keyBy('command_id')
             ->toArray();
     }
 
@@ -308,48 +308,67 @@ class ScheduleService
      */
     protected function initCommands(): void
     {
-        $this->commands = [];
-        $metrics = CommandMetric::query()
-            ->get()
-            ->keyBy('class')
-            ->toArray();
-        $files = $this->classHelper->getAllFiles(app_path($this->path));
-        $commandModels = CommandModel::with('schedules')->get()->keyBy('class');
-        /** @var SplFileInfo $file */
-        foreach ($files as $file) {
-            try {
-                /** @var Command $object */
-                $object = $this->classHelper->createObject($file, $this->path);
-            } catch (Throwable) {
-                continue;
+        $this->commands = $commands = [];
+        $paths = [
+            $this->path,
+            '../vendor/tkachikov/laravel-pulse/src/Console/Commands',
+        ];
+        $commandModels = CommandModel::with(['schedules', 'metrics'])->get()->keyBy('class');
+        foreach ($paths as $path) {
+            $files = $this->classHelper->getAllFiles(app_path($path));
+            /** @var SplFileInfo $file */
+            foreach ($files as $file) {
+                try {
+                    /** @var Command $object */
+                    $object = $path === $this->path
+                        ? $this->classHelper->createObject($file, $path)
+                        : (function () use ($file) {
+                            $class = 'Tkachikov\LaravelPulse\Console\Commands\\' . $file->getBasename('.php');
+
+                            return new $class;
+                        })();
+                } catch (Throwable) {
+                    continue;
+                }
+                $signature = ClassHelper::getValue($object, 'signature');
+                [$nameSignature, $arguments, $options] = $signature
+                    ? Parser::parse($signature)
+                    : [null, null, null];
+                $group = $path === $this->path
+                    ? $file->getRelativePath() ?: 'Other'
+                    : 'Laravel Pulse';
+                $name = $file->getBasename('.php');
+                $shortName = str($name)->after($group)->before('Command')->headline()->lower()->ucfirst()->toString();
+                if ($path !== $this->path) {
+                    $shortName = str($shortName)->after('Pulse ')->ucfirst()->toString();
+                }
+                $model = $commandModels->get($object::class) ?? CommandModel::create(['class' => $object::class]);
+                $commands[$group][] = [
+                    'model' => $model,
+                    'file' => $file,
+                    'group' => $group,
+                    'name' => $name,
+                    'shortName' => $shortName,
+                    'link' => str($name)->kebab()->toString(),
+                    'object' => $object,
+                    'class' => $object::class,
+                    'useHandler' => $object instanceof CommandHandler,
+                    'description' => ClassHelper::getValue($object, 'description'),
+                    'signature' => [
+                        'full' => $signature,
+                        'name' => $nameSignature,
+                        'arguments' => $arguments,
+                        'options' => $options,
+                    ],
+                    'statistics' => $metrics[$object::class] ?? [],
+                ];
             }
-            $signature = ClassHelper::getValue($object, 'signature');
-            [$nameSignature, $arguments, $options] = $signature
-                ? Parser::parse($signature)
-                : [null, null, null];
-            $group = $file->getRelativePath() ?: 'Other';
-            $name = $file->getBasename('.php');
-            $shortName = str($name)->after($group)->before('Command')->headline()->lower()->ucfirst()->toString();
-            $model = $commandModels->get($object::class) ?? CommandModel::create(['class' => $object::class]);
-            $this->commands[] = [
-                'model' => $model,
-                'file' => $file,
-                'group' => $group,
-                'name' => $name,
-                'shortName' => $shortName,
-                'link' => str($name)->kebab()->toString(),
-                'object' => $object,
-                'class' => $object::class,
-                'useHandler' => $object instanceof CommandHandler,
-                'description' => ClassHelper::getValue($object, 'description'),
-                'signature' => [
-                    'full' => $signature,
-                    'name' => $nameSignature,
-                    'arguments' => $arguments,
-                    'options' => $options,
-                ],
-                'statistics' => $metrics[$object::class] ?? [],
-            ];
+        }
+        ksort($commands);
+        foreach ($commands as $group) {
+            foreach ($group as $command) {
+                $this->commands[] = $command;
+            }
         }
     }
 

@@ -37,7 +37,7 @@ class CommandController extends Controller
 
     public function edit(Request $request, int $id)
     {
-        $command = Command::find($id);
+        $command = Command::findOrFail($id);
         $commandInfo = $this->service->getForClass($command->class);
         $viewData = [
             'Short Name' => $commandInfo['shortName'],
