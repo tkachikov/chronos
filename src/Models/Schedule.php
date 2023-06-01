@@ -3,15 +3,16 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Models;
 
-use App\Models\User\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Schedule extends Model
 {
+    use WithTrashedTrait;
+
     protected $table = 'i_schedules';
 
     protected $fillable = [
@@ -72,6 +73,6 @@ class Schedule extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(config('pulse.user'));
     }
 }

@@ -251,10 +251,8 @@
                                     <tr @class(['bg-light' => $item->id == $schedule?->id])>
                                         <td @class($border)>{{ $item->id }}</td>
                                         <td @class($border)>
-                                            @if($item->user_id && ($user = $item->user()->withTrashed()->first()))
-                                                <a href="{{ route('admin.user.edit', $item->user_id) }}" target="_blank">
-                                                    {{ $user->email }}
-                                                </a>
+                                            @if($item->user_id && ($user = $item->userWithTrashed()->first()))
+                                                {{ $user->email }}
                                             @endif
                                         </td>
                                         @foreach(['run', 'without_overlapping', 'run_in_background'] as $key)
