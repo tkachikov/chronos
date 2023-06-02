@@ -4,17 +4,13 @@ declare(strict_types=1);
 namespace Tkachikov\LaravelPulse\Console\Commands;
 
 use Illuminate\Support\Str;
-use Tkachikov\LaravelPulse\CommandHandler;
+use Illuminate\Console\Command;
 
-class PulseInstallCommand extends CommandHandler
+class PulseInstallCommand extends Command
 {
     protected $signature = 'pulse:install';
 
     protected $description = 'Install all Laravel Pulse resources';
-
-    protected bool $runInManual = false;
-
-    protected bool $runInSchedule = false;
 
     /**
      * @return int
