@@ -5,6 +5,7 @@ namespace Tkachikov\LaravelPulse\Services;
 
 use Throwable;
 use Exception;
+use ReflectionException;
 use Illuminate\Console\Parser;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,7 @@ use Tkachikov\LaravelPulse\Models\CommandRun;
 use Tkachikov\LaravelPulse\Helpers\ClassHelper;
 use Tkachikov\LaravelPulse\Models\CommandMetric;
 use Symfony\Component\Console\Input\InputOption;
+use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
 use Tkachikov\LaravelPulse\Models\Command as CommandModel;
 use Tkachikov\LaravelPulse\Repositories\ScheduleRepository;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
@@ -29,11 +31,17 @@ class ScheduleService
 
     public function __construct(
         private readonly ScheduleRepository $scheduleRepository,
-        private readonly ClassHelper $classHelper,
+        private readonly ClassHelper        $classHelper,
+        private readonly DatabaseHelper     $databaseHelper,
     ) {
     }
 
-    public function schedule(ScheduleConsole $scheduleConsole)
+    /**
+     * @param ScheduleConsole $scheduleConsole
+     *
+     * @return void
+     */
+    public function schedule(ScheduleConsole $scheduleConsole): void
     {
         foreach ($this->scheduleRepository->get() as $schedule) {
             $object = app($schedule->command->class);
@@ -278,19 +286,20 @@ class ScheduleService
     }
 
     /**
-     * Предполагается, что значения, используемой памяти, в мегабайтах
+     * Values memory in Megabytes
      *
      * @return array
      */
     public function getStatistics(): array
     {
-        $diffDate = 'timestampdiff(second, created_at, updated_at)';
+        $diffDate = $this->databaseHelper->getTimeDiffInSeconds('created_at', 'updated_at');
+        $concat = $this->databaseHelper->getConcat(DB::raw('round(avg(memory))'), ' MB');
         $select = [
             'command_id',
             DB::raw("round(avg($diffDate)) time_avg"),
             DB::raw("min($diffDate) time_min"),
             DB::raw("max($diffDate) time_max"),
-            DB::raw("concat(round(avg(memory)), ' MB') memory_avg"),
+            DB::raw("$concat memory_avg"),
             DB::raw('min(memory) memory_min'),
             DB::raw('max(memory) memory_max'),
         ];
@@ -304,6 +313,8 @@ class ScheduleService
     }
 
     /**
+     * @throws ReflectionException
+     *
      * @return void
      */
     protected function initCommands(): void
