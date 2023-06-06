@@ -135,7 +135,7 @@ class ScheduleService
         $sortMethod = 'sortBy' . ($sortBy === 'Desc' ? $sortBy : '');
 
         return collect($this->getCommands())
-            ->{$sortMethod}(fn ($command) => $command['statistics'][$sortKey] ?? ($sortBy === 'Asc' ? INF : -INF))
+            ->{$sortMethod}(fn ($command) => $command['model']->metrics->$sortKey ?? ($sortBy === 'Asc' ? INF : -INF))
             ->values()
             ->toArray();
     }
