@@ -3,21 +3,21 @@
 @endphp
 @extends('pulse::layout')
 @section('content')
-    <form id="updateForm" method="POST" action="{{ route('pulse.update', $command['model']->id) }}">
+    <form id="updateForm" method="POST" action="{{ route('pulse.update', $command->getModel()) }}">
         @csrf
-        <input type="hidden" name="command_id" value="{{ $command['model']->id }}">
+        <input type="hidden" name="command_id" value="{{ $command->getModel()->id }}">
         @if($schedule?->id)
             <input type="hidden" name="id" value="{{ $schedule->id }}">
         @endif
     </form>
     @if($schedule?->id)
-        <form id="deleteForm" method="POST" action="{{ route('pulse.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $schedule->id]) }}">
+        <form id="deleteForm" method="POST" action="{{ route('pulse.schedules.destroy', ['command' => $command->getModel(), 'schedule' => $schedule->id]) }}">
             @csrf
             @method('DELETE')
         </form>
     @endif
-    @if(!method_exists($command['object'], 'runInManual') || $command['object']->runInManual())
-        <form id="runCommand" method="POST" action="{{ route('pulse.run', $command['model']->id) }}">
+    @if($command->runInManual())
+        <form id="runCommand" method="POST" action="{{ route('pulse.run', $command->getModel()) }}">
             @csrf
         </form>
         <div class="modal fade" id="runCommandModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -46,7 +46,7 @@
                 </h1>
             </a>
             <h1 class="h1 m-0">
-                / {{ $command['name'] }}
+                / {{ $command->getShortName() }}
             </h1>
         </div>
     </div>
@@ -58,8 +58,8 @@
                         <div class="row w-100 mx-auto">
                             <div class="col">Main information</div>
                             <div class="col text-end">
-                                @if(!method_exists($command['object'], 'runInManual') || $command['object']->runInManual())
-                                    @if($command['useHandler'] && ($command['signature']['arguments'] || $command['signature']['options']))
+                                @if($command->runInManual())
+                                    @if(!empty($command->getDefinition()))
                                         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#runCommandModal">
                                             @include('pulse::icons.play')
                                         </button>
@@ -74,12 +74,46 @@
                     </h2>
                 </div>
                 <div class="card-body">
-                    @foreach($data as $label => $value)
-                        <div class="row w-100 mx-auto py-3 align-items-center {{ $loop->remaining ? 'border-bottom' : '' }}">
-                            <div class="col-4">{{ $label }}</div>
-                            <div class="col-8">{!! $value !!}</div>
+                    <div class="row w-100 mx-auto py-3 align-items-center">
+                        <div class="col-4">Short name</div>
+                        <div class="col-8">{{ $command->getShortName() }}</div>
+                    </div>
+                    <div class="row w-100 mx-auto py-3 align-items-center">
+                        <div class="col-4">Full name</div>
+                        <div class="col-8">{{ $command->getFullName() }}</div>
+                    </div>
+                    <div class="row w-100 mx-auto py-3 align-items-center">
+                        <div class="col-4">Description</div>
+                        <div class="col-8">{{ $command->getDescription() }}</div>
+                    </div>
+                    <div class="row w-100 mx-auto py-3 align-items-center">
+                        <div class="col-4">Class</div>
+                        <div class="col-8">{{ $command->getClassName() }}</div>
+                    </div>
+                    <div class="row w-100 mx-auto py-3 align-items-center">
+                        <div class="col-4">Signature</div>
+                        <div class="col-8">{{ $command->getSignature() }}</div>
+                    </div>
+                    <div class="row w-100 mx-auto py-3 align-items-center">
+                        <div class="col-4">Run in schedule</div>
+                        <div class="col-8">
+                            @if($command->runInSchedule())
+                                <span class="text-success">Yes</span>
+                            @else
+                                <span class="text-danger">No</span>
+                            @endif
                         </div>
-                    @endforeach
+                    </div>
+                    <div class="row w-100 mx-auto py-3 align-items-center">
+                        <div class="col-4">Run in manual</div>
+                        <div class="col-8">
+                            @if($command->runInManual())
+                                <span class="text-success">Yes</span>
+                            @else
+                                <span class="text-danger">No</span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card shadow mb-5">
@@ -111,17 +145,29 @@
                             <div class="col-4">
                                 <label for="run">{{ str($key)->replace('_', ' ')->ucfirst() }}</label>
                             </div>
-                            <div class="col-8">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           role="switch"
-                                           id="{{ $key }}"
-                                           name="{{ $key }}"
-                                           form="updateForm"
-                                           onchange="$(this).next().text(this.checked ? 'On' : 'Off')">
-                                    <label class="form-check-label" for="{{ $key }}">{{ $schedule?->{$key} ?? null ? 'On' : 'Off' }}</label>
+                            <div class="col-8 d-flex">
+                                <div class="col">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               role="switch"
+                                               id="{{ $key }}"
+                                               name="{{ $key }}"
+                                               form="updateForm"
+                                               onchange="changeSystem(this)">
+                                        <label class="form-check-label" for="{{ $key }}">{{ $schedule?->{$key} ?? null ? 'On' : 'Off' }}</label>
+                                    </div>
                                 </div>
+                                @if($key === 'without_overlapping')
+                                    <div clsas="col-6">
+                                        <input id="{{ $key }}_time"
+                                               class="form-control"
+                                               type="integer"
+                                               name="without_overlapping_time"
+                                               value="{{ $schedule?->{$key.'_time'} ?? 1440 }}" @style(['display: none' => !$schedule?->{$key}])
+                                               form="updateForm">
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -148,7 +194,7 @@
                             </div>
                         </div>
                     </div>
-                    @if($command['signature']['arguments'] || $command['signature']['options'])
+                    @if(filled($command->getDefinition()->getOptions()) || $command->getDefinition()->getArgumentCount())
                         <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
                             <div class="col-4">
                                 <label for="args">Args</label>
@@ -164,10 +210,10 @@
                                 <a data-bs-toggle="modal" data-bs-target="#deleteModal_{{ $schedule->id }}" class="btn btn-danger w-100">
                                     Delete
                                 </a>
-                                @include('pulse::delete-modal', ['id' => 'deleteModal_has_'.$schedule->id, 'action' => route('pulse.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $schedule->id])])
+                                @include('pulse::delete-modal', ['id' => 'deleteModal_has_'.$schedule->id, 'action' => route('pulse.schedules.destroy', ['command' => $command->getModel(), 'schedule' => $schedule->id])])
                             </div>
                             <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-                                <a href="{{ route('pulse.edit', $command['model']->id) }}" class="btn btn-secondary w-100">New</a>
+                                <a href="{{ route('pulse.edit', $command->getModel()) }}" class="btn btn-secondary w-100">New</a>
                             </div>
                         @endif
                         <div class="col-12 col-md-6 col-lg-4 col-xl-3">
@@ -202,7 +248,7 @@
                         <tr>
                             @foreach(['time', 'memory'] as $type)
                                 @foreach(['avg', 'min', 'max'] as $key)
-                                    <td>{{ $command['model']->metrics->{$type.'_'.$key} ?? '' }}</td>
+                                    <td>{{ $command->getModel()->metrics->{$type.'_'.$key} ?? '' }}</td>
                                 @endforeach
                             @endforeach
                         </tr>
@@ -233,12 +279,12 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                @if(!$command['model']->schedules->count())
+                                @if(!$command->getModel()->schedules->count())
                                     <tr>
                                         <td colspan="8" @class(['border-bottom-0' => true])>No schedules</td>
                                     </tr>
                                 @endif
-                                @foreach($command['model']->schedules as $item)
+                                @foreach($command->getModel()->schedules as $item)
                                     @php
                                         $border = ['border-bottom-0' => true];
                                         $args = !$item->args ? '' : str(json_encode($item->preparedArgs))
@@ -265,15 +311,15 @@
                                         <td @class($border)>{{ $times[$item->time_method]['title'] . ($item->time_params ? " {$item->time_params}" : '') }}</td>
                                         <td @class($border)>
 <pre class="m-0">$schedule
-    ->command({{ $command['name'] . '::class' . ($args ? ", {$args}" : '') }})
+    ->command({{ $command->getClassName() . '::class' . ($args ? ", {$args}" : '') }})
     ->{{ $item->time_method }}({{ $item->time_params ? "'{$item->time_params}'" : '' }}){{
-    $item->without_overlapping ? "\r\n    ->withoutOverlapping(2)" : ''
+    $item->without_overlapping ? "\r\n    ->withoutOverlapping(" . ($item->without_overlapping_time !== 1440 ? $item->without_overlapping_time : '') . ')' : ''
 }}{{ $item->run_in_background ? "\r\n    ->runInBackground()" : '' }}</pre>
                                         </td>
                                         <td @class($border)>
                                             <div class="row w-100 mx-auto">
                                                 <div class="col">
-                                                    <a href="{{ route('pulse.edit', ['command' => $command['model']->id, 'schedule' => $item->id]) }}">
+                                                    <a href="{{ route('pulse.edit', ['command' => $command->getModel(), 'schedule' => $item->id]) }}">
                                                         @include('pulse::icons.edit')
                                                     </a>
                                                 </div>
@@ -281,7 +327,7 @@
                                                     <a data-bs-toggle="modal" data-bs-target="#deleteModal_{{ $item->id }}" class="text-danger">
                                                         @include('pulse::icons.bucket')
                                                     </a>
-                                                    @include('pulse::delete-modal', ['id' => 'deleteModal_'.$item->id, 'action' => route('pulse.schedules.destroy', ['command' => $command['model']->id, 'schedule' => $item->id])])
+                                                    @include('pulse::delete-modal', ['id' => 'deleteModal_'.$item->id, 'action' => route('pulse.schedules.destroy', ['command' => $command->getModel(), 'schedule' => $item->id])])
                                                 </div>
                                             </div>
                                         </td>
@@ -317,15 +363,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                @if(!$command['useHandler'])
-                                    <tr>
-                                        <td colspan="5" @class(['border-bottom-0' => true])>
-                                                <span class="text-danger">
-                                                    For record runs and logs set extends CommandHandler in this Command
-                                                </span>
-                                        </td>
-                                    </tr>
-                                @elseif(!$runs->count())
+                                @if(!$runs->count())
                                     <tr>
                                         <td colspan="5" @class(['border-bottom-0' => true])>No runs</td>
                                     </tr>
@@ -405,20 +443,26 @@
             }
             @endif
         }
+        function changeSystem(el) {
+            $(el).next().text(el.checked ? 'On' : 'Off');
+            if ($(el).attr('id') === 'without_overlapping') {
+                $('#without_overlapping_time').toggle();
+            }
+        }
         @if($schedule?->time_method)
-        changeMethod('{{ $schedule->time_method }}');
+            changeMethod('{{ $schedule->time_method }}');
         @endif
         @foreach(['run', 'without_overlapping', 'run_in_background'] as $key)
-        @if($schedule?->{$key})
-        $('#{{ $key }}').prop('checked', true)
-        @endif
+            @if($schedule?->{$key})
+                $('#{{ $key }}').prop('checked', true)
+            @endif
         @endforeach
         @if($schedule?->args)
-        @foreach($schedule->args as $key => $value)
-        @if(is_bool($value) && $value)
-        $('[name="args[{{ $key }}]"]').prop('checked', true);
-        @endif
-        @endforeach
+            @foreach($schedule->args as $key => $value)
+                @if(is_bool($value) && $value)
+                    $('[name="args[{{ $key }}]"]').prop('checked', true);
+                @endif
+            @endforeach
         @endif
     </script>
 @endsection

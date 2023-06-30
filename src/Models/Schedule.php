@@ -14,14 +14,13 @@ class Schedule extends Model
 {
     use WithTrashedTrait;
 
-    protected $table = 'i_schedules';
-
     protected $fillable = [
         'command_id',
         'args',
         'time_method',
         'time_params',
         'without_overlapping',
+        'without_overlapping_time',
         'run_in_background',
         'run',
         'user_id',

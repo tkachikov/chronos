@@ -79,11 +79,14 @@ class LaravelPulseServiceProvider extends ServiceProvider
      */
     public function loadRoutes(): void
     {
-        Route::middlewareGroup('pulse', [
+        $middlewares = [
             'web',
-            'auth',
             'Tkachikov\LaravelPulse\Http\Middleware\Authorize',
-        ]);
+        ];
+        if (Route::has('login')) {
+            $middlewares[] = 'auth';
+        }
+        Route::middlewareGroup('pulse', $middlewares);
         Route::group([
             'domain' => config('pulse.domain'),
             'prefix' => 'pulse',

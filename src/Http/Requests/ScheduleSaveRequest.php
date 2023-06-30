@@ -36,6 +36,7 @@ class ScheduleSaveRequest extends FormRequest
             'id' => ['nullable', 'exists:'.(new Schedule)->getTable().',id'],
             'run' => ['required', 'boolean'],
             'without_overlapping' => ['required', 'boolean'],
+            'without_overlapping_time' => ['required', 'integer'],
             'run_in_background' => ['required', 'boolean'],
             'time_method' => ['required', 'string'],
             'time_params' => ['nullable', 'string'],

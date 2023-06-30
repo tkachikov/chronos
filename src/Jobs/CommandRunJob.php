@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Jobs;
 
+use Throwable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Artisan;
@@ -10,6 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Tkachikov\LaravelPulse\Services\CommandService;
 use Tkachikov\LaravelPulse\Services\ScheduleService;
 use Tkachikov\LaravelPulse\Jobs\Middleware\LockMiddleware;
 
@@ -24,8 +26,8 @@ class CommandRunJob implements ShouldQueue, ShouldBeUnique
      * @return void
      */
     public function __construct(
-        protected string $command,
-        protected array $args = [],
+        private readonly string $class,
+        private readonly array $args = [],
     ) {
     }
 
@@ -36,14 +38,10 @@ class CommandRunJob implements ShouldQueue, ShouldBeUnique
      *
      * @return void
      */
-    public function handle(ScheduleService $scheduleService): void
+    public function handle(CommandService $commandService): void
     {
-        $commandInfo = $scheduleService->getForClass($this->command);
-        if (
-            !method_exists($commandInfo['object'], 'runInManual')
-            || $commandInfo['object']->runInManual()
-        ) {
-            Artisan::call($this->command, $this->args);
+        if ($commandService->get($this->class)->runInManual()) {
+            Artisan::call($this->class, $this->args);
         }
     }
 
@@ -62,9 +60,21 @@ class CommandRunJob implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId(): string
     {
-        return str($this->command)
+        return str($this->class)
             ->classBasename()
-            ->prepend('_')
+            ->kebab()
             ->toString();
+    }
+
+    /**
+     * @param Throwable $e
+     *
+     * @return void
+     */
+    public function failed(Throwable $e): void
+    {
+        /** @var ScheduleService $service */
+        $service = app(ScheduleService::class);
+        $service->updateWaitingRun($this->class, $e->getMessage());
     }
 }

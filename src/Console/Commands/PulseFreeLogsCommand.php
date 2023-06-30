@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Console\Commands;
 
-use Tkachikov\LaravelPulse\CommandHandler;
+use Illuminate\Console\Command;
+use Tkachikov\LaravelPulse\Traits\PulseRunnerTrait;
 use Tkachikov\LaravelPulse\Services\ScheduleService;
 
-class PulseFreeLogsCommand extends CommandHandler
+class PulseFreeLogsCommand extends Command
 {
+    use PulseRunnerTrait;
+
     protected $signature = 'pulse:free-logs {--hours=24}';
 
     protected $description = 'Free schedule logs';

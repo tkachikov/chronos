@@ -9,8 +9,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CommandRun extends Model
 {
-    protected $table = 'i_command_runs';
-
     protected $fillable = [
         'command_id',
         'schedule_id',

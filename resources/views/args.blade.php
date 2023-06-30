@@ -1,5 +1,5 @@
 @foreach(['arguments' => '', 'options' => '--'] as $key => $prefix)
-    @foreach($command['signature'][$key] as $input)
+    @foreach($command->getDefinition()->{'get'.ucfirst($key)}() as $input)
         @php
             $name = $prefix.$input->getName();
         @endphp

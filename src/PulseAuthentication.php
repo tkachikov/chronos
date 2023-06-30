@@ -5,7 +5,7 @@ namespace Tkachikov\LaravelPulse;
 
 use Closure;
 
-class Pulse
+class PulseAuthentication
 {
     public static Closure $auth;
 

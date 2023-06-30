@@ -6,8 +6,8 @@ namespace Tkachikov\LaravelPulse\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Tkachikov\LaravelPulse\Pulse;
 use Illuminate\Http\RedirectResponse;
+use Tkachikov\LaravelPulse\PulseAuthentication;
 
 class Authorize
 {
@@ -19,7 +19,7 @@ class Authorize
      */
     public function handle(Request $request, Closure $next): Response|RedirectResponse
     {
-        return Pulse::check($request)
+        return PulseAuthentication::check($request)
             ? $next($request)
             : abort(403);
     }

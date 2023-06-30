@@ -14,21 +14,17 @@
                     <table class="table m-0">
                         <thead>
                         <tr>
-                            <th colspan="{{ request('sortKey') ? 8 : 7 }}"></th>
+                            <th colspan="6" class="border-bottom-0"></th>
                             <th colspan="3" class="text-center">Time</th>
                             <th colspan="3" class="text-center">Memory</th>
                         </tr>
                         <tr>
-                            @if(request('sortKey'))
-                                <th>Group</th>
-                            @endif
                             <th>Command</th>
                             <th>Name</th>
                             <th>Description</th>
                             <th>Run in schedule</th>
                             <th>Run in manual</th>
                             <th>Info in db</th>
-                            <th>Use handler</th>
                             @foreach(['time', 'memory'] as $type)
                                 @foreach(['avg', 'min', 'max'] as $key)
                                     @php
@@ -43,18 +39,61 @@
                         </tr>
                         </thead>
                         <tbody>
-                            @if(request('sortKey'))
-                                @include('pulse::for-group', ['group' => $commands])
-                            @else
-                                @foreach($commands as $title => $group)
+                            @php($prevDirectory = null)
+                            @foreach($commands as $command)
+                                @php($border = ['border-bottom-0' => $loop->last])
+                                @php($directory = $command->getDirectory())
+                                @if($directory && $prevDirectory !== $directory)
+                                    @php($prevDirectory = $directory)
                                     <tr>
-                                        <td colspan="13" @class(['border-bottom-0' => true])>
-                                            <h2 class="h2 {{ $loop->index ? 'mt-5' : '' }}">{{ $title }}</h2>
+                                        <td colspan="13" class="border-bottom-0">
+                                            <h2 class="text-center h2 m-0 mt-5">{{ $prevDirectory }}</h2>
                                         </td>
                                     </tr>
-                                    @include('pulse::for-group', ['group' => $group])
-                                @endforeach
-                            @endif
+                                @endif
+                                <tr>
+                                    <td @class($border) style="{{ request('sortKey') ?: 'padding-left: 50px;' }}">{{ $command->getShortName() }}</td>
+                                    <td @class($border)>
+                                        <a class="btn btn-link text-decoration-none" href="{{ route('pulse.edit', $command->getModel()) }}">
+                                            {{ $command->getName() }}
+                                        </a>
+                                    </td>
+                                    <td @class($border)>{{ $command->getDescription() }}</td>
+                                    @foreach (['runInSchedule', 'runInManual'] as $runMethod)
+                                        <td @class($border)>
+                                            @if($command->$runMethod())
+                                                <span class="text-success">Yes</span>
+                                            @else
+                                                <span class="text-danger">No</span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                    <td @class($border)>
+                                        <table class="table m-0">
+                                            <tbody>
+                                            @if($command->getModel()->schedules->count())
+                                                @foreach($command->getModel()->schedules as $schedule)
+                                                    <tr>
+                                                        <td @class(['border-bottom-0' => $loop->last])>{{ $times[$schedule->time_method]['title'] . ($schedule->time_params ? " {$schedule->time_params}" : '') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @else
+                                                <tr>
+                                                    <td class="border-bottom-0">
+                                                        <span class="text-danger">{{ "hasn't in db" }}</span>
+                                                    </td>
+                                                </tr>
+                                            @endif
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    @foreach(['time', 'memory'] as $type)
+                                        @foreach(['avg', 'min', 'max'] as $key)
+                                            <td @class($border)>{{ $command->getModel()->metrics->{$type.'_'.$key} ?? '' }}</td>
+                                        @endforeach
+                                    @endforeach
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

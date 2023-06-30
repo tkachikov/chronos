@@ -47,11 +47,8 @@ class LockMiddleware
     public function initKeyLock($job): void
     {
         $prefix = method_exists($job, 'uniqueId')
-            ? $job->uniqueId()
+            ? '-'.$job->uniqueId()
             : '';
-        $this->keyLock = str('lock_jobs_')
-            ->append($job::class)
-            ->append($prefix)
-            ->toString();
+        $this->keyLock = 'lock-jobs-'.$job::class.$prefix;
     }
 }
