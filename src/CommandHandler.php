@@ -49,46 +49,6 @@ class CommandHandler extends Command
     }
 
     /**
-     * @return string
-     */
-    public function getSignature(): string
-    {
-        return $this->signature;
-    }
-
-    /**
-     * @return bool
-     */
-    public function runInSchedule(): bool
-    {
-        return $this->runInSchedule;
-    }
-
-    /**
-     * @return bool
-     */
-    public function runInManual(): bool
-    {
-        return $this->runInManual;
-    }
-
-    /**
-     * @return string
-     */
-    public function runInScheduleHtml(): string
-    {
-        return $this->getParamHtml($this->runInSchedule());
-    }
-
-    /**
-     * @return string
-     */
-    public function runInManualHtml(): string
-    {
-        return $this->getParamHtml($this->runInManual());
-    }
-
-    /**
      * @param InputInterface  $input
      * @param OutputInterface $output
      *

@@ -51,7 +51,11 @@ class ScheduleService
             $event = $scheduleConsole
                 ->command($schedule->command->class, $schedule->preparedArgs)
                 ->{$schedule->time_method}(...([$schedule->time_params] ?? []));
-            foreach (['without_overlapping' => [2], 'run_in_background' => []] as $property => $params) {
+            $properties = [
+                'without_overlapping' => [$schedule->without_overlapping_time],
+                'run_in_background' => [],
+            ];
+            foreach ($properties as $property => $params) {
                 if ($schedule->$property) {
                     $method = str($property)->camel()->toString();
                     $event->$method(...$params);
@@ -152,18 +156,7 @@ class ScheduleService
      */
     public function saveSchedule(array $input): Schedule
     {
-        $id = $input['id'] ?? null;
-        $scheduleObject = new Schedule();
-        $data = collect($input)->only($scheduleObject->getFillable())->toArray();
-        $data['user_id'] = Auth::id();
-        if ($id) {
-            $schedule = Schedule::findOrFail($id);
-            $schedule->update($data);
-        } else {
-            $schedule = Schedule::create($data);
-        }
-
-        return $schedule;
+        return $this->scheduleRepository->save($input);
     }
 
     /**
@@ -275,77 +268,6 @@ class ScheduleService
             ->get()
             ->keyBy('command_id')
             ->toArray();
-    }
-
-    /**
-     * @throws ReflectionException
-     *
-     * @return void
-     */
-    protected function initCommands(): void
-    {
-        $this->commands = $commands = [];
-        $paths = [
-            $this->path,
-            '../vendor/tkachikov/laravel-pulse/src/Console/Commands',
-        ];
-        $commandModels = CommandModel::with(['schedules', 'metrics'])->get()->keyBy('class');
-        foreach ($paths as $path) {
-            $files = $this->classHelper->getAllFiles(app_path($path));
-            /** @var SplFileInfo $file */
-            foreach ($files as $file) {
-                try {
-                    /** @var Command $object */
-                    $object = $path === $this->path
-                        ? $this->classHelper->createObject($file, $path)
-                        : (function () use ($file) {
-                            $class = 'Tkachikov\LaravelPulse\Console\Commands\\' . $file->getBasename('.php');
-
-                            return new $class;
-                        })();
-                } catch (Throwable) {
-                    continue;
-                }
-                $signature = ClassHelper::getValue($object, 'signature');
-                [$nameSignature, $arguments, $options] = $signature
-                    ? Parser::parse($signature)
-                    : [null, null, null];
-                $group = $path === $this->path
-                    ? $file->getRelativePath() ?: 'Other'
-                    : 'Laravel Pulse';
-                $name = $file->getBasename('.php');
-                $shortName = str($name)->after($group)->before('Command')->headline()->lower()->ucfirst()->toString();
-                if ($path !== $this->path) {
-                    $shortName = str($shortName)->after('Pulse ')->ucfirst()->toString();
-                }
-                $model = $commandModels->get($object::class) ?? CommandModel::create(['class' => $object::class]);
-                $commands[$group][] = [
-                    'model' => $model,
-                    'file' => $file,
-                    'group' => $group,
-                    'name' => $name,
-                    'shortName' => $shortName,
-                    'link' => str($name)->kebab()->toString(),
-                    'object' => $object,
-                    'class' => $object::class,
-                    'useHandler' => $object instanceof CommandHandler,
-                    'description' => ClassHelper::getValue($object, 'description'),
-                    'signature' => [
-                        'full' => $signature,
-                        'name' => $nameSignature,
-                        'arguments' => $arguments,
-                        'options' => $options,
-                    ],
-                    'statistics' => $metrics[$object::class] ?? [],
-                ];
-            }
-        }
-        ksort($commands);
-        foreach ($commands as $group) {
-            foreach ($group as $command) {
-                $this->commands[] = $command;
-            }
-        }
     }
 
     /**

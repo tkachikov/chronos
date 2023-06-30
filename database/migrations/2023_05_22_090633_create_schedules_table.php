@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('time_method');
             $table->json('time_params')->nullable();
             $table->boolean('without_overlapping')->default(false);
+            $table->integer('without_overlapping_time')->default(1440);
             $table->boolean('run_in_background')->default(false);
             $table->boolean('run')->default(false);
             $table->unsignedBigInteger('user_id')->nullable();

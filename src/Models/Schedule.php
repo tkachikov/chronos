@@ -20,6 +20,7 @@ class Schedule extends Model
         'time_method',
         'time_params',
         'without_overlapping',
+        'without_overlapping_time',
         'run_in_background',
         'run',
         'user_id',

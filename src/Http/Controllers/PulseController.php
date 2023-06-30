@@ -15,6 +15,7 @@ use Tkachikov\LaravelPulse\Models\CommandLog;
 use Tkachikov\LaravelPulse\Models\CommandRun;
 use Tkachikov\LaravelPulse\Jobs\CommandRunJob;
 use Tkachikov\LaravelPulse\Services\CommandService;
+use Tkachikov\LaravelPulse\Services\ScheduleService;
 use Tkachikov\LaravelPulse\Http\Requests\ScheduleRunRequest;
 use Tkachikov\LaravelPulse\Http\Requests\ScheduleSaveRequest;
 
@@ -22,6 +23,7 @@ class PulseController extends Controller
 {
     public function __construct(
         private readonly CommandService $commandService,
+        private readonly ScheduleService $scheduleService,
     ) {
     }
 
@@ -61,9 +63,9 @@ class PulseController extends Controller
         ]);
     }
 
-    public function update(string $command, ScheduleSaveRequest $request)
+    public function update(Command $command, ScheduleSaveRequest $request)
     {
-        $this->service->saveSchedule($request->validated());
+        $this->scheduleService->saveSchedule($request->validated());
 
         return redirect()
             ->route('pulse.edit', [

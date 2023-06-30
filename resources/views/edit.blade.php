@@ -5,7 +5,7 @@
 @section('content')
     <form id="updateForm" method="POST" action="{{ route('pulse.update', $command->getModel()) }}">
         @csrf
-        <input type="hidden" name="command_id" value="{{ $command->getModel() }}">
+        <input type="hidden" name="command_id" value="{{ $command->getModel()->id }}">
         @if($schedule?->id)
             <input type="hidden" name="id" value="{{ $schedule->id }}">
         @endif
@@ -145,17 +145,29 @@
                             <div class="col-4">
                                 <label for="run">{{ str($key)->replace('_', ' ')->ucfirst() }}</label>
                             </div>
-                            <div class="col-8">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           role="switch"
-                                           id="{{ $key }}"
-                                           name="{{ $key }}"
-                                           form="updateForm"
-                                           onchange="$(this).next().text(this.checked ? 'On' : 'Off')">
-                                    <label class="form-check-label" for="{{ $key }}">{{ $schedule?->{$key} ?? null ? 'On' : 'Off' }}</label>
+                            <div class="col-8 d-flex">
+                                <div class="col">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               role="switch"
+                                               id="{{ $key }}"
+                                               name="{{ $key }}"
+                                               form="updateForm"
+                                               onchange="changeSystem(this)">
+                                        <label class="form-check-label" for="{{ $key }}">{{ $schedule?->{$key} ?? null ? 'On' : 'Off' }}</label>
+                                    </div>
                                 </div>
+                                @if($key === 'without_overlapping')
+                                    <div clsas="col-6">
+                                        <input id="{{ $key }}_time"
+                                               class="form-control"
+                                               type="integer"
+                                               name="without_overlapping_time"
+                                               value="{{ $schedule?->{$key.'_time'} ?? 1440 }}" @style(['display: none' => !$schedule?->{$key}])
+                                               form="updateForm">
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -182,7 +194,7 @@
                             </div>
                         </div>
                     </div>
-                    @if(!empty($command->getDefinition()))
+                    @if(filled($command->getDefinition()->getOptions()) || $command->getDefinition()->getArgumentCount())
                         <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
                             <div class="col-4">
                                 <label for="args">Args</label>
@@ -301,7 +313,7 @@
 <pre class="m-0">$schedule
     ->command({{ $command->getFullName() . '::class' . ($args ? ", {$args}" : '') }})
     ->{{ $item->time_method }}({{ $item->time_params ? "'{$item->time_params}'" : '' }}){{
-    $item->without_overlapping ? "\r\n    ->withoutOverlapping(2)" : ''
+    $item->without_overlapping ? "\r\n    ->withoutOverlapping(" . ($item->without_overlapping_time !== 1440 ? $item->without_overlapping_time : '') . ')' : ''
 }}{{ $item->run_in_background ? "\r\n    ->runInBackground()" : '' }}</pre>
                                         </td>
                                         <td @class($border)>
@@ -431,20 +443,26 @@
             }
             @endif
         }
+        function changeSystem(el) {
+            $(el).next().text(el.checked ? 'On' : 'Off');
+            if ($(el).attr('id') === 'without_overlapping') {
+                $('#without_overlapping_time').toggle();
+            }
+        }
         @if($schedule?->time_method)
-        changeMethod('{{ $schedule->time_method }}');
+            changeMethod('{{ $schedule->time_method }}');
         @endif
         @foreach(['run', 'without_overlapping', 'run_in_background'] as $key)
-        @if($schedule?->{$key})
-        $('#{{ $key }}').prop('checked', true)
-        @endif
+            @if($schedule?->{$key})
+                $('#{{ $key }}').prop('checked', true)
+            @endif
         @endforeach
         @if($schedule?->args)
-        @foreach($schedule->args as $key => $value)
-        @if(is_bool($value) && $value)
-        $('[name="args[{{ $key }}]"]').prop('checked', true);
-        @endif
-        @endforeach
+            @foreach($schedule->args as $key => $value)
+                @if(is_bool($value) && $value)
+                    $('[name="args[{{ $key }}]"]').prop('checked', true);
+                @endif
+            @endforeach
         @endif
     </script>
 @endsection
