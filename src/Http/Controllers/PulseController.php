@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Http\Controllers;
 
-use Throwable;
 use Exception;
-use App\Models\Post;
-use App\Models\Comment;
+use Throwable;
 use Illuminate\Http\Request;
+use Illuminate\Contracts\View\View;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Tkachikov\LaravelPulse\Models\Command;
 use Tkachikov\LaravelPulse\Models\Schedule;
 use Tkachikov\LaravelPulse\Models\CommandLog;
@@ -27,8 +27,16 @@ class PulseController extends Controller
     ) {
     }
 
-    public function index(Request $request)
-    {
+    /**
+     * @param Request $request
+     *
+     * @throws Exception
+     *
+     * @return View
+     */
+    public function index(
+        Request $request,
+    ): View {
         $commands = $request->has('sortKey')
             ? $this->commandService->getSorted(...$request->only(['sortKey', 'sortBy']))
             : $this->commandService->get();
@@ -39,8 +47,18 @@ class PulseController extends Controller
         ]);
     }
 
-    public function edit(Request $request, Command $command)
-    {
+    /**
+     * @param Request $request
+     * @param Command $command
+     *
+     * @throws Exception
+     *
+     * @return View
+     */
+    public function edit(
+        Request $request,
+        Command $command,
+    ): View {
         $decorator = $this->commandService->get($command->class);
         $schedule = $request->has('schedule')
             ? Schedule::findOrFail($request->integer('schedule'))
@@ -63,8 +81,16 @@ class PulseController extends Controller
         ]);
     }
 
-    public function update(Command $command, ScheduleSaveRequest $request)
-    {
+    /**
+     * @param Command             $command
+     * @param ScheduleSaveRequest $request
+     *
+     * @return RedirectResponse
+     */
+    public function update(
+        Command $command,
+        ScheduleSaveRequest $request,
+    ): RedirectResponse {
         $this->scheduleService->saveSchedule($request->validated());
 
         return redirect()
@@ -74,15 +100,31 @@ class PulseController extends Controller
             ]);
     }
 
-    public function destroy(Command $command, Schedule $schedule)
-    {
+    /**
+     * @param Command  $command
+     * @param Schedule $schedule
+     *
+     * @return RedirectResponse
+     */
+    public function destroy(
+        Command $command,
+        Schedule $schedule,
+    ): RedirectResponse {
         $schedule->delete();
 
         return redirect()->route('pulse.edit', $command);
     }
 
-    public function run(Command $command, ScheduleRunRequest $request)
-    {
+    /**
+     * @param Command            $command
+     * @param ScheduleRunRequest $request
+     *
+     * @return RedirectResponse
+     */
+    public function run(
+        Command $command,
+        ScheduleRunRequest $request,
+    ): RedirectResponse {
         try {
             dispatch(new CommandRunJob($command->class, $request->get('args', [])));
             $out = ['type' => 'success', 'message' => 'Command added in queue'];
