@@ -4,11 +4,9 @@ declare(strict_types=1);
 namespace Tkachikov\LaravelPulse\Providers;
 
 use Illuminate\Support\Facades\Auth;
-use Laravel\Telescope\IncomingEntry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Tkachikov\LaravelPulse\PulseAuthentication;
-use Tkachikov\LaravelPulse\Decorators\IncomeEntryDecorator;
 
 class LaravelPulseApplicationServiceProvider extends ServiceProvider
 {
@@ -26,7 +24,6 @@ class LaravelPulseApplicationServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->authorization();
-        $this->loadTelescopeDecorator();
     }
 
     /**
@@ -52,17 +49,5 @@ class LaravelPulseApplicationServiceProvider extends ServiceProvider
                 //
             ]);
         });
-    }
-
-    /**
-     * @return void
-     */
-    protected function loadTelescopeDecorator(): void
-    {
-        if (config('telescope.enabled')) {
-            $this->app->extend(IncomingEntry::class, function ($entry) {
-                return new IncomeEntryDecorator($entry->content, $entry->uuid);
-            });
-        }
     }
 }
