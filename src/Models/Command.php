@@ -12,8 +12,6 @@ class Command extends Model
 {
     use HasFactory;
 
-    protected $table = 'i_commands';
-
     protected $fillable = [
         'class',
     ];

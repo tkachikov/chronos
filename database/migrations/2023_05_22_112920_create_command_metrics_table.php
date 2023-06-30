@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('i_command_metrics', function (Blueprint $table) {
+        Schema::create('command_metrics', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('command_id');
             foreach (['time', 'memory'] as $type) {
@@ -23,6 +23,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('i_command_metrics');
+        Schema::dropIfExists('command_metrics');
     }
 };

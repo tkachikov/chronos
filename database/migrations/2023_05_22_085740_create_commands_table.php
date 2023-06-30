@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('i_commands', function (Blueprint $table) {
+        Schema::create('commands', function (Blueprint $table) {
             $table->id();
             $table->string('class');
             $table->timestamps();
@@ -18,6 +18,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('i_commands');
+        Schema::dropIfExists('commands');
     }
 };

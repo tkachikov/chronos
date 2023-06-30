@@ -61,64 +61,6 @@ class ScheduleService
     }
 
     /**
-     * @return array
-     */
-    public function getCommands(): array
-    {
-        if (!isset($this->commands)) {
-            $this->initCommands();
-        }
-
-        return $this->commands;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @throws Exception
-     *
-     * @return array
-     */
-    public function getForName(string $name): array
-    {
-        return $this->getFor($name, 'name');
-    }
-
-    /**
-     * @param string $class
-     *
-     * @throws Exception
-     *
-     * @return array
-     */
-    public function getForClass(string $class): array
-    {
-        return $this->getFor($class, 'class');
-    }
-
-    /**
-     * @param string $link
-     *
-     * @throws Exception
-     *
-     * @return array
-     */
-    public function getForLink(string $link): array
-    {
-        return $this->getFor($link, 'link');
-    }
-
-    /**
-     * @return array
-     */
-    public function getGroups(): array
-    {
-        return collect($this->getCommands())
-            ->groupBy('group')
-            ->toArray();
-    }
-
-    /**
      * @param string $sortKey
      * @param string $sortBy
      *
@@ -222,6 +164,29 @@ class ScheduleService
         }
 
         return $schedule;
+    }
+
+    /**
+     * @param string $class
+     * @param string $message
+     *
+     * @return void
+     */
+    public function updateWaitingRun(string $class, string $message): void
+    {
+        $run = CommandRun::query()
+            ->whereCommand($class)
+            ->whereState(CommandHandler::WAITING)
+            ->first();
+        if (!$run) {
+            return;
+        }
+        $run->update(['state' => CommandHandler::FAILURE]);
+        CommandLog::create([
+            'command_run_id' => $run->id,
+            'type' => 'error',
+            'message' => $message,
+        ]);
     }
 
     /**

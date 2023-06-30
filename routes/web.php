@@ -2,9 +2,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Tkachikov\LaravelPulse\Http\Controllers\CommandController;
+use Tkachikov\LaravelPulse\Http\Controllers\PulseController;
 
-Route::controller(CommandController::class)
+Route::controller(PulseController::class)
     ->name('pulse.')
     ->group(function () {
         Route::get('', 'index')->name('main');

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Jobs;
 
+use Throwable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Artisan;
@@ -66,5 +67,17 @@ class CommandRunJob implements ShouldQueue, ShouldBeUnique
             ->classBasename()
             ->prepend('_')
             ->toString();
+    }
+
+    /**
+     * @param Throwable $e
+     *
+     * @return void
+     */
+    public function failed(Throwable $e): void
+    {
+        /** @var ScheduleService $service */
+        $service = app(ScheduleService::class);
+        $service->updateWaitingRun($this->command, $e->getMessage());
     }
 }

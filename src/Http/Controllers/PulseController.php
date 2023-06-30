@@ -5,6 +5,8 @@ namespace Tkachikov\LaravelPulse\Http\Controllers;
 
 use Throwable;
 use Exception;
+use App\Models\Post;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Tkachikov\LaravelPulse\Models\Command;
@@ -12,53 +14,37 @@ use Tkachikov\LaravelPulse\Models\Schedule;
 use Tkachikov\LaravelPulse\Models\CommandLog;
 use Tkachikov\LaravelPulse\Models\CommandRun;
 use Tkachikov\LaravelPulse\Jobs\CommandRunJob;
-use Tkachikov\LaravelPulse\Services\ScheduleService;
+use Tkachikov\LaravelPulse\Services\CommandService;
 use Tkachikov\LaravelPulse\Http\Requests\ScheduleRunRequest;
 use Tkachikov\LaravelPulse\Http\Requests\ScheduleSaveRequest;
 
-class CommandController extends Controller
+class PulseController extends Controller
 {
     public function __construct(
-        public ScheduleService $service,
+        private readonly CommandService $commandService,
     ) {
     }
 
     public function index(Request $request)
     {
         $commands = $request->has('sortKey')
-            ? $this->service->getSorted(...$request->only(['sortKey', 'sortBy']))
-            : $this->service->getGroups();
+            ? $this->commandService->getSorted(...$request->only(['sortKey', 'sortBy']))
+            : $this->commandService->get();
 
         return view('pulse::index', [
             'commands' => $commands,
-            'times' => $this->service->getTimes(),
+            //'times' => $this->service->getTimes(),
         ]);
     }
 
-    public function edit(Request $request, int $id)
+    public function edit(Request $request, Command $command)
     {
-        $command = Command::findOrFail($id);
-        $commandInfo = $this->service->getForClass($command->class);
-        $viewData = [
-            'Short Name' => $commandInfo['shortName'],
-            'Name' => $commandInfo['name'],
-            'Description' => $commandInfo['description'],
-            'Class' => $commandInfo['class'],
-            'Signature' => $commandInfo['signature']['full'],
-        ];
-        foreach (['schedule', 'manual'] as $word) {
-            $prefix = 'runIn' . str($word)->studly()->toString();
-            $method = $prefix . 'Html';
-            $index = str($prefix)->headline()->lower()->ucfirst()->toString();
-            $viewData[$index] = method_exists($commandInfo['object'], $method)
-                ? $commandInfo['object']->$method()
-                : '<span class="text-success">Yes</span>';
-        }
+        $decorator = $this->commandService->get($command);
         $schedule = $request->has('schedule')
             ? Schedule::findOrFail($request->integer('schedule'))
             : null;
         $runs = CommandRun::query()
-            ->whereCommandId($id)
+            ->whereCommandId($command->id)
             ->orderByDesc('id')
             ->paginate(10);
         $logs = [];
@@ -67,9 +53,8 @@ class CommandController extends Controller
         }
 
         return view('pulse::edit', [
-            'command' => $commandInfo,
-            'data' => $viewData,
-            'times' => $this->service->getTimes(),
+            'command' => $decorator,
+            'times' => $this->commandService->getTimes(),
             'schedule' => $schedule,
             'runs' => $runs,
             'logs' => $logs,

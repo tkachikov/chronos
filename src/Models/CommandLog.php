@@ -8,8 +8,6 @@ use Tkachikov\LaravelPulse\Enums\TypeMessageEnum;
 
 class CommandLog extends Model
 {
-    protected $table = 'i_command_logs';
-
     protected $fillable = [
         'command_run_id',
         'type',

@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class CommandMetric extends Model
 {
-    protected $table = 'i_command_metrics';
-
     protected $fillable = [
         'class',
         'time_avg',

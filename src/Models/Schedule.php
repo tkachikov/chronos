@@ -14,8 +14,6 @@ class Schedule extends Model
 {
     use WithTrashedTrait;
 
-    protected $table = 'i_schedules';
-
     protected $fillable = [
         'command_id',
         'args',
