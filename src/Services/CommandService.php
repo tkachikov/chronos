@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Services;
 
-use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Database\Eloquent\Collection;
 use Tkachikov\LaravelPulse\Decorators\CommandDecorator;
 use Tkachikov\LaravelPulse\Models\Command as CommandModel;
-use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 class CommandService
 {

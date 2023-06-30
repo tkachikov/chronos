@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Repositories;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Tkachikov\LaravelPulse\Models\Schedule;
 use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
@@ -14,7 +15,10 @@ class ScheduleRepository
     ) {
     }
 
-    public function get()
+    /**
+     * @return Collection
+     */
+    public function get(): Collection
     {
         return $this->databaseHelper->hasConnect()
             && $this->databaseHelper->hasTable(Schedule::class)

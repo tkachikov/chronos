@@ -5,18 +5,11 @@ namespace Tkachikov\LaravelPulse\Services;
 
 use Exception;
 use Throwable;
-use Illuminate\Console\Parser;
-use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Symfony\Component\Finder\SplFileInfo;
-use Tkachikov\LaravelPulse\CommandHandler;
 use Tkachikov\LaravelPulse\Models\Schedule;
 use Tkachikov\LaravelPulse\Models\CommandLog;
 use Tkachikov\LaravelPulse\Models\CommandRun;
-use Tkachikov\LaravelPulse\Helpers\ClassHelper;
 use Tkachikov\LaravelPulse\Models\CommandMetric;
-use Symfony\Component\Console\Input\InputOption;
 use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
 use Tkachikov\LaravelPulse\Repositories\ScheduleRepository;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
@@ -112,12 +105,12 @@ class ScheduleService
     {
         $run = CommandRun::query()
             ->whereCommand($class)
-            ->whereState(CommandHandler::WAITING)
+            ->whereState(2)
             ->first();
         if (!$run) {
             return;
         }
-        $run->update(['state' => CommandHandler::FAILURE]);
+        $run->update(['state' => 1]);
         CommandLog::create([
             'command_run_id' => $run->id,
             'type' => 'error',
