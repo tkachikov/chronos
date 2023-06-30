@@ -24,14 +24,14 @@ class CommandService
     }
 
     /**
-     * @param CommandModel|null $commandModel
+     * @param string|null $class
      *
      * @return CommandDecorator|array
      */
-    public function get(?CommandModel $commandModel = null): CommandDecorator|array
+    public function get(?string $class = null): CommandDecorator|array
     {
-        return $commandModel
-            ? $this->commands[$commandModel->class]
+        return $class
+            ? $this->commands[$class]
             : $this->getSorted();
     }
 

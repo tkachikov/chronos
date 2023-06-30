@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Console\Commands;
 
-use Tkachikov\LaravelPulse\CommandHandler;
+use Illuminate\Console\Command;
 use Tkachikov\LaravelPulse\Enums\TypeMessageEnum;
+use Tkachikov\LaravelPulse\Traits\PulseRunnerTrait;
 
-class PulseTestCommand extends CommandHandler
+class PulseTestCommand extends Command
 {
+    use PulseRunnerTrait;
+
     protected $signature = 'pulse:test';
 
     protected $description = 'Command for testing';

@@ -311,7 +311,7 @@
                                         <td @class($border)>{{ $times[$item->time_method]['title'] . ($item->time_params ? " {$item->time_params}" : '') }}</td>
                                         <td @class($border)>
 <pre class="m-0">$schedule
-    ->command({{ $command->getFullName() . '::class' . ($args ? ", {$args}" : '') }})
+    ->command({{ $command->getClassName() . '::class' . ($args ? ", {$args}" : '') }})
     ->{{ $item->time_method }}({{ $item->time_params ? "'{$item->time_params}'" : '' }}){{
     $item->without_overlapping ? "\r\n    ->withoutOverlapping(" . ($item->without_overlapping_time !== 1440 ? $item->without_overlapping_time : '') . ')' : ''
 }}{{ $item->run_in_background ? "\r\n    ->runInBackground()" : '' }}</pre>

@@ -18,8 +18,7 @@ class CommandDecorator
 
     public function __construct(
         private readonly Command|SymfonyCommand $command,
-    )
-    {
+    ) {
     }
 
     /**

@@ -41,7 +41,7 @@ class PulseController extends Controller
 
     public function edit(Request $request, Command $command)
     {
-        $decorator = $this->commandService->get($command);
+        $decorator = $this->commandService->get($command->class);
         $schedule = $request->has('schedule')
             ? Schedule::findOrFail($request->integer('schedule'))
             : null;
