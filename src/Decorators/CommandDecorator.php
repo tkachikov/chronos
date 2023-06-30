@@ -8,7 +8,10 @@ use ReflectionObject;
 use ReflectionException;
 use Illuminate\Console\Command;
 use Tkachikov\LaravelPulse\Models\Command as CommandModel;
+use Tkachikov\LaravelPulse\Console\Commands\PulseTestCommand;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
+use Tkachikov\LaravelPulse\Console\Commands\PulseFreeLogsCommand;
+use Tkachikov\LaravelPulse\Console\Commands\PulseUpdateMetricsCommand;
 
 class CommandDecorator
 {
@@ -95,8 +98,6 @@ class CommandDecorator
     }
 
     /**
-     * @param Command $command
-     *
      * @return string
      */
     public function getDirectory(): string
@@ -152,7 +153,7 @@ class CommandDecorator
      */
     public function isSystem(): bool
     {
-        return !$this->isNotSystem($this->command);
+        return !$this->isNotSystem();
     }
 
     /**
@@ -161,6 +162,18 @@ class CommandDecorator
     public function isNotSystem(): bool
     {
         return str($this->command::class)->startsWith($this->commandPath);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPulseCommands(): bool
+    {
+        return in_array($this->command::class, [
+            PulseTestCommand::class,
+            PulseFreeLogsCommand::class,
+            PulseUpdateMetricsCommand::class,
+        ]);
     }
 
     /**

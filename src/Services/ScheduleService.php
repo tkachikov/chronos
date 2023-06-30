@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Services;
 
-use Exception;
 use Throwable;
 use Illuminate\Support\Facades\DB;
 use Tkachikov\LaravelPulse\Models\Schedule;
@@ -16,10 +15,6 @@ use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
 
 class ScheduleService
 {
-    private string $path = 'Console/Commands';
-
-    private array $commands;
-
     public function __construct(
         private readonly CommandService     $commandService,
         private readonly ScheduleRepository $scheduleRepository,
@@ -61,28 +56,6 @@ class ScheduleService
                 report($e);
             }
         }
-    }
-
-    /**
-     * @param string $sortKey
-     * @param string $sortBy
-     *
-     * @throws Exception
-     *
-     * @return array
-     */
-    public function getSorted(string $sortKey, string $sortBy = 'asc'): array
-    {
-        $sortBy = str($sortBy)->ucfirst()->toString();
-        if (!in_array($sortBy, ['Asc', 'Desc'])) {
-            throw new Exception('Not found method for sorting');
-        }
-        $sortMethod = 'sortBy' . ($sortBy === 'Desc' ? $sortBy : '');
-
-        return collect($this->getCommands())
-            ->{$sortMethod}(fn ($command) => $command['model']->metrics->$sortKey ?? ($sortBy === 'Asc' ? INF : -INF))
-            ->values()
-            ->toArray();
     }
 
     /**

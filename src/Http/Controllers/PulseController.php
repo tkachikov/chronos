@@ -35,7 +35,7 @@ class PulseController extends Controller
 
         return view('pulse::index', [
             'commands' => $commands,
-            //'times' => $this->service->getTimes(),
+            'times' => $this->commandService->getTimes(),
         ]);
     }
 

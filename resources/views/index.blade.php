@@ -43,7 +43,7 @@
                             @foreach($commands as $command)
                                 @php($border = ['border-bottom-0' => $loop->last])
                                 @php($directory = $command->getDirectory())
-                                @if($directory && $prevDirectory !== $directory)
+                                @if(!request('sortKey') && $directory && $prevDirectory !== $directory)
                                     @php($prevDirectory = $directory)
                                     <tr>
                                         <td colspan="13" class="border-bottom-0">

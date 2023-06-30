@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Services;
 
+use Exception;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Database\Eloquent\Collection;
 use Tkachikov\LaravelPulse\Decorators\CommandDecorator;
 use Tkachikov\LaravelPulse\Models\Command as CommandModel;
+use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 class CommandService
 {
@@ -15,14 +17,14 @@ class CommandService
 
     private array $systemCommands = [];
 
-    private Collection $models;
-
     public function __construct() {
         $this->init();
     }
 
     /**
      * @param string|null $class
+     *
+     * @throws Exception
      *
      * @return CommandDecorator|array
      */
@@ -34,14 +36,30 @@ class CommandService
     }
 
     /**
+     * @param string|null $sortKey
+     * @param string|null $sortBy
+     *
+     * @throws Exception
+     *
      * @return array
      */
-    public function getSorted(): array
+    public function getSorted(?string $sortKey = null, ?string $sortBy = null): array
     {
-        $commands = $this->commands;
-        ksort($commands);
+        if ($sortBy && !in_array($sortBy, ['asc', 'desc'])) {
+            throw new Exception('Not sort direction');
+        }
+        if (!$sortKey) {
+            $commands = $this->commands;
+            ksort($commands);
 
-        return $commands;
+            return $commands;
+        }
+        $sortMethod = 'sortBy' . ($sortBy === 'desc' ? 'Desc' : '');
+
+        return collect($this->commands)
+            ->$sortMethod(function ($decorator) use ($sortKey, $sortBy) {
+                return $decorator->getModel()->metrics->$sortKey ?? ($sortBy === 'asc' ? INF : -INF);
+            })->toArray();
     }
 
     /**
@@ -89,17 +107,19 @@ class CommandService
      */
     private function init(): void
     {
-        $this->models = CommandModel::get();
-        foreach (Artisan::all() as $name => $command) {
-            $decorateCommand = new CommandDecorator($command);
-            $hasModel = $this->models->firstWhere('class', $command::class);
+        $models = CommandModel::get()->keyBy('class');
+        /** @var Command|SymfonyCommand $command */
+        foreach (Artisan::all() as $command) {
+            $decorator = new CommandDecorator($command);
+            $hasModel = $models->get($command::class);
             if (!$hasModel) {
-                $this->models->push($decorateCommand->getModel());
+                $models->push($decorator->getModel());
             }
-            $property = $decorateCommand->isSystem()
-                ? 'systemCommands'
-                : 'commands';
-            $this->$property[$command::class] = $decorateCommand;
+            if ($decorator->isSystem() && !$decorator->isPulseCommands()) {
+                $this->systemCommands[$command::class] = $decorator;
+            } else {
+                $this->commands[$command::class] = $decorator;
+            }
         }
     }
 }
