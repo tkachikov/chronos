@@ -74,28 +74,24 @@ class PulseController extends Controller
             ]);
     }
 
-    public function destroy(int $command, int $schedule)
+    public function destroy(Command $command, Schedule $schedule)
     {
-        Schedule::find($schedule)->delete();
+        $schedule->delete();
 
         return redirect()->route('pulse.edit', $command);
     }
 
-    public function run(int $id, ScheduleRunRequest $request)
+    public function run(Command $command, ScheduleRunRequest $request)
     {
-        $commandInfo = $this->service->getForClass(Command::find($id)->class);
         try {
-            if (method_exists($commandInfo['object'], 'runInManual') && !$commandInfo['object']->runInManual()) {
-                throw new Exception('Not use in manual running');
-            }
-            dispatch(new CommandRunJob($commandInfo['class'], $request->get('args', [])));
+            dispatch(new CommandRunJob($command->class, $request->get('args', [])));
             $out = ['type' => 'success', 'message' => 'Command added in queue'];
         } catch (Throwable $e) {
             $out = ['type' => 'error', 'message' => $e->getMessage()];
         }
 
         return redirect()
-            ->route('pulse.edit', $id)
+            ->route('pulse.edit', $command)
             ->with(["{$out['type']}-message" => $out['message']]);
     }
 }

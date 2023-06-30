@@ -47,25 +47,6 @@ class CommandService
     }
 
     /**
-     * @return void
-     */
-    private function init(): void
-    {
-        $this->models = CommandModel::get();
-        foreach (Artisan::all() as $name => $command) {
-            $decorateCommand = new CommandDecorator($command);
-            $hasModel = $this->models->firstWhere('class', $command::class);
-            if (!$hasModel) {
-                $this->models->push($decorateCommand->getModel());
-            }
-            $property = $decorateCommand->isSystem()
-                ? 'systemCommands'
-                : 'commands';
-            $this->$property[$command::class] = $decorateCommand;
-        }
-    }
-
-    /**
      * Now support only one argument for time method
      *
      * @return array
@@ -103,5 +84,24 @@ class CommandService
             'yearly' => ['title' => 'Yearly', 'params' => false],
             // 'yearlyOn' => ['title' => 'Yearly on', 'params' => true],
         ];
+    }
+
+    /**
+     * @return void
+     */
+    private function init(): void
+    {
+        $this->models = CommandModel::get();
+        foreach (Artisan::all() as $name => $command) {
+            $decorateCommand = new CommandDecorator($command);
+            $hasModel = $this->models->firstWhere('class', $command::class);
+            if (!$hasModel) {
+                $this->models->push($decorateCommand->getModel());
+            }
+            $property = $decorateCommand->isSystem()
+                ? 'systemCommands'
+                : 'commands';
+            $this->$property[$command::class] = $decorateCommand;
+        }
     }
 }
