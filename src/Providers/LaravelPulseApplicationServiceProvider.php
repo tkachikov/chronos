@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Providers;
 
+use Illuminate\Support\Facades\Auth;
 use Laravel\Telescope\IncomingEntry;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -35,9 +36,9 @@ class LaravelPulseApplicationServiceProvider extends ServiceProvider
     {
         $this->gate();
 
-        PulseAuthentication::auth(function ($request) {
+        PulseAuthentication::auth(function () {
             return app()->environment('local')
-                || Gate::check('viewPulse', [$request->user]);
+                || Gate::check('viewPulse', [Auth::user()]);
         });
     }
 
