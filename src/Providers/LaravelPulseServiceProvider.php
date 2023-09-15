@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Tkachikov\LaravelPulse\Console\Commands\PulseTestCommand;
 use Tkachikov\LaravelPulse\Console\Commands\PulseInstallCommand;
 use Tkachikov\LaravelPulse\Console\Commands\PulseFreeLogsCommand;
+use Tkachikov\LaravelPulse\Console\Commands\PulseIndexUpdateCommand;
 use Tkachikov\LaravelPulse\Console\Commands\PulseUpdateMetricsCommand;
 
 class LaravelPulseServiceProvider extends ServiceProvider
@@ -40,6 +41,7 @@ class LaravelPulseServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 PulseInstallCommand::class,
+                PulseIndexUpdateCommand::class,
             ]);
         }
         $this->commands([

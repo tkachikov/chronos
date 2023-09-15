@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Traits;
 
+use Throwable;
 use Tkachikov\Memory\Memory as MemoryHelper;
 use Tkachikov\LaravelPulse\Models\CommandLog;
 use Tkachikov\LaravelPulse\Models\CommandRun;
@@ -19,17 +20,19 @@ trait PulseRunnerTrait
 
     public static int $maxLogSize = 1000;
 
-    private readonly MemoryHelper $memoryHelper;
+    private MemoryHelper $memoryHelper;
 
-    private readonly DatabaseHelper $databaseHelper;
+    private DatabaseHelper $databaseHelper;
 
-    private readonly CommandRun $run;
-    
+    private CommandRun $run;
+
     private array $logs = [];
 
     /**
-     * @param InputInterface  $input
+     * @param InputInterface $input
      * @param OutputInterface $output
+     *
+     * @throws Throwable
      *
      * @return int
      */
@@ -49,6 +52,9 @@ trait PulseRunnerTrait
         $this->appendLog(TypeMessageEnum::INFO, 'Finished command');
         $this->saveLogs();
         $this->updateRun($state);
+        if (isset($e)) {
+            throw $e;
+        }
 
         return $state;
     }
@@ -98,11 +104,12 @@ trait PulseRunnerTrait
             !$this->databaseHelper->hasConnect()
             || !$this->databaseHelper->hasTable(CommandModel::class)
             || !$this->databaseHelper->hasTable(CommandRun::class)
+            || !($model = CommandModel::firstWhere('class', $this::class))
         ) {
             return;
         }
         $this->run = CommandRun::create([
-            'command_id' => CommandModel::firstWhere('class', $this::class)->id,
+            'command_id' => $model->id,
             'schedule_id' => null,
             'state' => self::$waiting,
         ]);
@@ -132,6 +139,9 @@ trait PulseRunnerTrait
      */
     private function appendLog(TypeMessageEnum $type, string $message): void
     {
+        if (!isset($this->run)) {
+            return;
+        }
         $this->logs[] = [
             'command_run_id' => $this->run->id ?? null,
             'type' => $type->value,

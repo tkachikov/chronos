@@ -5,10 +5,11 @@ namespace Tkachikov\LaravelPulse\Console\Commands;
 
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
+use Tkachikov\LaravelPulse\Services\MigrationService;
 
 class PulseInstallCommand extends Command
 {
-    protected $signature = 'pulse:install';
+    protected $signature = 'pulse:install {--migrate}';
 
     protected $description = 'Install all Laravel Pulse resources';
 
@@ -24,6 +25,11 @@ class PulseInstallCommand extends Command
         $this->callSilent('vendor:publish', ['--tag' => 'pulse-config']);
 
         $this->registerLaravelPulseServiceProvider();
+
+        if ($this->option('migrate')) {
+            $this->comment('Reinstall migrations...');
+            $this->reinstallMigrations();
+        }
 
         return self::SUCCESS;
     }
@@ -60,5 +66,15 @@ class PulseInstallCommand extends Command
             "namespace {$namespace}\Providers;",
             file_get_contents(app_path('Providers/LaravelPulseServiceProvider.php'))
         ));
+    }
+
+    /**
+     * @return void
+     */
+    protected function reinstallMigrations(): void
+    {
+        $migrationService = app(MigrationService::class);
+        $migrationService->removeAll();
+        $migrationService->createAll();
     }
 }

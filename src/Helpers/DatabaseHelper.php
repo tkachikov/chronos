@@ -35,7 +35,8 @@ class DatabaseHelper
      */
     public function hasTable(Model|string $model): bool
     {
-        return Schema::hasTable($this->getTable($model));
+        return $this->hasConnect()
+            && Schema::hasTable($this->getTable($model));
     }
 
     /**
@@ -99,7 +100,7 @@ class DatabaseHelper
         return implode($separator, array_map(function ($arg) {
             return match(gettype($arg)) {
                 'string' => "'$arg'",
-                'object' => !($arg instanceof Expression) ?: $arg->getValue(app(Grammar::class)),
+                'object' => !($arg instanceof Expression) ?: $arg->getValue(DB::connection()->getQueryGrammar()),
                 default => $arg,
             };
         }, $args));

@@ -419,7 +419,7 @@
                             </table>
                             <div class="row w-100 mx-auto">
                                 <div class="col">
-                                    {{ $runs->appends(request()->query())->links() }}
+                                    {{ $runs->appends(request()->query())->links('pulse::pagination') }}
                                 </div>
                             </div>
                         </div>

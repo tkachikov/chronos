@@ -20,8 +20,7 @@ class ScheduleRepository
      */
     public function get(): Collection
     {
-        return $this->databaseHelper->hasConnect()
-            && $this->databaseHelper->hasTable(Schedule::class)
+        return $this->databaseHelper->hasTable(Schedule::class)
             ? Schedule::with('command')->whereRun(true)->get()
             : collect();
     }

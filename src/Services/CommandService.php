@@ -7,6 +7,7 @@ namespace Tkachikov\LaravelPulse\Services;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
 use Tkachikov\LaravelPulse\Decorators\CommandDecorator;
 use Tkachikov\LaravelPulse\Models\Command as CommandModel;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
@@ -17,8 +18,12 @@ class CommandService
 
     private array $systemCommands = [];
 
-    public function __construct() {
-        $this->init();
+    public function __construct(
+        private readonly DatabaseHelper $databaseHelper,
+    ) {
+        if ($this->databaseHelper->hasTable(CommandModel::class)) {
+            $this->init();
+        }
     }
 
     /**
@@ -49,10 +54,9 @@ class CommandService
             throw new Exception('Not sort direction');
         }
         if (!$sortKey) {
-            $commands = $this->commands;
-            ksort($commands);
-
-            return $commands;
+            return collect($this->commands)
+                ->sortBy(fn ($item) => $item->getDirectory())
+                ->toArray();
         }
         $sortMethod = 'sortBy' . ($sortBy === 'desc' ? 'Desc' : '');
 

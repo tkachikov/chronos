@@ -112,6 +112,10 @@ class CommandDecorator
         if ($group->startsWith('\\')) {
             $group = $group->substr(1);
         }
+        $pulsePath = 'Tkachikov\\LaravelPulse\\Console\\Commands';
+        if ($group->startsWith($pulsePath)) {
+            $group = $group->replace($pulsePath, 'Laravel Pulse');
+        }
 
         return $group->toString();
     }

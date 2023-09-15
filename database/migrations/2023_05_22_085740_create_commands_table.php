@@ -1,23 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Tkachikov\LaravelPulse\Services\MigrationService;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('commands', function (Blueprint $table) {
-            $table->id();
-            $table->string('class');
-            $table->timestamps();
-        });
+        app(MigrationService::class)->createCommands();
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('commands');
+        app(MigrationService::class)->removeCommands();
     }
 };

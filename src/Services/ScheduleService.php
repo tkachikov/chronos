@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace Tkachikov\LaravelPulse\Services;
 
+use Exception;
 use Throwable;
 use Illuminate\Support\Facades\DB;
+use Tkachikov\LaravelPulse\Models\Command;
 use Tkachikov\LaravelPulse\Models\Schedule;
 use Tkachikov\LaravelPulse\Models\CommandLog;
 use Tkachikov\LaravelPulse\Models\CommandRun;
@@ -25,10 +27,15 @@ class ScheduleService
     /**
      * @param ScheduleConsole $scheduleConsole
      *
+     * @throws Exception
+     *
      * @return void
      */
     public function schedule(ScheduleConsole $scheduleConsole): void
     {
+        if (blank($this->commandService->get())) {
+            return;
+        }
         foreach ($this->scheduleRepository->get() as $schedule) {
             try {
                 if (!class_exists($schedule->command->class)) {
@@ -76,8 +83,12 @@ class ScheduleService
      */
     public function updateWaitingRun(string $class, string $message): void
     {
+        $model = Command::firstWhere('class', $class);
+        if (!$model) {
+            return;
+        }
         $run = CommandRun::query()
-            ->whereCommand($class)
+            ->whereCommandId($model->id)
             ->whereState(2)
             ->first();
         if (!$run) {
