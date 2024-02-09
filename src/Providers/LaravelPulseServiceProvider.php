@@ -81,7 +81,7 @@ class LaravelPulseServiceProvider extends ServiceProvider
      */
     public function loadRoutes(): void
     {
-        Route::middlewareGroup('pulse', config('pulse.middlewares'));
+        Route::middlewareGroup('pulse', config('pulse.middlewares', []));
         Route::group([
             'domain' => config('pulse.domain'),
             'prefix' => 'pulse',
