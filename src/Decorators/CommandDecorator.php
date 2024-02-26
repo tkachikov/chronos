@@ -47,12 +47,17 @@ class CommandDecorator
 
     public function getShortName(): string
     {
-        return str($this->getFullName())->before('Command')->toString();
+        return str($this->getFullName())
+            ->before('Command')
+            ->after($this->getDirectory())
+            ->toString();
     }
 
     public function getFullName(): string
     {
-        return str($this->command::class)->classBasename()->toString();
+        return str($this->command::class)
+            ->classBasename()
+            ->toString();
     }
 
     public function getClassName(): string
@@ -133,6 +138,14 @@ class CommandDecorator
 
     private function notRun(string $attribute): bool
     {
-        return !empty((new ReflectionObject($this->command))->getAttributes($attribute));
+        $reflectionObject = new ReflectionObject($this->command);
+        foreach ($reflectionObject->getAttributes() as $reflectionAttribute) {
+            $basename = str($reflectionAttribute->getName())->classBasename();
+            if ($basename->is($attribute)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
