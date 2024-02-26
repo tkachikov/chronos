@@ -7,7 +7,7 @@ return [
 
     'middlewares' => [
         'web',
-        'auth',
+        // 'auth',
         // 'Tkachikov\Chronos\Http\Middleware\Authorize',
     ],
 ];

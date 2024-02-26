@@ -35,8 +35,34 @@ class Kernel extends ConsoleKernel
 
 ## Authorization
 
-For authorization in production set statements in `app/Providers/ChronosServiceProvider`, example:
+In defaults pages open for all users and also without auth middleware.
 
+For open setting pages for authenticated users need uncommented 'auth' middleware in config `chronos.php`:
+```php
+return [
+    'domain' => env('CHRONOS_DOMAIN'),
+
+    'middlewares' => [
+        'web',
+        'auth',
+        // 'Tkachikov\Chronos\Http\Middleware\Authorize',
+    ],
+];
+```
+
+
+For authorization in production uncommented Chronos auth in config `chronos.php` and set statements in `app/Providers/ChronosServiceProvider`:
+```php
+return [
+    'domain' => env('CHRONOS_DOMAIN'),
+
+    'middlewares' => [
+        'web',
+        'auth',
+        'Tkachikov\Chronos\Http\Middleware\Authorize',
+    ],
+];
+```
 ```php
 // ...
 class ChronosServiceProvider extends ChronosApplicationServiceProvider
@@ -53,7 +79,7 @@ class ChronosServiceProvider extends ChronosApplicationServiceProvider
 
 ## Usage
 
-Visit route `/route`, example: [localhost:8000/chronos](http://localhost:8000/chronos)
+Visit route `/chronos`, example: [localhost:8000/chronos](http://localhost:8000/chronos)
 
 ### For testing
 
