@@ -30,9 +30,6 @@ class ScheduleService
      */
     public function schedule(ScheduleConsole $scheduleConsole): void
     {
-        if (blank($this->commandService->get())) {
-            return;
-        }
         foreach ($this->scheduleRepository->get() as $schedule) {
             try {
                 if (!class_exists($schedule->command->class)) {
