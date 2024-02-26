@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse;
+namespace Tkachikov\Chronos;
 
 use Closure;
 
-class PulseAuthentication
+class ChronosAuthentication
 {
     public static Closure $auth;
 

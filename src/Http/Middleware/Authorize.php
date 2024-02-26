@@ -1,25 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Http\Middleware;
+namespace Tkachikov\Chronos\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
-use Tkachikov\LaravelPulse\PulseAuthentication;
+use Tkachikov\Chronos\ChronosAuthentication;
 
 class Authorize
 {
-    /**
-     * @param Request $request
-     * @param Closure $next
-     *
-     * @return Response|RedirectResponse
-     */
     public function handle(Request $request, Closure $next): Response|RedirectResponse
     {
-        return PulseAuthentication::check($request)
+        return ChronosAuthentication::check($request)
             ? $next($request)
             : abort(403);
     }

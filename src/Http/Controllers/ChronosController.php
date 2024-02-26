@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Http\Controllers;
+namespace Tkachikov\Chronos\Http\Controllers;
 
 use Exception;
 use Throwable;
@@ -9,17 +10,17 @@ use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
-use Tkachikov\LaravelPulse\Models\Command;
-use Tkachikov\LaravelPulse\Models\Schedule;
-use Tkachikov\LaravelPulse\Models\CommandLog;
-use Tkachikov\LaravelPulse\Models\CommandRun;
-use Tkachikov\LaravelPulse\Jobs\CommandRunJob;
-use Tkachikov\LaravelPulse\Services\CommandService;
-use Tkachikov\LaravelPulse\Services\ScheduleService;
-use Tkachikov\LaravelPulse\Http\Requests\ScheduleRunRequest;
-use Tkachikov\LaravelPulse\Http\Requests\ScheduleSaveRequest;
+use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Models\Schedule;
+use Tkachikov\Chronos\Models\CommandLog;
+use Tkachikov\Chronos\Models\CommandRun;
+use Tkachikov\Chronos\Jobs\CommandRunJob;
+use Tkachikov\Chronos\Services\CommandService;
+use Tkachikov\Chronos\Services\ScheduleService;
+use Tkachikov\Chronos\Http\Requests\ScheduleRunRequest;
+use Tkachikov\Chronos\Http\Requests\ScheduleSaveRequest;
 
-class PulseController extends Controller
+class ChronosController extends Controller
 {
     public function __construct(
         private readonly CommandService $commandService,
@@ -28,11 +29,7 @@ class PulseController extends Controller
     }
 
     /**
-     * @param Request $request
-     *
      * @throws Exception
-     *
-     * @return View
      */
     public function index(
         Request $request,
@@ -41,19 +38,14 @@ class PulseController extends Controller
             ? $this->commandService->getSorted(...$request->only(['sortKey', 'sortBy']))
             : $this->commandService->get();
 
-        return view('pulse::index', [
+        return view('chronos::index', [
             'commands' => $commands,
             'times' => $this->commandService->getTimes(),
         ]);
     }
 
     /**
-     * @param Request $request
-     * @param Command $command
-     *
      * @throws Exception
-     *
-     * @return View
      */
     public function edit(
         Request $request,
@@ -72,7 +64,7 @@ class PulseController extends Controller
             $logs[$run->id] = CommandLog::whereCommandRunId($run->id)->simplePaginate(5, pageName: "logs_{$run->id}");
         }
 
-        return view('pulse::edit', [
+        return view('chronos::edit', [
             'command' => $decorator,
             'times' => $this->commandService->getTimes(),
             'schedule' => $schedule,
@@ -81,12 +73,6 @@ class PulseController extends Controller
         ]);
     }
 
-    /**
-     * @param Command             $command
-     * @param ScheduleSaveRequest $request
-     *
-     * @return RedirectResponse
-     */
     public function update(
         Command $command,
         ScheduleSaveRequest $request,
@@ -94,33 +80,21 @@ class PulseController extends Controller
         $this->scheduleService->saveSchedule($request->validated());
 
         return redirect()
-            ->route('pulse.edit', [
+            ->route('chronos.edit', [
                 'command' => $command,
                 'schedule' => $request->get('id'),
             ]);
     }
 
-    /**
-     * @param Command  $command
-     * @param Schedule $schedule
-     *
-     * @return RedirectResponse
-     */
     public function destroy(
         Command $command,
         Schedule $schedule,
     ): RedirectResponse {
         $schedule->delete();
 
-        return redirect()->route('pulse.edit', $command);
+        return redirect()->route('chronos.edit', $command);
     }
 
-    /**
-     * @param Command            $command
-     * @param ScheduleRunRequest $request
-     *
-     * @return RedirectResponse
-     */
     public function run(
         Command $command,
         ScheduleRunRequest $request,
@@ -133,7 +107,7 @@ class PulseController extends Controller
         }
 
         return redirect()
-            ->route('pulse.edit', $command)
+            ->route('chronos.edit', $command)
             ->with(["{$out['type']}-message" => $out['message']]);
     }
 }

@@ -1,12 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Repositories;
+namespace Tkachikov\Chronos\Repositories;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Tkachikov\LaravelPulse\Models\Schedule;
-use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Models\Schedule;
+use Tkachikov\Chronos\Helpers\DatabaseHelper;
 
 class ScheduleRepository
 {
@@ -15,9 +16,6 @@ class ScheduleRepository
     ) {
     }
 
-    /**
-     * @return Collection
-     */
     public function get(): Collection
     {
         return $this->databaseHelper->hasTable(Schedule::class)
@@ -25,11 +23,6 @@ class ScheduleRepository
             : collect();
     }
 
-    /**
-     * @param array $params
-     *
-     * @return Schedule
-     */
     public function save(array $params): Schedule
     {
         $id = $params['id'] ?? null;

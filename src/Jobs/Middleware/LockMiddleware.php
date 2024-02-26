@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Jobs\Middleware;
+namespace Tkachikov\Chronos\Jobs\Middleware;
 
 use Throwable;
 use Illuminate\Support\Facades\Cache;
@@ -12,14 +13,9 @@ class LockMiddleware
     protected string $keyLock;
 
     /**
-     * Use blocking in parallels processes in Horizon
-     *
-     * @param $job
-     * @param $next
+     * @description Use blocking in parallels processes in Horizon
      *
      * @throws InvalidArgumentException
-     *
-     * @return mixed
      */
     public function handle($job, $next): mixed
     {
@@ -39,11 +35,6 @@ class LockMiddleware
         return null;
     }
 
-    /**
-     * @param $job
-     *
-     * @return void
-     */
     public function initKeyLock($job): void
     {
         $prefix = method_exists($job, 'uniqueId')

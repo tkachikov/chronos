@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Enums;
+namespace Tkachikov\Chronos\Enums;
 
 enum TypeMessageEnum: string
 {

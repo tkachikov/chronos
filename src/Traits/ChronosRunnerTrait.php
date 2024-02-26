@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Traits;
+namespace Tkachikov\Chronos\Traits;
 
 use Throwable;
 use Tkachikov\Memory\Memory as MemoryHelper;
-use Tkachikov\LaravelPulse\Models\CommandLog;
-use Tkachikov\LaravelPulse\Models\CommandRun;
-use Tkachikov\LaravelPulse\Enums\TypeMessageEnum;
-use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Models\CommandLog;
+use Tkachikov\Chronos\Models\CommandRun;
+use Tkachikov\Chronos\Enums\TypeMessageEnum;
+use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Tkachikov\LaravelPulse\Models\Command as CommandModel;
+use Tkachikov\Chronos\Models\Command as CommandModel;
 
-trait PulseRunnerTrait
+trait ChronosRunnerTrait
 {
     public static int $waiting = 2;
 
@@ -29,12 +29,7 @@ trait PulseRunnerTrait
     private array $logs = [];
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
      * @throws Throwable
-     *
-     * @return int
      */
     public function run(InputInterface $input, OutputInterface $output): int
     {
@@ -59,25 +54,12 @@ trait PulseRunnerTrait
         return $state;
     }
 
-    /**
-     * @param $string
-     * @param $verbosity
-     *
-     * @return void
-     */
     public function alert($string, $verbosity = null): void
     {
         parent::alert($string, $verbosity);
         $this->appendLog(TypeMessageEnum::ALERT, $string);
     }
 
-    /**
-     * @param $string
-     * @param $style
-     * @param $verbosity
-     *
-     * @return void
-     */
     public function line($string, $style = null, $verbosity = null): void
     {
         parent::line($string, $style, $verbosity);
@@ -86,18 +68,12 @@ trait PulseRunnerTrait
         }
     }
 
-    /**
-     * @return void
-     */
     private function initDi(): void
     {
         $this->memoryHelper = app(MemoryHelper::class);
         $this->databaseHelper = app(DatabaseHelper::class);
     }
 
-    /**
-     * @return void
-     */
     private function createRun(): void
     {
         if (
@@ -115,11 +91,6 @@ trait PulseRunnerTrait
         ]);
     }
 
-    /**
-     * @param int $state
-     *
-     * @return void
-     */
     private function updateRun(int $state): void
     {
         if (!isset($this->run)) {
@@ -131,12 +102,6 @@ trait PulseRunnerTrait
         ]);
     }
 
-    /**
-     * @param TypeMessageEnum $type
-     * @param string          $message
-     *
-     * @return void
-     */
     private function appendLog(TypeMessageEnum $type, string $message): void
     {
         if (!isset($this->run)) {
@@ -153,9 +118,6 @@ trait PulseRunnerTrait
         }
     }
 
-    /**
-     * @return void
-     */
     private function saveLogs(): void
     {
         if (

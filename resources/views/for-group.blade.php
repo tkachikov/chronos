@@ -6,7 +6,7 @@
         @endif
         <td @class($border) style="{{ request('sortKey') ?: 'padding-left: 50px;' }}">{{ $command['shortName'] }}</td>
         <td @class($border)>
-            <a class="btn btn-link text-decoration-none" href="{{ route('pulse.edit', $command['model']->id) }}">
+            <a class="btn btn-link text-decoration-none" href="{{ route('chronos.edit', $command['model']->id) }}">
                 {{ $command['signature']['name'] }}
             </a>
         </td>

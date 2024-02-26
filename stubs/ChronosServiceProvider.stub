@@ -1,27 +1,22 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Gate;
-use Tkachikov\LaravelPulse\Providers\LaravelPulseApplicationServiceProvider;
+use Tkachikov\Chronos\Providers\ChronosApplicationServiceProvider;
 
-class LaravelPulseServiceProvider extends LaravelPulseApplicationServiceProvider
+class ChronosServiceProvider extends ChronosApplicationServiceProvider
 {
-    /**
-     * @return void
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * @return void
-     */
     protected function gate(): void
     {
-        Gate::define('viewPulse', function ($user) {
+        Gate::define('viewChronos', function ($user) {
             return in_array($user->email, [
                 //
             ]);

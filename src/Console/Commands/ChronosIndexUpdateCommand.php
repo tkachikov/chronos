@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Console\Commands;
+namespace Tkachikov\Chronos\Console\Commands;
 
 use Doctrine\DBAL\Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 
-class PulseIndexUpdateCommand extends Command
+class ChronosIndexUpdateCommand extends Command
 {
-    protected $signature = 'pulse:update-indexes';
+    protected $signature = 'chronos:update-indexes';
 
     protected $description = 'Update command_runs and command_logs';
 
@@ -22,8 +22,6 @@ class PulseIndexUpdateCommand extends Command
 
     /**
      * @throws Exception
-     *
-     * @return int
      */
     public function handle(): int
     {
@@ -36,24 +34,13 @@ class PulseIndexUpdateCommand extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * @param string $table
-     * @param string $column
-     *
-     * @return void
-     */
     private function createIndex(string $table, string $column): void
     {
         Schema::table($table, fn (Blueprint $table) => $table->index([$column]));
     }
 
     /**
-     * @param string $table
-     * @param string $column
-     *
      * @throws Exception
-     *
-     * @return bool
      */
     public function indexNotExists(string $table, string $column): bool
     {
@@ -61,12 +48,7 @@ class PulseIndexUpdateCommand extends Command
     }
 
     /**
-     * @param string $table
-     * @param string $column
-     *
      * @throws Exception
-     *
-     * @return bool
      */
     private function indexExists(string $table, string $column): bool
     {
@@ -74,11 +56,7 @@ class PulseIndexUpdateCommand extends Command
     }
 
     /**
-     * @param string $table
-     *
      * @throws Exception
-     *
-     * @return array
      */
     private function getIndexes(string $table): array
     {

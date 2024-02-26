@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Models;
+namespace Tkachikov\Chronos\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Tkachikov\LaravelPulse\CommandHandler;
+use Tkachikov\Chronos\CommandHandler;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CommandRun extends Model
@@ -17,17 +18,11 @@ class CommandRun extends Model
         'memory',
     ];
 
-    /**
-     * @return HasMany
-     */
     public function logs(): HasMany
     {
         return $this->hasMany(CommandLog::class);
     }
 
-    /**
-     * @return string
-     */
     public function getStateTitleAttribute(): string
     {
         return [
@@ -37,9 +32,6 @@ class CommandRun extends Model
         ][$this->state ?? CommandHandler::WAITING];
     }
 
-    /**
-     * @return string
-     */
     public function getStateCssAttribute(): string
     {
         return [

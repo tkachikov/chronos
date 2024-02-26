@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Models;
+namespace Tkachikov\Chronos\Models;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
@@ -31,9 +32,6 @@ class Schedule extends Model
         'time_params' => 'array',
     ];
 
-    /**
-     * @return Attribute
-     */
     public function preparedArgs(): Attribute
     {
         return Attribute::make(
@@ -52,25 +50,16 @@ class Schedule extends Model
         );
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function command(): BelongsTo
     {
         return $this->belongsTo(Command::class);
     }
 
-    /**
-     * @return HasMany
-     */
     public function runs(): HasMany
     {
         return $this->hasMany(CommandRun::class, 'class', 'class');
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(Auth::user()::class);

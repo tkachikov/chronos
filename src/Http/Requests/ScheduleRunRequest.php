@@ -1,15 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Http\Requests;
+namespace Tkachikov\Chronos\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 class ScheduleRunRequest extends FormRequest
 {
-    /**
-     * @return void
-     */
     public function prepareForValidation(): void
     {
         $args = [];
@@ -19,9 +17,6 @@ class ScheduleRunRequest extends FormRequest
         $this->merge(['args' => $args]);
     }
 
-    /**
-     * @return array
-     */
     public function rules(): array
     {
         return [

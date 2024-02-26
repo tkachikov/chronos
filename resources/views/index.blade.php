@@ -1,8 +1,8 @@
-@extends('pulse::layout', ['title' => 'test'])
+@extends('chronos::layout', ['title' => 'test'])
 @section('content')
     <div class="row w-100 mx-auto mb-3">
         <div class="col px-0">
-            <a class="btn btn-link text-decoration-none" href="{{ route('pulse.main') }}">
+            <a class="btn btn-link text-decoration-none" href="{{ route('chronos.main') }}">
                 <h1 class="h1 m-0">Commands</h1>
             </a>
         </div>
@@ -54,7 +54,7 @@
                                 <tr>
                                     <td @class($border) style="{{ request('sortKey') ?: 'padding-left: 50px;' }}">{{ $command->getShortName() }}</td>
                                     <td @class($border)>
-                                        <a class="btn btn-link text-decoration-none" href="{{ route('pulse.edit', $command->getModel()) }}">
+                                        <a class="btn btn-link text-decoration-none" href="{{ route('chronos.edit', $command->getModel()) }}">
                                             {{ $command->getName() }}
                                         </a>
                                     </td>

@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Models;
+namespace Tkachikov\Chronos\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

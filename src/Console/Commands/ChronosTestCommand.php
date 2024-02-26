@@ -1,23 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Console\Commands;
+namespace Tkachikov\Chronos\Console\Commands;
 
 use Illuminate\Console\Command;
-use Tkachikov\LaravelPulse\Enums\TypeMessageEnum;
-use Tkachikov\LaravelPulse\Traits\PulseRunnerTrait;
+use Tkachikov\Chronos\Enums\TypeMessageEnum;
+use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 
-class PulseTestCommand extends Command
+class ChronosTestCommand extends Command
 {
-    use PulseRunnerTrait;
+    use ChronosRunnerTrait;
 
-    protected $signature = 'pulse:test';
+    protected $signature = 'chronos:test';
 
     protected $description = 'Command for testing';
 
-    /**
-     * @return int
-     */
     public function handle(): int
     {
         foreach (TypeMessageEnum::cases() as $type) {

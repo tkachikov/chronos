@@ -1,17 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Http\Requests;
+namespace Tkachikov\Chronos\Http\Requests;
 
-use Tkachikov\LaravelPulse\Models\Command;
+use Tkachikov\Chronos\Models\Command;
 use Illuminate\Foundation\Http\FormRequest;
-use Tkachikov\LaravelPulse\Models\Schedule;
+use Tkachikov\Chronos\Models\Schedule;
 
 class ScheduleSaveRequest extends FormRequest
 {
-    /**
-     * @return void
-     */
     public function prepareForValidation(): void
     {
         $this->merge([
@@ -26,9 +24,6 @@ class ScheduleSaveRequest extends FormRequest
         $this->merge(['args' => $args]);
     }
 
-    /**
-     * @return array
-     */
     public function rules(): array
     {
         return [

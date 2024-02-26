@@ -1,50 +1,39 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Providers;
+namespace Tkachikov\Chronos\Providers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Tkachikov\LaravelPulse\PulseAuthentication;
+use Tkachikov\Chronos\ChronosAuthentication;
 
-class LaravelPulseApplicationServiceProvider extends ServiceProvider
+class ChronosApplicationServiceProvider extends ServiceProvider
 {
-    /**
-     * @return void
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * @return void
-     */
     public function boot(): void
     {
         $this->authorization();
     }
 
-    /**
-     * @return void
-     */
     protected function authorization(): void
     {
         $this->gate();
 
-        PulseAuthentication::auth(function () {
+        ChronosAuthentication::auth(function () {
             return app()->environment('local')
-                || Gate::check('viewPulse', [Auth::user()]);
+                || Gate::check('viewChronos', [Auth::user()]);
         });
     }
 
-    /**
-     * @return void
-     */
     protected function gate(): void
     {
-        Gate::define('viewPulse', function ($user) {
+        Gate::define('viewChronos', function ($user) {
             return in_array($user->email, [
                 //
             ]);

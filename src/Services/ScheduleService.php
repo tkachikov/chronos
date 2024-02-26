@@ -1,18 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Services;
+namespace Tkachikov\Chronos\Services;
 
 use Exception;
 use Throwable;
 use Illuminate\Support\Facades\DB;
-use Tkachikov\LaravelPulse\Models\Command;
-use Tkachikov\LaravelPulse\Models\Schedule;
-use Tkachikov\LaravelPulse\Models\CommandLog;
-use Tkachikov\LaravelPulse\Models\CommandRun;
-use Tkachikov\LaravelPulse\Models\CommandMetric;
-use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
-use Tkachikov\LaravelPulse\Repositories\ScheduleRepository;
+use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Models\Schedule;
+use Tkachikov\Chronos\Models\CommandLog;
+use Tkachikov\Chronos\Models\CommandRun;
+use Tkachikov\Chronos\Models\CommandMetric;
+use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Repositories\ScheduleRepository;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
 
 class ScheduleService
@@ -25,11 +26,7 @@ class ScheduleService
     }
 
     /**
-     * @param ScheduleConsole $scheduleConsole
-     *
      * @throws Exception
-     *
-     * @return void
      */
     public function schedule(ScheduleConsole $scheduleConsole): void
     {
@@ -65,22 +62,11 @@ class ScheduleService
         }
     }
 
-    /**
-     * @param array  $input
-     *
-     * @return Schedule
-     */
     public function saveSchedule(array $input): Schedule
     {
         return $this->scheduleRepository->save($input);
     }
 
-    /**
-     * @param string $class
-     * @param string $message
-     *
-     * @return void
-     */
     public function updateWaitingRun(string $class, string $message): void
     {
         $model = Command::firstWhere('class', $class);
@@ -102,11 +88,6 @@ class ScheduleService
         ]);
     }
 
-    /**
-     * @param int $hours
-     *
-     * @return array
-     */
     public function freeLogs(int $hours = 24): array
     {
         $logs = [];
@@ -126,9 +107,6 @@ class ScheduleService
         return $logs;
     }
 
-    /**
-     * @return void
-     */
     public function updateMetrics(): void
     {
         $metrics = CommandMetric::query()
@@ -164,9 +142,7 @@ class ScheduleService
     }
 
     /**
-     * Values memory in Megabytes
-     *
-     * @return array
+     * @description Values memory in Megabytes
      */
     public function getStatistics(): array
     {

@@ -1,11 +1,11 @@
 {
-    "name": "tkachikov/laravel-pulse",
-    "description": "Settings commands for scheduling",
-    "keywords": ["laravel", "command", "schedule", "pulse"],
+    "name": "tkachikov/chronos",
+    "description": "Settings commands for Laravel Scheduling",
+    "keywords": ["laravel", "command", "schedule", "chronos"],
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Tkachikov\\LaravelPulse\\": "src/"
+            "Tkachikov\\Chronos\\": "src/"
         }
     },
     "authors": [
@@ -22,7 +22,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Tkachikov\\LaravelPulse\\Providers\\LaravelPulseServiceProvider"
+                "Tkachikov\\Chronos\\Providers\\ChronosServiceProvider"
             ]
         }
     }

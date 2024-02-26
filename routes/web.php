@@ -1,11 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Tkachikov\LaravelPulse\Http\Controllers\PulseController;
+use Tkachikov\Chronos\Http\Controllers\ChronosController;
 
-Route::controller(PulseController::class)
-    ->name('pulse.')
+Route::controller(ChronosController::class)
+    ->name('chronos.')
     ->group(function () {
         Route::get('', 'index')->name('main');
         Route::prefix('{command}')->group(function () {

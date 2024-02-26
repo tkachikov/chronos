@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 return [
-    'domain' => env('PULSE_DOMAIN'),
+    'domain' => env('CHRONOS_DOMAIN'),
 
     'middlewares' => [
         'web',
-        'Tkachikov\LaravelPulse\Http\Middleware\Authorize',
+        'Tkachikov\Chronos\Http\Middleware\Authorize',
         // 'auth',
     ],
 ];

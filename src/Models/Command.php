@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Models;
+namespace Tkachikov\Chronos\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,25 +17,16 @@ class Command extends Model
         'class',
     ];
 
-    /**
-     * @return HasMany
-     */
     public function schedules(): HasMany
     {
         return $this->hasMany(Schedule::class);
     }
 
-    /**
-     * @return HasMany
-     */
     public function runs(): HasMany
     {
         return $this->hasMany(CommandRun::class);
     }
 
-    /**
-     * @return HasOne
-     */
     public function metrics(): HasOne
     {
         return $this->hasOne(CommandMetric::class);

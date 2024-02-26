@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Tkachikov\LaravelPulse\Services\MigrationService;
+use Tkachikov\Chronos\Services\MigrationService;
 
 return new class extends Migration
 {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Services;
+namespace Tkachikov\Chronos\Services;
 
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Tkachikov\LaravelPulse\Helpers\DatabaseHelper;
-use Tkachikov\LaravelPulse\Decorators\CommandDecorator;
-use Tkachikov\LaravelPulse\Models\Command as CommandModel;
+use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Decorators\CommandDecorator;
+use Tkachikov\Chronos\Models\Command as CommandModel;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 class CommandService
@@ -27,11 +27,7 @@ class CommandService
     }
 
     /**
-     * @param string|null $class
-     *
      * @throws Exception
-     *
-     * @return CommandDecorator|array
      */
     public function get(?string $class = null): CommandDecorator|array
     {
@@ -49,12 +45,7 @@ class CommandService
     }
 
     /**
-     * @param string|null $sortKey
-     * @param string|null $sortBy
-     *
      * @throws Exception
-     *
-     * @return array
      */
     public function getSorted(?string $sortKey = null, ?string $sortBy = null): array
     {
@@ -75,9 +66,7 @@ class CommandService
     }
 
     /**
-     * Now support only one argument for time method
-     *
-     * @return array
+     * @description Now support only one argument for time method
      */
     public function getTimes(): array
     {
@@ -114,9 +103,6 @@ class CommandService
         ];
     }
 
-    /**
-     * @return void
-     */
     private function init(): void
     {
         $models = CommandModel::get()->keyBy('class');
@@ -127,7 +113,7 @@ class CommandService
             if (!$hasModel) {
                 $models->push($decorator->getModel());
             }
-            if ($decorator->isSystem() && !$decorator->isPulseCommands()) {
+            if ($decorator->isSystem() && !$decorator->isChronosCommands()) {
                 $this->systemCommands[$command::class] = $decorator;
             } else {
                 $this->commands[$command::class] = $decorator;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\LaravelPulse\Services;
+namespace Tkachikov\Chronos\Services;
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
@@ -19,9 +19,6 @@ class MigrationService
 
     public const SCHEDULES = 'schedules';
 
-    /**
-     * @return void
-     */
     public function createAll(): void
     {
         $this->createCommands();
@@ -31,9 +28,6 @@ class MigrationService
         $this->createSchedules();
     }
 
-    /**
-     * @return void
-     */
     public function removeAll(): void
     {
         $this->removeCommands();
@@ -43,9 +37,6 @@ class MigrationService
         $this->removeSchedules();
     }
 
-    /**
-     * @return void
-     */
     public function createCommands(): void
     {
         Schema::create(self::COMMANDS, function (Blueprint $table) {
@@ -55,9 +46,6 @@ class MigrationService
         });
     }
 
-    /**
-     * @return void
-     */
     public function createCommandRuns(): void
     {
         Schema::create(self::COMMAND_RUNS, function (Blueprint $table) {
@@ -71,9 +59,6 @@ class MigrationService
         });
     }
 
-    /**
-     * @return void
-     */
     public function createCommandLogs(): void
     {
         Schema::create(self::COMMAND_LOGS, function (Blueprint $table) {
@@ -85,9 +70,6 @@ class MigrationService
         });
     }
 
-    /**
-     * @return void
-     */
     public function createCommandMetrics(): void
     {
         Schema::create(self::COMMAND_METRICS, function (Blueprint $table) {
@@ -102,9 +84,6 @@ class MigrationService
         });
     }
 
-    /**
-     * @return void
-     */
     public function createSchedules(): void
     {
         Schema::create(self::SCHEDULES, function (Blueprint $table) {
@@ -122,51 +101,31 @@ class MigrationService
         });
     }
 
-    /**
-     * @return void
-     */
     public function removeCommands(): void
     {
         $this->drop(self::COMMANDS);
     }
 
-    /**
-     * @return void
-     */
     public function removeCommandRuns(): void
     {
         $this->drop(self::COMMAND_RUNS);
     }
 
-    /**
-     * @return void
-     */
     public function removeCommandLogs(): void
     {
         $this->drop(self::COMMAND_LOGS);
     }
 
-    /**
-     * @return void
-     */
     public function removeCommandMetrics(): void
     {
         $this->drop(self::COMMAND_METRICS);
     }
 
-    /**
-     * @return void
-     */
     public function removeSchedules(): void
     {
         $this->drop(self::SCHEDULES);
     }
 
-    /**
-     * @param string $table
-     *
-     * @return void
-     */
     private function drop(string $table): void
     {
         Schema::dropIfExists($table);

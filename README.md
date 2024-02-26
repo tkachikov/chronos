@@ -1,4 +1,4 @@
-## Laravel pulse
+## Chronos
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
@@ -8,18 +8,18 @@ This package for setting commands in schedule.
 
 Require this package with composer using the following command
 ```shell
-composer require tkachikov/laravel-pulse
+composer require tkachikov/chronos
 ```
 
-Run Laravel pulse command for install:
+Run Chronos command for install:
 ```shell
-php artisan pulse:install
+php artisan chronos:install
 ```
 
-Added Laravel pulse scheduler in `app/Console/Kernel.php`:
+Added Chronos scheduler in `app/Console/Kernel.php`:
 ```php
 // ...
-use Tkachikov\LaravelPulse\Services\ScheduleService;
+use Tkachikov\Chronos\Services\ScheduleService;
 
 // ...
 class Kernel extends ConsoleKernel
@@ -35,16 +35,16 @@ class Kernel extends ConsoleKernel
 
 ## Authorization
 
-For authorization in production set statements in `app/Providers/LaravelPulseServiceProvider`, example:
+For authorization in production set statements in `app/Providers/ChronosServiceProvider`, example:
 
 ```php
 // ...
-class LaravelPulseServiceProvider extends LaravelPulseApplicationServiceProvider
+class ChronosServiceProvider extends ChronosApplicationServiceProvider
 {
     // ...
     protected function gate(): void
     {
-        Gate::define('viewPulse', function ($user) {
+        Gate::define('viewChronos', function ($user) {
             return $user->hasRole('admin');
         });
     }
@@ -53,19 +53,19 @@ class LaravelPulseServiceProvider extends LaravelPulseApplicationServiceProvider
 
 ## Usage
 
-Visit route `/route`, example: [localhost:8000/pulse](http://localhost:8000/pulse)
+Visit route `/route`, example: [localhost:8000/chronos](http://localhost:8000/chronos)
 
 ### For testing
 
-Open `pulse:test` command:
+Open `chronos:test` command:
 ![Open test](images/open_test.png)
 
-Run `pulse:test` command:
+Run `chronos:test` command:
 ![Run test](images/run_test.png)
 
 ### Run attributes
 
-If you need off run command from Laravel Pulse dashboard (`notRunInManual`) or schedules (`notRunInSchedule`) set attributes:<br>
+If you need off run command from Chronos dashboard (`notRunInManual`) or schedules (`notRunInSchedule`) set attributes:<br>
 For example all off:
 ```php
 // ...
@@ -79,12 +79,12 @@ class TestCommand extends Command
 
 ### Logging and states
 
-For logging command messages and set status added trait `PulseRunnerTrait`:
+For logging command messages and set status added trait `ChronosRunnerTrait`:
 ```php
 // ...
 class TestCommand extends Command
 {
-    use PulseRunnerTrait;
+    use ChronosRunnerTrait;
     // ...
 }
 ```
@@ -99,7 +99,7 @@ For off command click button edit, check to off `Run` and save:
 
 ### Statistics
 
-For calculate statistics run commands you must create schedule for `pulse:update-metrics`
+For calculate statistics run commands you must create schedule for `chronos:update-metrics`
 
 ## License
 
