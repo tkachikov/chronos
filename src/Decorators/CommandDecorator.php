@@ -104,7 +104,8 @@ class CommandDecorator
 
     public function notRunInSchedule(): bool
     {
-        return $this->notRun(__FUNCTION__);
+        return $this->notRun(__FUNCTION__)
+            && $this->customNotRun(__FUNCTION__);
     }
 
     public function runInManual(): bool
@@ -114,7 +115,8 @@ class CommandDecorator
 
     public function notRunInManual(): bool
     {
-        return $this->notRun(__FUNCTION__);
+        return $this->notRun(__FUNCTION__)
+            && $this->customNotRun(__FUNCTION__);
     }
 
     public function isSystem(): bool
@@ -138,7 +140,8 @@ class CommandDecorator
 
     private function notRun(string $attribute): bool
     {
-        return in_array($attribute, $this->getAttributes());
+        return in_array($attribute, $this->getAttributes())
+            && $this->customNotRun(__FUNCTION__);
     }
 
     private function getAttributes(): array
@@ -147,5 +150,11 @@ class CommandDecorator
             fn ($attribute) => str($attribute->getName())->classBasename(),
             (new ReflectionObject($this->command))->getAttributes(),
         );
+    }
+
+    private function customNotRun(string $method): bool
+    {
+        return !method_exists($this->command, $method)
+            || $this->command->$method();
     }
 }
