@@ -138,14 +138,14 @@ class CommandDecorator
 
     private function notRun(string $attribute): bool
     {
-        $reflectionObject = new ReflectionObject($this->command);
-        foreach ($reflectionObject->getAttributes() as $reflectionAttribute) {
-            $basename = str($reflectionAttribute->getName())->classBasename();
-            if ($basename->is($attribute)) {
-                return true;
-            }
-        }
+        return in_array($attribute, $this->getAttributes());
+    }
 
-        return false;
+    private function getAttributes(): array
+    {
+        return array_map(
+            fn ($attribute) => str($attribute->getName())->classBasename(),
+            (new ReflectionObject($this->command))->getAttributes(),
+        );
     }
 }
