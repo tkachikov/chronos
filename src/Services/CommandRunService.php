@@ -33,7 +33,10 @@ class CommandRunService
     {
         $this->command = $command;
         $this->uuid = Str::uuid()->toString();
-        $this->appendLog('Init');
+        cache()->set($this->getKey(), [
+            'data' => [],
+            'status' => false,
+        ]);
         CommandRunRealTimeJob::dispatch($command, $this->uuid);
 
         return $this->uuid;
@@ -65,11 +68,7 @@ class CommandRunService
 
     private function runProcess(): int
     {
-        $this->appendLog('run');
-
         $this->process = $this->createProcess();
-
-        $this->appendLog('Start listening process...');
 
         $this->listen();
 
@@ -91,8 +90,6 @@ class CommandRunService
             ['file', Storage::path('chronos.log'), 'a'],
         ];
 
-        $this->appendLog("Command: {$this->getCliCommand()}");
-
         $process = proc_open(
             $this->getCliCommand(),
             $descriptions,
@@ -100,8 +97,6 @@ class CommandRunService
             null,
             null,
         );
-
-        $this->appendLog('Open process');
 
         if (!is_resource($process)) {
             throw new Exception('Command not running: ' . $this->getCliCommand());
@@ -154,10 +149,7 @@ class CommandRunService
 
     private function appendLog(string $log, bool $status = false): void
     {
-        $data = cache()->get($this->getKey()) ?? [
-            'data' => [],
-            'status' => false,
-        ];
+        $data = cache()->get($this->getKey());
         $data['data'][] = $log;
         if ($status) {
             $data['status'] = $status;

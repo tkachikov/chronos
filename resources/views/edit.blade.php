@@ -529,6 +529,8 @@
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     uuidForRunInRealTime = JSON.parse(xhr.responseText).uuid;
+                    logs = [];
+                    document.getElementById('terminal').innerHTML = '';
                     getLogs();
                 }
             };
@@ -550,8 +552,8 @@
                         let data = JSON.parse(xhr.responseText);
                         data.data.forEach((value, index) => {
                             if (!logs.hasOwnProperty(index)) {
-                                logs[index] = value;
-                                setLog(value);
+                                logs[index] = value.trim();
+                                setLog(value.trim());
                             }
                         });
                         console.log(data);
@@ -566,16 +568,18 @@
         }
         function setLog(message) {
             if (message === ':wait:') {
-                message = `<span id="entering" contenteditable="true" tabindex="0" style="outline: none;" class="w-100" onkeyup="sendAnswer(event)"></span>`;
+                message = `<span contenteditable="true" tabindex="0" style="outline: none; margin-left: 10px;" class="w-100 entering" onkeyup="sendAnswer(event)"></span>`;
                 document.querySelector('#terminal > div:last-child > div > pre').innerHTML += message;
-                setInterval(() => document.getElementById('entering').focus(), 500);
+                setInterval(() => document.querySelector('#terminal > div:last-child .entering').focus(), 500);
             } else {
-                message = `<div class="row mx-auto w-100 py-1"><div class="col pl-5"><pre>${message}</pre></div></div>`;
+                message = `<div class="row mx-auto w-100 py-1"><div class="col pl-5"><pre class="m-0">${message}</pre></div></div>`;
                 document.getElementById('terminal').innerHTML += message;
             }
         }
         function sendAnswer(event) {
             if (event.code === 'Enter') {
+                event.target.blur();
+                event.target.setAttribute('contenteditable', false);
                 var xhr = new XMLHttpRequest();
 
                 let commandId = '{{ $command->getModel()->id }}';
@@ -583,7 +587,7 @@
 
                 var formData = new FormData();
                 formData.append('_token', '{{ csrf_token() }}');
-                formData.append('answer', event.target.textContent.trim());
+                formData.append('answer', event.target.textContent);
 
                 xhr.send(formData);
             }
