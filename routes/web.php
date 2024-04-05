@@ -13,6 +13,11 @@ Route::controller(ChronosController::class)
             Route::get('', 'edit')->name('edit');
             Route::post('', 'update')->name('update');
             Route::post('run', 'run')->name('run');
+            Route::prefix('run-in-real-time')->name('runInRealTime.')->group(function () {
+                Route::post('', 'runInRealTime')->name('run');
+                Route::get('{uuid}/logs', 'getLogsForRunInRealTime')->name('logs');
+                Route::post('{uuid}/answer', 'setAnswerForRunning')->name('answer');
+            });
             Route::prefix('schedules')->name('schedules.')->group(function () {
                 Route::delete('{schedule}', 'destroy')->name('destroy');
             });

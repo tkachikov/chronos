@@ -7,6 +7,7 @@ namespace Tkachikov\Chronos\Decorators;
 use ReflectionObject;
 use ReflectionException;
 use Illuminate\Console\Command;
+use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
@@ -134,6 +135,7 @@ class CommandDecorator
         return in_array($this->command::class, [
             ChronosTestCommand::class,
             ChronosFreeLogsCommand::class,
+            ChronosAnswerTestCommand::class,
             ChronosUpdateMetricsCommand::class,
         ]);
     }

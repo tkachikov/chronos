@@ -12,7 +12,7 @@ use Tkachikov\Chronos\ChronosAuthentication;
 
 class Authorize
 {
-    public function handle(Request $request, Closure $next): Response|RedirectResponse
+    public function handle(Request $request, Closure $next)
     {
         return ChronosAuthentication::check($request)
             ? $next($request)
