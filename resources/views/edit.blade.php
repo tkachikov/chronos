@@ -98,7 +98,7 @@
                             <div class="col">Main information</div>
                             <div class="col text-end">
                                 @if($command->runInManual())
-                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#runCommandInRealTimeModal" onclick="setFocus()">
+                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#runCommandInRealTimeModal">
                                         @include('chronos::icons.play')
                                     </button>
                                     @if(
@@ -513,9 +513,6 @@
                 @endif
             @endforeach
         @endif
-        function setFocus() {
-            // setInterval(() => document.getElementById('entering').focus(), 500);
-        }
 
         var uuidForRunInRealTime;
         var logs = [];
@@ -570,7 +567,7 @@
             if (message === ':wait:') {
                 message = `<span contenteditable="true" tabindex="0" style="outline: none; margin-left: 10px;" class="w-100 entering" onkeyup="sendAnswer(event)"></span>`;
                 document.querySelector('#terminal > div:last-child > div > pre').innerHTML += message;
-                setInterval(() => document.querySelector('#terminal > div:last-child .entering').focus(), 500);
+                document.querySelector('#terminal > div:last-child .entering').focus();
             } else {
                 message = `<div class="row mx-auto w-100 py-1"><div class="col pl-5"><pre class="m-0">${message}</pre></div></div>`;
                 document.getElementById('terminal').innerHTML += message;

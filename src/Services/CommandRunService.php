@@ -125,7 +125,7 @@ class CommandRunService
             $error = null;
             if (stream_select($read, $write, $error, 0) > 0) {
                 $answerKey = $this->getKey() . '-answer';
-                if (!cache()->has($answerKey) && str_contains($in, "\n > ")) {
+                if (!cache()->has($answerKey) && str_contains($in, "\n >")) {
                     cache()->set($answerKey, 0);
                     $this->appendLog(':wait:');
                 }
