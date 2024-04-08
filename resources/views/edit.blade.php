@@ -37,6 +37,29 @@
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="runCommandInRealTimeModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        Args for run command
+                        <button type="button" data-bs-dismiss="modal" class="btn-close" aria-label="Close"></button>
+                    </div>
+                    <div class="text-center m-3 modal-body">
+                        @include('chronos::args', ['command' => $command, 'form' => 'runCommandInRealTime'])
+                        <div class="row mx-auto w-100">
+                            <div class="col">
+                                <div id="terminal" class="mx-auto text-start" style="width: 800px; height: 600px; background: black; color: white; overflow: auto;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">Close</button>
+                        <button id="runCommandInRealTime" class="btn btn-danger" onclick="runRealTime()">Run</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
     <div class="row w-100 mx-auto mb-3">
         <div class="col d-flex align-items-center">
@@ -59,12 +82,18 @@
                             <div class="col">Main information</div>
                             <div class="col text-end">
                                 @if($command->runInManual())
-                                    @if(!empty($command->getDefinition()))
-                                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#runCommandModal">
+                                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#runCommandInRealTimeModal">
+                                        @include('chronos::icons.play')
+                                    </button>
+                                    @if(
+                                        empty($command->getDefinition()->getArguments())
+                                        && empty($command->getDefinition()->getOptions())
+                                    )
+                                        <button type="submit" class="btn btn-success" form="runCommand">
                                             @include('chronos::icons.play')
                                         </button>
                                     @else
-                                        <button type="submit" class="btn btn-success" form="runCommand">
+                                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#runCommandModal">
                                             @include('chronos::icons.play')
                                         </button>
                                     @endif
@@ -468,5 +497,81 @@
                 @endif
             @endforeach
         @endif
+
+        var uuidForRunInRealTime;
+        var logs = [];
+
+        function runRealTime() {
+            var xhr = new XMLHttpRequest();
+
+            let commandId = '{{ $command->getModel()->id }}';
+            xhr.open('POST', `/chronos/${commandId}/run-in-real-time`, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    uuidForRunInRealTime = JSON.parse(xhr.responseText).uuid;
+                    logs = [];
+                    document.getElementById('terminal').innerHTML = '';
+                    getLogs();
+                }
+            };
+
+            var formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+
+            xhr.send(formData);
+        }
+        function getLogs() {
+            var timer = setInterval(() => {
+                var xhr = new XMLHttpRequest();
+
+                let commandId = '{{ $command->getModel()->id }}';
+                xhr.open('GET', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/logs`, true);
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        let data = JSON.parse(xhr.responseText);
+                        data.data.forEach((value, index) => {
+                            if (!logs.hasOwnProperty(index)) {
+                                logs[index] = value.trim();
+                                setLog(value.trim());
+                            }
+                        });
+                        console.log(data);
+                        if (data.status) {
+                            clearInterval(timer);
+                        }
+                    }
+                };
+
+                xhr.send();
+            }, 1000);
+        }
+        function setLog(message) {
+            if (message === ':wait:') {
+                message = `<span contenteditable="true" tabindex="0" style="outline: none; margin-left: 10px;" class="w-100 entering" onkeyup="sendAnswer(event)"></span>`;
+                document.querySelector('#terminal > div:last-child > div > pre').innerHTML += message;
+                document.querySelector('#terminal > div:last-child .entering').focus();
+            } else {
+                message = `<div class="row mx-auto w-100 py-1"><div class="col pl-5"><pre class="m-0">${message}</pre></div></div>`;
+                document.getElementById('terminal').innerHTML += message;
+            }
+        }
+        function sendAnswer(event) {
+            if (event.code === 'Enter') {
+                event.target.blur();
+                event.target.setAttribute('contenteditable', false);
+                var xhr = new XMLHttpRequest();
+
+                let commandId = '{{ $command->getModel()->id }}';
+                xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/answer`, true);
+
+                var formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('answer', event.target.textContent);
+
+                xhr.send(formData);
+            }
+        }
     </script>
 @endsection

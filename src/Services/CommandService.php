@@ -71,6 +71,18 @@ class CommandService
     public function getTimes(): array
     {
         return [
+            // 'cron' => ['title' => 'Cron', 'params' => true],
+
+            // Seconds section
+            'everySecond' => ['title' => 'Every second', 'params' => false],
+            'everyTwoSeconds' => ['title' => 'Every 2 seconds', 'params' => false],
+            'everyFiveSeconds' => ['title' => 'Every 5 seconds', 'params' => false],
+            'everyTenSeconds' => ['title' => 'Every 10 seconds', 'params' => false],
+            'everyFifteenSeconds' => ['title' => 'Every 15 seconds', 'params' => false],
+            'everyTwentySeconds' => ['title' => 'Every 20 seconds', 'params' => false],
+            'everyThirtySeconds' => ['title' => 'Every 30 seconds', 'params' => false],
+
+            // Minutes section
             'everyMinute' => ['title' => 'Every 1 minute', 'params' => false],
             'everyTwoMinutes' => ['title' => 'Every 2 minutes', 'params' => false],
             'everyThreeMinutes' => ['title' => 'Every 3 minutes', 'params' => false],
@@ -79,6 +91,8 @@ class CommandService
             'everyTenMinutes' => ['title' => 'Every 10 minutes', 'params' => false],
             'everyFifteenMinutes' => ['title' => 'Every 15 minutes', 'params' => false],
             'everyThirtyMinutes' => ['title' => 'Every 30 minutes', 'params' => false],
+
+            // Hours section
             'hourly' => ['title' => 'Every 1 hour', 'params' => false],
             'hourlyAt' => ['title' => 'Every hour at', 'params' => true],
             // 'everyOddHour' => ['title' => 'Every odd hour', 'params' => false],
@@ -86,18 +100,28 @@ class CommandService
             'everyThreeHours' => ['title' => 'Every 3 hour', 'params' => false],
             'everyFourHours' => ['title' => 'Every 4 hour', 'params' => false],
             'everySixHours' => ['title' => 'Every 6 hour', 'params' => false],
+
+            // Days section
             'daily' => ['title' => 'Daily', 'params' => false],
             'dailyAt' => ['title' => 'Daily at', 'params' => true],
             // 'twiceDaily' => ['title' => 'Twice daily', 'params' => true],
             // 'twiceDailyAt' => ['title' => 'Twice daily at', 'params' => true],
+
+            // Weeks section
             'weekly' => ['title' => 'Weekly', 'params' => false],
             // 'weeklyOn' => ['title' => 'Weekly on', 'params' => true],
+
+            // Months section
             'monthly' => ['title' => 'Monthly', 'params' => false],
             // 'monthlyOn' => ['title' => 'Monthly on', 'params' => true],
             // 'twiceMonthly' => ['title' => 'Twice monthly', 'params' => true],
             'lastDayOfMonth' => ['title' => 'Last of day month', 'params' => true],
+
+            // Quarters section
             'quarterly' => ['title' => 'Quarterly', 'params' => false],
             // 'quarterlyOn' => ['title' => 'Quarterly on', 'params' => true],
+
+            // Years section
             'yearly' => ['title' => 'Yearly', 'params' => false],
             // 'yearlyOn' => ['title' => 'Yearly on', 'params' => true],
         ];

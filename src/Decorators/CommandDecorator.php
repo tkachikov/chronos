@@ -7,6 +7,7 @@ namespace Tkachikov\Chronos\Decorators;
 use ReflectionObject;
 use ReflectionException;
 use Illuminate\Console\Command;
+use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
@@ -104,7 +105,8 @@ class CommandDecorator
 
     public function notRunInSchedule(): bool
     {
-        return $this->notRun(__FUNCTION__);
+        return $this->notRun(__FUNCTION__)
+            && $this->customNotRun(__FUNCTION__);
     }
 
     public function runInManual(): bool
@@ -114,7 +116,8 @@ class CommandDecorator
 
     public function notRunInManual(): bool
     {
-        return $this->notRun(__FUNCTION__);
+        return $this->notRun(__FUNCTION__)
+            && $this->customNotRun(__FUNCTION__);
     }
 
     public function isSystem(): bool
@@ -132,20 +135,28 @@ class CommandDecorator
         return in_array($this->command::class, [
             ChronosTestCommand::class,
             ChronosFreeLogsCommand::class,
+            ChronosAnswerTestCommand::class,
             ChronosUpdateMetricsCommand::class,
         ]);
     }
 
     private function notRun(string $attribute): bool
     {
-        $reflectionObject = new ReflectionObject($this->command);
-        foreach ($reflectionObject->getAttributes() as $reflectionAttribute) {
-            $basename = str($reflectionAttribute->getName())->classBasename();
-            if ($basename->is($attribute)) {
-                return true;
-            }
-        }
+        return in_array($attribute, $this->getAttributes())
+            && $this->customNotRun(__FUNCTION__);
+    }
 
-        return false;
+    private function getAttributes(): array
+    {
+        return array_map(
+            fn ($attribute) => str($attribute->getName())->classBasename(),
+            (new ReflectionObject($this->command))->getAttributes(),
+        );
+    }
+
+    private function customNotRun(string $method): bool
+    {
+        return !method_exists($this->command, $method)
+            || $this->command->$method();
     }
 }

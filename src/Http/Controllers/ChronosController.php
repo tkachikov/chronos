@@ -15,6 +15,7 @@ use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Jobs\CommandRunJob;
+use Tkachikov\Chronos\Services\CommandRunService;
 use Tkachikov\Chronos\Services\CommandService;
 use Tkachikov\Chronos\Services\ScheduleService;
 use Tkachikov\Chronos\Http\Requests\ScheduleRunRequest;
@@ -25,6 +26,7 @@ class ChronosController extends Controller
     public function __construct(
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
+        private readonly CommandRunService $commandRunService,
     ) {
     }
 
@@ -109,5 +111,25 @@ class ChronosController extends Controller
         return redirect()
             ->route('chronos.edit', $command)
             ->with(["{$out['type']}-message" => $out['message']]);
+    }
+
+    public function runInRealTime(
+        Command $command,
+    ) {
+        return response()->json([
+            'uuid' => $this->commandRunService->initRun($command),
+        ]);
+    }
+
+    public function getLogsForRunInRealTime(
+        Command $command,
+        string $uuid,
+    ) {
+        return response()->json($this->commandRunService->getLogs($command, $uuid));
+    }
+
+    public function setAnswerForRunning(Request $request, Command $command, string $uuid)
+    {
+        $this->commandRunService->setAnswer($command, $uuid, $request->string('answer')->toString());
     }
 }
