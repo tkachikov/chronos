@@ -49,22 +49,6 @@
                         <div class="row mx-auto w-100">
                             <div class="col">
                                 <div id="terminal" class="mx-auto text-start" style="width: 800px; height: 600px; background: black; color: white; overflow: auto;">
-                                    {{--
-                                    @for($i = 0; $i < 50; $i++)
-                                        <div class="row w-100 mx-auto py-1">
-                                            @if($i == 49)
-                                                <div class="col pl-5">
-                                                    <div class="d-flex">
-                                                        <div>{{ config('app.name') . '@chronos' }}:&nbsp;</div>
-                                                        <div id="entering" contenteditable="true" tabindex="0" style="outline: none;" class="w-100"></div>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <div class="col pl-5">test</div>
-                                            @endif
-                                        </div>
-                                    @endfor
-                                    --}}
                                 </div>
                             </div>
                         </div>
