@@ -98,7 +98,7 @@
                             <div class="col">Main information</div>
                             <div class="col text-end">
                                 @if($command->runInManual())
-                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#runCommandInRealTimeModal">
+                                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#runCommandInRealTimeModal">
                                         @include('chronos::icons.play')
                                     </button>
                                     @if(
