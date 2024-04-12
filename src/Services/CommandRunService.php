@@ -24,20 +24,23 @@ class CommandRunService
 
     private string $uuid;
 
+    private array $args;
+
     public function __construct(
         private readonly CommandService $commandService,
     ) {
     }
 
-    public function initRun(Command $command): string
+    public function initRun(Command $command, array $args): string
     {
         $this->command = $command;
+        $this->args = $args;
         $this->uuid = Str::uuid()->toString();
         cache()->set($this->getKey(), [
             'data' => [],
             'status' => false,
         ]);
-        CommandRunRealTimeJob::dispatch($command, $this->uuid);
+        CommandRunRealTimeJob::dispatch($command, $this->uuid, $this->args);
 
         return $this->uuid;
     }
@@ -57,9 +60,10 @@ class CommandRunService
         cache()->set($this->getKey() . '-answer', $answer);
     }
 
-    public function run(Command $command, string $uuid): int
+    public function run(Command $command, string $uuid, array $args = []): int
     {
         $this->command = $command;
+        $this->args = $args;
         $this->uuid = $uuid;
         $this->decorator = $this->commandService->get($command->class);
 
@@ -107,7 +111,7 @@ class CommandRunService
 
     private function getCliCommand(): string
     {
-        return 'php ' . base_path('artisan ' . $this->decorator->getSignature());
+        return 'php ' . base_path('artisan ' . $this->decorator->getNameWithArguments($this->args));
     }
 
     private function listen(): void

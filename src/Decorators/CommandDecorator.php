@@ -46,6 +46,13 @@ class CommandDecorator
         return $this->model;
     }
 
+    public function getNameWithArguments(array $args = []): string
+    {
+        $args = $this->getArgumentsForExec($args);
+
+        return $this->getName() . ($args ? " $args" : '');
+    }
+
     public function getShortName(): string
     {
         return str($this->getFullName())
@@ -158,5 +165,59 @@ class CommandDecorator
     {
         return !method_exists($this->command, $method)
             || $this->command->$method();
+    }
+
+    private function getArgumentsForExec(array $args = []): string
+    {
+        return implode(
+            ' ',
+            array_filter(
+                array_map(
+                    fn ($v, $k) => $this->prepareArgs($k, $v),
+                    $args,
+                    array_keys($args),
+                ),
+                fn ($v) => $v,
+            ),
+        );
+    }
+
+    private function prepareArgs(string $key, mixed $value): string
+    {
+        if (!$value) {
+            return '';
+        }
+
+        return isset($this->command->getDefinition()->getArguments()[$key])
+            ? $this->prepareArgument($value)
+            : $this->prepareOption($key, $value);
+    }
+
+    private function prepareArgument(mixed $value): string
+    {
+        return is_array($value)
+            ? implode(' ', $value)
+            : (string) $value;
+    }
+
+    private function prepareOption(string $key, mixed $value): string
+    {
+        $input = $this->command->getDefinition()->getOptions()[$key];
+
+        if (is_bool($input->getDefault()) && $value) {
+            return "--$key";
+        }
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        return implode(
+            ' ',
+            array_map(
+                fn ($v) => "--$key=$v",
+                $value,
+            ),
+        );
     }
 }

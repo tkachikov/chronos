@@ -115,9 +115,10 @@ class ChronosController extends Controller
 
     public function runInRealTime(
         Command $command,
+        ScheduleRunRequest $request,
     ) {
         return response()->json([
-            'uuid' => $this->commandRunService->initRun($command),
+            'uuid' => $this->commandRunService->initRun($command, $request->args ?? []),
         ]);
     }
 
