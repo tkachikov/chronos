@@ -45,7 +45,12 @@
                         <button type="button" data-bs-dismiss="modal" class="btn-close" aria-label="Close"></button>
                     </div>
                     <div class="text-center m-3 modal-body">
-                        @include('chronos::args', ['command' => $command, 'form' => 'runCommandInRealTime'])
+                        <div class="row mx-auto w-100 mb-5">
+                            <div class="col">
+                                @include('chronos::args', ['command' => $command, 'form' => 'runCommandInRealTime'])
+                            </div>
+                            <div class="col"></div>
+                        </div>
                         <div class="row mx-auto w-100">
                             <div class="col">
                                 <div id="terminal" class="mx-auto text-start" style="width: 800px; height: 600px; background: black; color: white; overflow: auto;">
@@ -518,6 +523,7 @@
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
+            document.querySelectorAll('[form=runCommandInRealTime]').forEach((v) => formData.append(v.name, v.value));
 
             xhr.send(formData);
         }
@@ -573,5 +579,7 @@
                 xhr.send(formData);
             }
         }
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
     </script>
 @endsection

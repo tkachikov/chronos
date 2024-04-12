@@ -28,6 +28,7 @@ class CommandRunRealTimeJob implements ShouldQueue, ShouldBeUnique
     public function __construct(
         private readonly Command $command,
         private readonly string $uuid,
+        private readonly array $args = [],
     ) {
     }
 
@@ -36,7 +37,7 @@ class CommandRunRealTimeJob implements ShouldQueue, ShouldBeUnique
         CommandRunService $commandRunService,
     ): void {
         if ($commandService->get($this->command->class)->runInManual()) {
-            $commandRunService->run($this->command, $this->uuid);
+            $commandRunService->run($this->command, $this->uuid, $this->args);
         }
     }
 
