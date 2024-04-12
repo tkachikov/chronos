@@ -12,6 +12,9 @@ class ScheduleRunRequest extends FormRequest
     {
         $args = [];
         foreach ($this->collect('args') as $key => $value) {
+            if (is_null($value)) {
+                continue;
+            }
             $args[$key] = $value === 'on' ?: $value;
         }
         $this->merge(['args' => $args]);

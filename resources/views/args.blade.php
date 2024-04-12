@@ -8,6 +8,7 @@
             $name = $prefix.$input->getName();
             $description = $input->getDescription();
             $default = $schedule?->args[$name] ?? $input->getDefault();
+            $required = method_exists($input, 'isRequired') && $input->isRequired();
             if (!$default) {
                 $default = '';
             }
@@ -31,7 +32,7 @@
         <div class="row w-100 mx-auto align-items-center">
             <div class="col">
                 <span {!! $descriptionAttributes !!} class="d-inline-block">
-                    @if($input->isRequired())
+                    @if($required)
                         <span class="position-absolute translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                     @endif
                     {{ $name }}
@@ -51,7 +52,7 @@
                                            value="{{ $defaultValue }}"
                                            form="{{ $form }}"
                                            hash="{{ $hash }}"
-                                            @required($input->isRequired())
+                                            @required($required)
                                     />
                                 @endforeach
                             @else
@@ -60,7 +61,7 @@
                                        class="form-control mb-2"
                                        value="{{ $default }}"
                                        form="{{ $form }}"
-                                        @required($input->isRequired())
+                                        @required($required)
                                 />
                             @endif
                         </div>
@@ -122,7 +123,7 @@
                                role="switch"
                                name="args[{{ $name }}]"
                                form="{{ $form }}"
-                               @required($input->isRequired())
+                               @required($required)
                         />
                     </div>
                 @endif
