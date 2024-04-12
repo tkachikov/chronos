@@ -102,7 +102,7 @@ class ChronosController extends Controller
         ScheduleRunRequest $request,
     ): RedirectResponse {
         try {
-            dispatch(new CommandRunJob($command->class, $request->get('args', [])));
+            dispatch(new CommandRunJob($command->class, $request->input('args', [])));
             $out = ['type' => 'success', 'message' => 'Command added in queue'];
         } catch (Throwable $e) {
             $out = ['type' => 'error', 'message' => $e->getMessage()];
@@ -118,7 +118,7 @@ class ChronosController extends Controller
         ScheduleRunRequest $request,
     ) {
         return response()->json([
-            'uuid' => $this->commandRunService->initRun($command, $request->args ?? []),
+            'uuid' => $this->commandRunService->initRun($command, $request->input('args', [])),
         ]);
     }
 

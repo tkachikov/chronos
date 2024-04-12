@@ -523,7 +523,11 @@
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
-            document.querySelectorAll('[form=runCommandInRealTime]').forEach((v) => formData.append(v.name, v.value));
+            document.querySelectorAll('[form=runCommandInRealTime]').forEach((v) => {
+                if (v.type !== 'checkbox' || v.checked) {
+                    formData.append(v.name, v.value);
+                }
+            });
 
             xhr.send(formData);
         }

@@ -202,6 +202,9 @@ class CommandDecorator
 
     private function prepareOption(string $key, mixed $value): string
     {
+        if (str_starts_with($key, '--')) {
+            $key = substr($key, 2);
+        }
         $input = $this->command->getDefinition()->getOptions()[$key];
 
         if (is_bool($input->getDefault()) && $value) {
