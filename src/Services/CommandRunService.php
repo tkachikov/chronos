@@ -6,7 +6,6 @@ namespace Tkachikov\Chronos\Services;
 
 use Exception;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
-use Tkachikov\Chronos\Jobs\CommandRunRealTimeJob;
 use Tkachikov\Chronos\Models\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -40,7 +39,14 @@ class CommandRunService
             'data' => [],
             'status' => false,
         ]);
-        CommandRunRealTimeJob::dispatch($command, $this->uuid, $this->args);
+        $uuid = Str::uuid()->toString();
+        cache()->set($uuid, [
+            'command_id' => $this->command->id,
+            'args' => $this->args,
+            'uuid' => $this->uuid,
+        ]);
+        $command = base_path('artisan chronos:run-background');
+        \exec("php $command $uuid > /dev/null 2>&1 &");
 
         return $this->uuid;
     }
@@ -66,6 +72,10 @@ class CommandRunService
         $this->args = $args;
         $this->uuid = $uuid;
         $this->decorator = $this->commandService->get($command->class);
+
+        if (!$this->decorator->runInManual()) {
+            return 1;
+        }
 
         return $this->runProcess();
     }
