@@ -56,12 +56,14 @@ trait ChronosRunnerTrait
 
     public function alert($string, $verbosity = null): void
     {
+        $string = $this->prepareMessage($string);
         parent::alert($string, $verbosity);
         $this->appendLog(TypeMessageEnum::ALERT, $string);
     }
 
     public function line($string, $style = null, $verbosity = null): void
     {
+        $string = $this->prepareMessage($string);
         parent::line($string, $style, $verbosity);
         if ($style !== TypeMessageEnum::COMMENT->value) {
             $this->appendLog(TypeMessageEnum::from($style), $string);
@@ -102,7 +104,7 @@ trait ChronosRunnerTrait
         ]);
     }
 
-    private function appendLog(TypeMessageEnum $type, string $message): void
+    private function appendLog(TypeMessageEnum $type, string|int|bool|float $message): void
     {
         if (!isset($this->run)) {
             return;
@@ -128,5 +130,12 @@ trait ChronosRunnerTrait
             CommandLog::insert($this->logs);
             $this->logs = [];
         }
+    }
+
+    private function prepareMessage(mixed $message): string|int|bool|float
+    {
+        return is_string($message) || is_numeric($message)
+            ? $message
+            : json_encode($message, JSON_PRETTY_PRINT);
     }
 }

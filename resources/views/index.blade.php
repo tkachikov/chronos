@@ -1,11 +1,13 @@
 @extends('chronos::layout', ['title' => 'test'])
 @section('content')
-    <div class="row w-100 mx-auto mb-3">
-        <div class="col px-0">
-            <a class="btn btn-link text-decoration-none" href="{{ route('chronos.main') }}">
-                <h1 class="h1 m-0">Commands</h1>
-            </a>
-        </div>
+    <div class="d-flex flex-row mb-3">
+        <a class="btn btn-link text-decoration-none" href="/">
+            <h1 class="h1 m-0">{{ config('app.name') }}</h1>
+        </a>
+        <span class="h4 m-0 py-3 text-muted">/</span>
+        <a class="btn btn-link text-decoration-none" href="{{ route('chronos.main') }}">
+            <h1 class="h1 m-0">Commands</h1>
+        </a>
     </div>
     <div class="row w-100 mx-auto">
         <div class="col">
@@ -30,9 +32,32 @@
                                     @php
                                         $sortKey = $type.'_'.$key;
                                         $sortBy = (request('sortBy') ?? 'asc') === 'asc' ? 'desc' : 'asc';
+                                        if (request('sortKey') !== $sortKey) {
+                                            $sortBy = 'asc';
+                                        }
                                     @endphp
                                     <th>
-                                        <a class="btn btn-link text-decoration-none" href="?{{ "sortKey=$sortKey&sortBy=$sortBy" }}">{{ str($key)->upper()->toString() }}</a>
+                                        <div class="row w-100 mx-auto">
+                                            <div class="col px-0">
+                                                <a @class(['btn', 'btn-outline-secondary', 'border-0'])
+                                                   href="?{{ "sortKey=$sortKey&sortBy=$sortBy" }}">
+                                                    {{ str($key)->upper()->toString() }}
+                                                </a>
+                                            </div>
+                                            @if (request('sortKey') === $sortKey)
+                                                <div class="col px-0">
+                                                    <div @class(['row', 'w-100', 'mx-auto', 'h-100', request('sortBy') === 'desc' ? 'align-items-end' : ''])>
+                                                        <div class="col px-0">
+                                                            @if (request('sortBy') === 'desc')
+                                                                <span class="d-inline-block text-muted" style="rotate: 90deg;">&#10140;</span>
+                                                            @else
+                                                                <span class="d-inline-block text-muted" style="rotate: -90deg;">&#10140;</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </th>
                                 @endforeach
                             @endforeach
