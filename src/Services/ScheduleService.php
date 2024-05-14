@@ -42,9 +42,12 @@ class ScheduleService
                 if (!$decorator->runInSchedule()) {
                     continue;
                 }
+                $args = is_null($schedule->time_params)
+                    ? []
+                    : [$schedule->time_params];
                 $event = $scheduleConsole
                     ->command($schedule->command->class, $schedule->preparedArgs)
-                    ->{$schedule->time_method}(...([$schedule->time_params] ?? []));
+                    ->{$schedule->time_method}(...$args);
                 $properties = [
                     'without_overlapping' => [$schedule->without_overlapping_time],
                     'run_in_background' => [],
