@@ -1,8 +1,29 @@
-## Chronos for Laravel
+<p align="center">
+    <img src="https://github.com/tkachikov/chronos/raw/master/images/logo.png" alt="Logo">
+</p>
 
-![Logo](images/logo.png)
+<p align="center">
+  <a href="https://packagist.org/packages/tkachikov/chronos"><img src="https://img.shields.io/packagist/v/tkachikov/chronos.svg" alt="Packagist Version"></a>
+  <a href="https://packagist.org/packages/tkachikov/chronos"><img src="https://img.shields.io/packagist/php-v/tkachikov/chronos.svg" alt="PHP from Packagist"></a>
+  <img src="https://img.shields.io/badge/Laravel-11.x-blue" alt="Laravel 11.x">
+  <img src="https://img.shields.io/badge/Laravel-10.x-blue" alt="Laravel 10.x">
+  <img src="https://img.shields.io/badge/Laravel-9.x-blue" alt="Laravel 9.x">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <a href="https://github.com/tkachikov/chronos/stargazers"><img src="https://img.shields.io/github/stars/tkachikov/chronos.svg?style=social" alt="GitHub stars"></a>
+  <a href="https://github.com/tkachikov/chronos/issues"><img src="https://img.shields.io/github/issues/tkachikov/chronos.svg" alt="GitHub issues"></a>
+  <a href="https://github.com/tkachikov/chronos/commits/main"><img src="https://img.shields.io/github/last-commit/tkachikov/chronos.svg" alt="GitHub last commit"></a>
+</p>
+
+This package for setting commands in schedule.
+
+## Upcoming Support
+
+We are excited to announce that support for **Laravel 11** is coming soon!
+
+Stay tuned for updates and make sure to watch this repository for the latest information.
 
 This package for setting commands in schedule.
 
