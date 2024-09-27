@@ -32,16 +32,17 @@ class CommandService
     public function get(?string $class = null): CommandDecorator|array
     {
         if ($class) {
-            if (!isset($this->commands[$class])) {
-                throw new Exception('Command not found');
-            }
-
             return $this->commands[$class];
         }
 
         return empty($this->commands)
             ? []
             : $this->getSorted();
+    }
+
+    public function exists(string $class): bool
+    {
+        return isset($this->commands[$class]);
     }
 
     /**

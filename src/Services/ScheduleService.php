@@ -38,6 +38,9 @@ class ScheduleService
                 if (!class_exists($schedule->command->class)) {
                     continue;
                 }
+                if (!$this->commandService->exists($schedule->command->class)) {
+                    continue;
+                }
                 $decorator = $this->commandService->get($schedule->command->class);
                 if (!$decorator->runInSchedule()) {
                     continue;
