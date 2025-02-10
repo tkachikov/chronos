@@ -74,16 +74,21 @@ class CommandService
     public function getTimes(): array
     {
         return [
-            // 'cron' => ['title' => 'Cron', 'params' => true],
+            'cron' => ['title' => 'Cron', 'params' => [
+                [
+                    'name' => 'custom cron',
+                    'default' => '* * * * *',
+                ],
+            ]],
 
             // Seconds section
-            'everySecond' => ['title' => 'Every second', 'params' => false],
-            'everyTwoSeconds' => ['title' => 'Every 2 seconds', 'params' => false],
-            'everyFiveSeconds' => ['title' => 'Every 5 seconds', 'params' => false],
-            'everyTenSeconds' => ['title' => 'Every 10 seconds', 'params' => false],
-            'everyFifteenSeconds' => ['title' => 'Every 15 seconds', 'params' => false],
-            'everyTwentySeconds' => ['title' => 'Every 20 seconds', 'params' => false],
-            'everyThirtySeconds' => ['title' => 'Every 30 seconds', 'params' => false],
+            'everySecond' => ['title' => 'Every second', 'params' => []],
+            'everyTwoSeconds' => ['title' => 'Every 2 seconds', 'params' => []],
+            'everyFiveSeconds' => ['title' => 'Every 5 seconds', 'params' => []],
+            'everyTenSeconds' => ['title' => 'Every 10 seconds', 'params' => []],
+            'everyFifteenSeconds' => ['title' => 'Every 15 seconds', 'params' => []],
+            'everyTwentySeconds' => ['title' => 'Every 20 seconds', 'params' => []],
+            'everyThirtySeconds' => ['title' => 'Every 30 seconds', 'params' => []],
 
             // Minutes section
             'everyMinute' => ['title' => 'Every 1 minute', 'params' => []],

@@ -540,6 +540,9 @@
 
         @if($schedule?->time_method)
         changeMethod('{{ $schedule->time_method }}');
+        @else
+        let firstMethod = Object.getOwnPropertyNames(methods)[0];
+        changeMethod(firstMethod);
         @endif
 
         @foreach(['run', 'without_overlapping', 'run_in_background'] as $key)
