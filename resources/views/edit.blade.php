@@ -410,7 +410,7 @@
                                     @php($border = ['border-bottom-0' => $loop->last])
                                     <tr>
                                         <td @class($border)>{{ $run->created_at }}</td>
-                                        <td @class($border)>{{ $run->updated_at->diffInSeconds($run->created_at) }}</td>
+                                        <td @class($border)>{{ $run->created_at->diffInSeconds($run->updated_at) }}</td>
                                         <td @class($border)>{{ $run->memory }}</td>
                                         <td @class($border)>{{ $run->schedule_id }}</td>
                                         <td @class($border)>
