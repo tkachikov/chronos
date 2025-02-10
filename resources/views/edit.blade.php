@@ -59,6 +59,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <span id="runMessageError" class="text-danger"></span>
                         <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">Close</button>
                         <button id="runCommandInRealTime" class="btn btn-danger" onclick="runRealTime()">Run</button>
                     </div>
@@ -559,17 +560,28 @@
         var logs = [];
 
         function runRealTime() {
+            $('#runMessageError').hide();
+
             var xhr = new XMLHttpRequest();
 
             let commandId = '{{ $command->getModel()->id }}';
             xhr.open('POST', `/chronos/${commandId}/run-in-real-time`, true);
 
             xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    uuidForRunInRealTime = JSON.parse(xhr.responseText).uuid;
-                    logs = [];
-                    document.getElementById('terminal').innerHTML = '';
-                    getLogs();
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        let answer = JSON.parse(xhr.responseText);
+
+                        if (answer.uuid !== null) {
+                            uuidForRunInRealTime = JSON.parse(xhr.responseText).uuid;
+                            logs = [];
+                            document.getElementById('terminal').innerHTML = '';
+                            getLogs();
+                        } else if (answer.message !== null) {
+                            $('#runMessageError').show();
+                            $('#runMessageError').text(answer.message);
+                        }
+                    }
                 }
             };
 
@@ -599,7 +611,6 @@
                                 setLog(value.trim());
                             }
                         });
-                        console.log(data);
                         if (data.status) {
                             clearInterval(timer);
                         }
