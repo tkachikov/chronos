@@ -35,6 +35,13 @@ class CommandRunService
         $this->command = $command;
         $this->args = $args;
         $this->uuid = Str::uuid()->toString();
+
+        if (cache()->has($this->getKeyInRealTime())) {
+            throw new Exception(message: 'Already run');
+        }
+
+        cache()->set($this->getKeyInRealTime(), 1, now()->addMinutes(5));
+
         cache()->set($this->getKey(), [
             'data' => [],
             'status' => false,
@@ -84,12 +91,18 @@ class CommandRunService
     {
         $this->process = $this->createProcess();
 
+        $this->appendLog('Process created');
+
         $this->listen();
 
         fclose($this->pipes[0]);
         fclose($this->pipes[1]);
 
-        return proc_close($this->process);
+        $status = proc_close($this->process);
+
+        cache()->delete($this->getKeyInRealTime());
+
+        return $status;
     }
 
     /**
@@ -126,6 +139,8 @@ class CommandRunService
 
     private function listen(): void
     {
+        $this->appendLog('Waiting messages...');
+
         stream_set_blocking($this->pipes[1], false);
 
         while (!feof($this->pipes[1])) {
@@ -159,6 +174,11 @@ class CommandRunService
     private function getKey(): string
     {
         return "chronos-commands-{$this->command->id}-$this->uuid";
+    }
+
+    private function getKeyInRealTime(): string
+    {
+        return 'chronos-commands-' . $this->command->id;
     }
 
     private function appendLog(string $log, bool $status = false): void

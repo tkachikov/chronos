@@ -59,6 +59,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <span id="runMessageError" class="text-danger"></span>
                         <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">Close</button>
                         <button id="runCommandInRealTime" class="btn btn-danger" onclick="runRealTime()">Run</button>
                     </div>
@@ -211,7 +212,7 @@
                                 Time
                             </label>
                         </div>
-                        <div class="col-8">
+                        <div class="col-8 px-0">
                             <div class="row w-100 mx-auto">
                                 <div class="col">
                                     <select id="time_method" class="form-control" name="time_method" form="updateForm" oninput="changeMethod(this.value)">
@@ -222,8 +223,30 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col">
-                                    <input id="time_params" type="text" name="time_params" class="form-control" form="updateForm" value="{{ $schedule?->time_params }}">
+                            </div>
+                            <div class="row w-100 mx-auto px-0 mt-3" id="time_params_container">
+                                <div class="col px-0">
+                                    @foreach($times as $method => $options)
+                                        @if($options['params'])
+                                            <div class="row w-100 mx-auto px-0" id="time_params_for_{{ $method }}">
+                                                @foreach($options['params'] as $key => $param)
+                                                    <div class="col">
+                                                        <label for="time_params[{{ $key }}]">
+                                                            {{ $param['name'] }}
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            id="time_params[{{ $key }}]"
+                                                            name="time_params[{{ $key }}]"
+                                                            class="form-control"
+                                                            form="updateForm"
+                                                            value="{{ $schedule?->time_params[$key] ?? $param['default'] ?? '' }}"
+                                                        >
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    @endforeach
                                 </div>
                             </div>
                         </div>
@@ -346,11 +369,26 @@
                                                     </span>
                                             </td>
                                         @endforeach
-                                        <td @class($border)>{{ $times[$item->time_method]['title'] . ($item->time_params ? " {$item->time_params}" : '') }}</td>
+                                        <td @class($border)>
+                                            {{ $times[$item->time_method]['title'] }}
+                                            @if($item->time_params)
+                                                @if(count($item->time_params) === 1)
+                                                    {{ $item->time_params[0] }}
+                                                @else
+                                                    @foreach($times[$item->time_method]['params'] as $key => $param)
+                                                        <div class="row w-100 mx-auto">
+                                                            <div class="px-0">
+                                                                {{ $param['name'] }}: {{ $item->time_params[$key] }}
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @endif
+                                            @endif
+                                        </td>
                                         <td @class($border)>
 <pre class="m-0">$schedule
     ->command({{ $command->getShortName() . '::class' . ($args ? ", {$args}" : '') }})
-    ->{{ $item->time_method }}({{ $item->time_params ? "'{$item->time_params}'" : '' }}){{
+    ->{{ $item->time_method }}({{ $item->time_params ? collect($item->time_params)->map(fn ($v) => "'$v'")->implode(', ') : '' }}){{
     $item->without_overlapping ? "\r\n    ->withoutOverlapping(" . ($item->without_overlapping_time !== 1440 ? $item->without_overlapping_time : '') . ')' : ''
 }}{{ $item->run_in_background ? "\r\n    ->runInBackground()" : '' }};</pre>
                                         </td>
@@ -410,7 +448,7 @@
                                     @php($border = ['border-bottom-0' => $loop->last])
                                     <tr>
                                         <td @class($border)>{{ $run->created_at }}</td>
-                                        <td @class($border)>{{ $run->updated_at->diffInSeconds($run->created_at) }}</td>
+                                        <td @class($border)>{{ $run->created_at->diffInSeconds($run->updated_at) }}</td>
                                         <td @class($border)>{{ $run->memory }}</td>
                                         <td @class($border)>{{ $run->schedule_id }}</td>
                                         <td @class($border)>
@@ -470,31 +508,49 @@
 @section('footer_scripts')
     <script>
         var methods = {{ Js::from($times) }};
-        $('#time_params').parent().hide();
-        function changeMethod(method) {
-            $('#time_params').parent()[methods[method]['params'] ? 'show' : 'hide']();
-            @if($schedule?->time_params)
-            if (method == {{ Js::from($schedule->time_method) }}) {
-                $('#time_params').val({{ Js::from($schedule->time_params) }});
-            } else {
-                $('#time_params').val('');
-            }
-            @endif
+
+        function resetMethodParams() {
+            $('#time_params_container').hide();
+            $('#time_params_container [id*="time_params_for_"]').hide();
+            $('#time_params_container input').prop('disabled', true);
         }
+
+        function changeMethod(method) {
+            let hasParams = methods[method]['params'].length !== 0;
+
+            resetMethodParams();
+
+            if (!hasParams) {
+                return;
+            }
+
+            $('#time_params_container').show();
+            $(`#time_params_container [id="time_params_for_${method}"]`).show();
+            $(`#time_params_container [id="time_params_for_${method}"] input`).prop('disabled', false);
+        }
+
         function changeSystem(el) {
             $(el).next().text(el.checked ? 'On' : 'Off');
             if ($(el).attr('id') === 'without_overlapping') {
                 $('#without_overlapping_time').toggle();
             }
         }
+
+        resetMethodParams();
+
         @if($schedule?->time_method)
-            changeMethod('{{ $schedule->time_method }}');
+        changeMethod('{{ $schedule->time_method }}');
+        @else
+        let firstMethod = Object.getOwnPropertyNames(methods)[0];
+        changeMethod(firstMethod);
         @endif
+
         @foreach(['run', 'without_overlapping', 'run_in_background'] as $key)
             @if($schedule?->{$key})
                 $('#{{ $key }}').prop('checked', true)
             @endif
         @endforeach
+
         @if($schedule?->args)
             @foreach($schedule->args as $key => $value)
                 @if(is_bool($value) && $value)
@@ -507,17 +563,29 @@
         var logs = [];
 
         function runRealTime() {
+            $('#runMessageError').hide();
+            $('#runCommandInRealTime').prop('disabled', true);
+
             var xhr = new XMLHttpRequest();
 
             let commandId = '{{ $command->getModel()->id }}';
             xhr.open('POST', `/chronos/${commandId}/run-in-real-time`, true);
 
             xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    uuidForRunInRealTime = JSON.parse(xhr.responseText).uuid;
-                    logs = [];
-                    document.getElementById('terminal').innerHTML = '';
-                    getLogs();
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        let answer = JSON.parse(xhr.responseText);
+
+                        if (answer.uuid !== null) {
+                            uuidForRunInRealTime = JSON.parse(xhr.responseText).uuid;
+                            logs = [];
+                            document.getElementById('terminal').innerHTML = '';
+                            getLogs();
+                        } else if (answer.message !== null) {
+                            $('#runMessageError').show();
+                            $('#runMessageError').text(answer.message);
+                        }
+                    }
                 }
             };
 
@@ -547,9 +615,10 @@
                                 setLog(value.trim());
                             }
                         });
-                        console.log(data);
                         if (data.status) {
                             clearInterval(timer);
+                            $('#runMessageError').hide();
+                            $('#runCommandInRealTime').prop('disabled', false);
                         }
                     }
                 };
