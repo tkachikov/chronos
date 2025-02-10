@@ -34,7 +34,7 @@ class ScheduleSaveRequest extends FormRequest
             'without_overlapping_time' => ['required', 'integer'],
             'run_in_background' => ['required', 'boolean'],
             'time_method' => ['required', 'string'],
-            'time_params' => ['nullable', 'string'],
+            'time_params' => ['nullable', 'array', 'min:0', 'max:3'],
             'args' => ['nullable'],
         ];
     }

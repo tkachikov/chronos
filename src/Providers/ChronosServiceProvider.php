@@ -13,6 +13,7 @@ use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosFreeLogsCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosIndexUpdateCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosUpdateTimeParamsCommand;
 
 class ChronosServiceProvider extends ServiceProvider
 {
@@ -37,6 +38,7 @@ class ChronosServiceProvider extends ServiceProvider
                 ChronosInstallCommand::class,
                 ChronosIndexUpdateCommand::class,
                 ChronosRunBackgroundCommand::class,
+                ChronosUpdateTimeParamsCommand::class,
             ]);
         }
         $this->commands([

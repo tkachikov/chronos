@@ -45,9 +45,7 @@ class ScheduleService
                 if (!$decorator->runInSchedule()) {
                     continue;
                 }
-                $args = is_null($schedule->time_params)
-                    ? []
-                    : [$schedule->time_params];
+                $args = $schedule->time_params ?? [];
                 $event = $scheduleConsole
                     ->command($schedule->command->class, $schedule->preparedArgs)
                     ->{$schedule->time_method}(...$args);
