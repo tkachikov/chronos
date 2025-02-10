@@ -561,6 +561,7 @@
 
         function runRealTime() {
             $('#runMessageError').hide();
+            $('#runCommandInRealTime').prop('disabled', true);
 
             var xhr = new XMLHttpRequest();
 
@@ -613,6 +614,8 @@
                         });
                         if (data.status) {
                             clearInterval(timer);
+                            $('#runMessageError').hide();
+                            $('#runCommandInRealTime').prop('disabled', false);
                         }
                     }
                 };
