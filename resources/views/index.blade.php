@@ -99,7 +99,12 @@
                                             @if($command->getModel()->schedules->count())
                                                 @foreach($command->getModel()->schedules as $schedule)
                                                     <tr>
-                                                        <td @class(['border-bottom-0' => $loop->last])>{{ $times[$schedule->time_method]['title'] . ($schedule->time_params ? " {$schedule->time_params}" : '') }}</td>
+                                                        <td @class(['border-bottom-0' => $loop->last])>
+                                                            {{ $times[$schedule->time_method]['title'] }}
+                                                            @if($schedule->time_params)
+                                                                {{ implode(', ', $schedule->time_params) }}
+                                                            @endif
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             @else
