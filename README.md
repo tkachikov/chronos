@@ -29,7 +29,7 @@ composer require tkachikov/chronos
 
 Run Chronos command for install:
 ```shell
-php artisan chronos:install
+php artisan chronos:install --migrate
 ```
 
 Added Chronos scheduler in `app/Console/Kernel.php`:
