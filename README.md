@@ -5,6 +5,7 @@
 <p align="center">
   <a href="https://packagist.org/packages/tkachikov/chronos"><img src="https://img.shields.io/packagist/v/tkachikov/chronos.svg" alt="Packagist Version"></a>
   <a href="https://packagist.org/packages/tkachikov/chronos"><img src="https://img.shields.io/packagist/php-v/tkachikov/chronos.svg" alt="PHP from Packagist"></a>
+  <img src="https://img.shields.io/badge/Laravel-12.x-blue" alt="Laravel 12.x">
   <img src="https://img.shields.io/badge/Laravel-11.x-blue" alt="Laravel 11.x">
   <img src="https://img.shields.io/badge/Laravel-10.x-blue" alt="Laravel 10.x">
   <img src="https://img.shields.io/badge/Laravel-9.x-blue" alt="Laravel 9.x">
@@ -36,7 +37,7 @@ composer require tkachikov/chronos
 
 Run Chronos command for install:
 ```shell
-php artisan chronos:install
+php artisan chronos:install --migrate
 ```
 
 Added Chronos scheduler in `app/Console/Kernel.php`:
