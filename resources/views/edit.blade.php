@@ -86,29 +86,31 @@
                     <h2 class="h2 m-0 text-muted">
                         <div class="row w-100 mx-auto">
                             <div class="col">Main information</div>
-                            <div class="col text-end">
-                                @if($command->runInManual())
-                                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#runCommandInRealTimeModal">
-                                        @include('chronos::icons.play')
-                                    </button>
-                                    @if(
-                                        empty($command->getDefinition()->getArguments())
-                                        && empty($command->getDefinition()->getOptions())
-                                    )
-                                        <button type="submit" class="btn btn-success" form="runCommand">
-                                            @include('chronos::icons.play')
-                                        </button>
-                                    @else
-                                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#runCommandModal">
-                                            @include('chronos::icons.play')
-                                        </button>
-                                    @endif
-                                @endif
-                            </div>
                         </div>
                     </h2>
                 </div>
                 <div class="card-body">
+                    @if($command->runInManual())
+                        <div class="row w-100 mx-auto py-3 align-items-center">
+                            <div class="col text-center">
+                                <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#runCommandInRealTimeModal">
+                                    Run in real time
+                                </button>
+                                @if(
+                                    empty($command->getDefinition()->getArguments())
+                                    && empty($command->getDefinition()->getOptions())
+                                )
+                                    <button type="submit" class="btn btn-success" form="runCommand">
+                                        Run from queue
+                                    </button>
+                                @else
+                                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#runCommandModal">
+                                        Run from queue
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                     <div class="row w-100 mx-auto py-3 align-items-center">
                         <div class="col-4">Short name</div>
                         <div class="col-8">{{ $command->getShortName() }}</div>
