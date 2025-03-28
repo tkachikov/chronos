@@ -102,8 +102,11 @@ Visit route `/chronos`, example: [localhost:8000/chronos](http://localhost:8000/
 Open `chronos:test` command:
 ![Open test](images/open_test.png)
 
-Run `chronos:test` command:
+Run `chronos:test` command from queue:
 ![Run test](images/run_test.png)
+
+Run `chronos:test` command in real time. Out messages pushing in custom terminal:
+![Run test](images/run_in_real_time.png)
 
 ### Run attributes
 
