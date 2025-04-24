@@ -24,6 +24,7 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadCommands();
         $this->loadPublishing();
         $this->loadMigrations();
+        $this->loadTranslations();
     }
 
     public function register(): void
@@ -84,5 +85,10 @@ class ChronosServiceProvider extends ServiceProvider
     public function loadViews(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'chronos');
+    }
+
+    public function loadTranslations(): void
+    {
+        $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', 'chronos');
     }
 }

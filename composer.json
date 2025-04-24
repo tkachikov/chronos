@@ -19,6 +19,9 @@
         "tkachikov/memory": "^1.2",
         "tkachikov/laravel-withtrashed": "^1.0"
     },
+    "require-dev": {
+        "laravel/framework": "^12.10"
+    },
     "extra": {
         "laravel": {
             "providers": [
