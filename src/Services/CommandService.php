@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Services;
 
-use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Tkachikov\Chronos\CommandManager;
@@ -28,14 +27,11 @@ class CommandService
         }
     }
 
-    /**
-     * @throws Exception
-     */
-    public function get(): array
+    public function get(?string $sortKey = null, ?string $sortBy = null): array
     {
-        return empty($this->commands)
-            ? []
-            : $this->getSorted();
+        return $sortKey && $sortBy
+            ? $this->getWithSort($sortKey, $sortBy)
+            : $this->getWithSortDefault();
     }
 
     /**
@@ -53,25 +49,39 @@ class CommandService
         return isset($this->commands[$class]);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function getSorted(?string $sortKey = null, ?string $sortBy = null): array
+    public function getWithSort(string $sortKey, string $sortBy): array
     {
-        if ($sortBy && !in_array($sortBy, ['asc', 'desc'])) {
-            throw new Exception('Not sort direction');
-        }
-        if (!$sortKey) {
-            return collect($this->commands)
-                ->sortBy(fn ($item) => $item->getDirectory())
-                ->toArray();
-        }
-        $sortMethod = 'sortBy' . ($sortBy === 'desc' ? 'Desc' : '');
+        return $this
+            ->manager
+            ->getApps()
+            ->merge(
+                $this
+                    ->manager
+                    ->getChronos(),
+            )
+            ->sortBy(
+                callback: fn(CommandDecorator $decorator) => $decorator
+                    ->getModel()
+                    ->metrics
+                    ->$sortKey
+                    ?? ($sortBy === 'asc' ? INF : -INF),
+                descending: $sortBy === 'desc',
+            )
+            ->toArray();
+    }
 
-        return collect($this->commands)
-            ->$sortMethod(function ($decorator) use ($sortKey, $sortBy) {
-                return $decorator->getModel()->metrics->$sortKey ?? ($sortBy === 'asc' ? INF : -INF);
-            })->toArray();
+    public function getWithSortDefault(): array
+    {
+        return $this
+            ->manager
+            ->getApps()
+            ->merge(
+                $this
+                    ->manager
+                    ->getChronos(),
+            )
+            ->sortBy(fn(CommandDecorator $decorator) => $decorator->getDirectory())
+            ->toArray();
     }
 
     /**
