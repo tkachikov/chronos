@@ -5,7 +5,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Tkachikov\\Chronos\\": "src/"
+            "Tkachikov\\Chronos\\": "src/",
+            "Tkachikov\\Chronos\\Tests\\": "tests/"
         }
     },
     "authors": [
