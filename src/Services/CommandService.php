@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Services;
 
+use Illuminate\Support\Collection;
 use Tkachikov\Chronos\CommandManager;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
 
@@ -48,13 +49,7 @@ class CommandService
     public function getWithSort(string $sortKey, string $sortBy): array
     {
         return $this
-            ->manager
-            ->getApps()
-            ->merge(
-                $this
-                    ->manager
-                    ->getChronos(),
-            )
+            ->getBaseCommands()
             ->sortBy(
                 callback: fn(CommandDecorator $decorator) => $decorator
                     ->getModel()
@@ -69,19 +64,28 @@ class CommandService
     public function getWithSortDefault(): array
     {
         return $this
-            ->manager
-            ->getApps()
-            ->merge(
-                $this
-                    ->manager
-                    ->getChronos(),
-            )
+            ->getBaseCommands()
             ->sortBy(fn(CommandDecorator $decorator) => $decorator->getDirectory())
             ->toArray();
     }
 
     /**
-     * @description Now support only one argument for time method
+     * @return Collection<class-string, CommandDecorator>
+     */
+    public function getBaseCommands(): Collection
+    {
+        $appCommands = $this
+            ->manager
+            ->getApps();
+        $chronosCommands = $this
+            ->manager
+            ->getChronos();
+
+        return $appCommands->merge($chronosCommands);
+    }
+
+    /**
+     * @description Now support only one argument for a time method
      */
     public function getTimes(): array
     {
