@@ -6,9 +6,8 @@ namespace Tkachikov\Chronos\Services;
 
 use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Console\Scheduling\Event;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Artisan;
+use Tkachikov\Chronos\CommandManager;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
 use Tkachikov\Chronos\Models\Command as CommandModel;
@@ -22,6 +21,7 @@ class CommandService
 
     public function __construct(
         private readonly DatabaseHelper $databaseHelper,
+        private readonly CommandManager $manager,
     ) {
         if ($this->databaseHelper->hasTable(CommandModel::class)) {
             $this->init();
@@ -31,15 +31,21 @@ class CommandService
     /**
      * @throws Exception
      */
-    public function get(?string $class = null): CommandDecorator|array
+    public function get(): array
     {
-        if ($class) {
-            return $this->commands[$class];
-        }
-
         return empty($this->commands)
             ? []
             : $this->getSorted();
+    }
+
+    /**
+     * @param class-string $class
+     */
+    public function getByClass(string $class): CommandDecorator
+    {
+        return $this
+            ->manager
+            ->getByClass($class);
     }
 
     public function exists(string $class): bool

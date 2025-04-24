@@ -8,7 +8,7 @@ use Exception;
 use Throwable;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use Illuminate\Http\RedirectResponse;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\Schedule;
@@ -53,7 +53,7 @@ class ChronosController extends Controller
         Request $request,
         Command $command,
     ): View {
-        $decorator = $this->commandService->get($command->class);
+        $decorator = $this->commandService->getByClass($command->class);
         $schedule = $request->has('schedule')
             ? Schedule::findOrFail($request->integer('schedule'))
             : null;

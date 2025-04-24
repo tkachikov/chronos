@@ -41,7 +41,7 @@ class ScheduleService
                 if (!$this->commandService->exists($schedule->command->class)) {
                     continue;
                 }
-                $decorator = $this->commandService->get($schedule->command->class);
+                $decorator = $this->commandService->getByClass($schedule->command->class);
                 if (!$decorator->runInSchedule()) {
                     continue;
                 }
