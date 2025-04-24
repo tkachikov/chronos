@@ -84,9 +84,6 @@ class CommandService
         return $appCommands->merge($chronosCommands);
     }
 
-    /**
-     * @description Now support only one argument for a time method
-     */
     public function getTimes(): array
     {
         return [
