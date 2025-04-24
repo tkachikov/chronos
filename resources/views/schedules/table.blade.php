@@ -63,19 +63,25 @@
                         @endif
                     </td>
                     <td @class($border)>
-<pre class="m-0">$schedule
-    ->command(@if($item->preparedArgs)&nbsp;
-        {{ $command->getShortName() . '::class'}},
-        [
-    @foreach($item->preparedArgs as $key => $arg)
-        '{{ $key }}' => {{ is_numeric($arg) ? $arg : (is_null($arg) ? 'null' : "'$arg'") }},
-    @endforeach
-    ],
-    )
-    @else{{ $command->getShortName() . '::class' }})
-    @endif->{{ $item->time_method }}({{ $item->time_params ? collect($item->time_params)->map(fn ($v) => "'$v'")->implode(', ') : '' }}){{
-    $item->without_overlapping ? "\r\n    ->withoutOverlapping(" . ($item->without_overlapping_time !== 1440 ? $item->without_overlapping_time : '') . ')' : ''
-}}{{ $item->run_in_background ? "\r\n    ->runInBackground()" : '' }};</pre>
+                        <div class="d-none d-xl-block">@include('chronos::schedules.in_code', ['item' => $item, 'command' => $command])</div>
+                        <div class="d-block d-xl-none">
+                            <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#inCodeViewModal">
+                                Open
+                            </button>
+                            <div class="modal fade" id="inCodeViewModal" tabindex="-1" aria-labelledby="inCodeViewLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            In code
+                                            <button type="button" data-bs-dismiss="modal" class="btn-close" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+@include('chronos::schedules.in_code', ['item' => $item, 'command' => $command])
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                     <td @class($border)>
                         <div class="row w-100 mx-auto">
