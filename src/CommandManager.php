@@ -22,12 +22,10 @@ final readonly class CommandManager
      */
     public function get(): Collection
     {
-        return once(
-            fn() => $this
-                ->artisanRepository
-                ->get()
-                ->map([$this, 'getDecorator']),
-        );
+        return $this
+            ->artisanRepository
+            ->get()
+            ->map([$this, 'getDecorator']);
     }
 
     /**
@@ -35,29 +33,23 @@ final readonly class CommandManager
      */
     public function getSystems(): Collection
     {
-        return once(
-            fn() => $this
-                ->get()
-                ->filter(fn(CommandDecorator $decorator) => $decorator->isSystem()),
-        );
+        return $this
+            ->get()
+            ->filter(fn(CommandDecorator $decorator) => $decorator->isSystem());
     }
 
     public function getApps(): Collection
     {
-        return once(
-            fn() => $this
-                ->get()
-                ->filter(fn(CommandDecorator $decorator) => $decorator->isNotSystem()),
-        );
+        return $this
+            ->get()
+            ->filter(fn(CommandDecorator $decorator) => $decorator->isNotSystem());
     }
 
     public function getChronos(): Collection
     {
-        return once(
-            fn() => $this
-                ->get()
-                ->filter(fn(CommandDecorator $decorator) => $decorator->isChronosCommands()),
-        );
+        return $this
+            ->get()
+            ->filter(fn(CommandDecorator $decorator) => $decorator->isChronosCommands());
     }
 
     /**

@@ -12,11 +12,7 @@ final readonly class ArtisanRepository
 {
     public function get(): Collection
     {
-        return once(
-            fn() => collect(Artisan::all())
-                ->keyBy(
-                    fn(Command $command) => $command::class,
-                ),
-        );
+        return collect(Artisan::all())
+            ->keyBy(fn(Command $command) => $command::class);
     }
 }
