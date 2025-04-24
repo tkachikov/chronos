@@ -14,15 +14,15 @@ final readonly class CommandRepository
      */
     public function get(): Collection
     {
-        return once(fn() => Command::get());
+        return Command::get();
     }
 
     public function getOrCreateByClass(string $class): Command
     {
-        return once(fn() => $this->getByClass($class) ?? $this->createByClass($class));
+        return $this->getByClass($class) ?? $this->createByClass($class);
     }
 
-    public function getByClass(string $class): Command
+    public function getByClass(string $class): ?Command
     {
         return $this
             ->get()
@@ -32,6 +32,6 @@ final readonly class CommandRepository
 
     public function createByClass(string $class): Command
     {
-        return once(fn() => Command::firstOrCreate(['class' => $class]));
+        return Command::firstOrCreate(['class' => $class]);
     }
 }
