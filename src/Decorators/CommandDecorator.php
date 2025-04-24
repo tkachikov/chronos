@@ -134,7 +134,7 @@ class CommandDecorator
 
     public function isNotSystem(): bool
     {
-        return str($this->command::class)->startsWith($this->commandPath);
+        return str($this->command::class)->startsWith('App\\');
     }
 
     public function isChronosCommands(): bool

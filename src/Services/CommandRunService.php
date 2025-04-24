@@ -78,7 +78,7 @@ class CommandRunService
         $this->command = $command;
         $this->args = $args;
         $this->uuid = $uuid;
-        $this->decorator = $this->commandService->get($command->class);
+        $this->decorator = $this->commandService->getByClass($command->class);
 
         if (!$this->decorator->runInManual()) {
             return 1;
