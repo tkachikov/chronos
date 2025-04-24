@@ -30,15 +30,15 @@ class ChronosController extends Controller
     ) {
     }
 
-    /**
-     * @throws Exception
-     */
     public function index(
         Request $request,
     ): View {
-        $commands = $request->has('sortKey')
-            ? $this->commandService->getSorted(...$request->only(['sortKey', 'sortBy']))
-            : $this->commandService->get();
+        $commands = $this
+            ->commandService
+            ->get(
+                $request->get('sortKey'),
+                $request->get('sortBy'),
+            );
 
         return view('chronos::index', [
             'commands' => $commands,
