@@ -4,28 +4,15 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Services;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Collection;
 use Tkachikov\Chronos\CommandManager;
-use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
-use Tkachikov\Chronos\Models\Command as CommandModel;
-use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 class CommandService
 {
-    private array $commands = [];
-
-    private array $systemCommands = [];
-
     public function __construct(
-        private readonly DatabaseHelper $databaseHelper,
         private readonly CommandManager $manager,
-    ) {
-        if ($this->databaseHelper->hasTable(CommandModel::class)) {
-            $this->init();
-        }
-    }
+    ) {}
 
     public function get(?string $sortKey = null, ?string $sortBy = null): array
     {
@@ -46,19 +33,23 @@ class CommandService
 
     public function exists(string $class): bool
     {
-        return isset($this->commands[$class]);
+        $existsInApps = $this
+            ->manager
+            ->getApps()
+            ->has($class);
+
+        $existsInChronos = $this
+            ->manager
+            ->getChronos()
+            ->has($class);
+
+        return $existsInApps || $existsInChronos;
     }
 
     public function getWithSort(string $sortKey, string $sortBy): array
     {
         return $this
-            ->manager
-            ->getApps()
-            ->merge(
-                $this
-                    ->manager
-                    ->getChronos(),
-            )
+            ->getBaseCommands()
             ->sortBy(
                 callback: fn(CommandDecorator $decorator) => $decorator
                     ->getModel()
@@ -73,20 +64,26 @@ class CommandService
     public function getWithSortDefault(): array
     {
         return $this
-            ->manager
-            ->getApps()
-            ->merge(
-                $this
-                    ->manager
-                    ->getChronos(),
-            )
+            ->getBaseCommands()
             ->sortBy(fn(CommandDecorator $decorator) => $decorator->getDirectory())
             ->toArray();
     }
 
     /**
-     * @description Now support only one argument for time method
+     * @return Collection<class-string, CommandDecorator>
      */
+    public function getBaseCommands(): Collection
+    {
+        $appCommands = $this
+            ->manager
+            ->getApps();
+        $chronosCommands = $this
+            ->manager
+            ->getChronos();
+
+        return $appCommands->merge($chronosCommands);
+    }
+
     public function getTimes(): array
     {
         return [
@@ -264,23 +261,5 @@ class CommandService
                 ],
             ]],
         ];
-    }
-
-    private function init(): void
-    {
-        $models = CommandModel::get()->keyBy('class');
-        /** @var Command|SymfonyCommand $command */
-        foreach (Artisan::all() as $command) {
-            $decorator = new CommandDecorator($command);
-            $hasModel = $models->get($command::class);
-            if (!$hasModel) {
-                $models->push($decorator->getModel());
-            }
-            if ($decorator->isSystem() && !$decorator->isChronosCommands()) {
-                $this->systemCommands[$command::class] = $decorator;
-            } else {
-                $this->commands[$command::class] = $decorator;
-            }
-        }
     }
 }

@@ -5,7 +5,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Tkachikov\\Chronos\\": "src/"
+            "Tkachikov\\Chronos\\": "src/",
+            "Tkachikov\\Chronos\\Tests\\": "tests/"
         }
     },
     "authors": [
@@ -20,7 +21,8 @@
         "tkachikov/laravel-withtrashed": "^1.0"
     },
     "require-dev": {
-        "laravel/framework": "^12.10"
+        "laravel/framework": "^12.10",
+        "phpunit/phpunit": "^12.1"
     },
     "extra": {
         "laravel": {
