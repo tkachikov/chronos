@@ -98,7 +98,7 @@
                                             <tbody>
                                             @if($command->getModel()->schedules->count())
                                                 @foreach($command->getModel()->schedules as $schedule)
-                                                    <tr>
+                                                    <tr @class([$schedule->run ? 'text-success' : 'text-secondary'])>
                                                         <td @class(['border-bottom-0' => $loop->last])>
                                                             {{ $times[$schedule->time_method]['title'] }}
                                                             @if($schedule->time_params)
