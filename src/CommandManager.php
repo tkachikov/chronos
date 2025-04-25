@@ -42,14 +42,14 @@ final readonly class CommandManager
     {
         return $this
             ->get()
-            ->filter(fn(CommandDecorator $decorator) => $decorator->isNotSystem());
+            ->filter(fn(CommandDecorator $decorator) => $decorator->isApp());
     }
 
     public function getChronos(): Collection
     {
         return $this
             ->get()
-            ->filter(fn(CommandDecorator $decorator) => $decorator->isChronosCommands());
+            ->filter(fn(CommandDecorator $decorator) => $decorator->isChronos());
     }
 
     /**

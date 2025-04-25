@@ -129,22 +129,19 @@ class CommandDecorator
 
     public function isSystem(): bool
     {
-        return !$this->isNotSystem();
+        return !$this->isApp();
     }
 
-    public function isNotSystem(): bool
+    public function isApp(): bool
     {
         return str($this->command::class)->startsWith('App\\');
     }
 
-    public function isChronosCommands(): bool
+    public function isChronos(): bool
     {
-        return in_array($this->command::class, [
-            ChronosTestCommand::class,
-            ChronosFreeLogsCommand::class,
-            ChronosAnswerTestCommand::class,
-            ChronosUpdateMetricsCommand::class,
-        ]);
+        $nameSpace = str(__NAMESPACE__)->before('\\');
+
+        return str($this->command::class)->startsWith($nameSpace);
     }
 
     private function notRun(string $attribute): bool
