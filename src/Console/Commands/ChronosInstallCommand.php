@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Tkachikov\Chronos\Services\MigrationService;
 
-class ChronosInstallCommand extends Command
+final class ChronosInstallCommand extends Command
 {
     protected $signature = 'chronos:install {--migrate}';
 

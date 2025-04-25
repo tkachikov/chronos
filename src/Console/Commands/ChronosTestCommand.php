@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Tkachikov\Chronos\Enums\TypeMessageEnum;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 
-class ChronosTestCommand extends Command
+final class ChronosTestCommand extends Command
 {
     use ChronosRunnerTrait;
 

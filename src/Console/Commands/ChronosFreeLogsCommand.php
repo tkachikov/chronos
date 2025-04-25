@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 use Tkachikov\Chronos\Services\ScheduleService;
 
-class ChronosFreeLogsCommand extends Command
+final class ChronosFreeLogsCommand extends Command
 {
     use ChronosRunnerTrait;
 

@@ -7,7 +7,7 @@ namespace Tkachikov\Chronos\Console\Commands;
 use Illuminate\Console\Command;
 use Tkachikov\Chronos\Models\Schedule;
 
-class ChronosUpdateTimeParamsCommand extends Command
+final class ChronosUpdateTimeParamsCommand extends Command
 {
     protected $signature = 'chronos:update-time-params';
 

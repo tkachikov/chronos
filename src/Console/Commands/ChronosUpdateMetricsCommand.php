@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 use Tkachikov\Chronos\Services\ScheduleService;
 
-class ChronosUpdateMetricsCommand extends Command
+final class ChronosUpdateMetricsCommand extends Command
 {
     use ChronosRunnerTrait;
 
