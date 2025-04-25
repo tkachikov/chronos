@@ -54,10 +54,22 @@
                             @foreach($logs[$run->id] as $log)
                                 @php($borderLog = ['border-bottom-0' => $loop->last])
                                 <tr>
-                                    <td @class(array_merge($borderLog, ['w-75' => true]))>
-                                                                    <span class="border-3 border-start border-{{ $log->type->css() }} px-3">
-                                                                        {{ $log->message }}
-                                                                    </span>
+                                    <td @class($borderLog)>
+                                        @if($log->type->css())
+                                            <span class="border-3 border-start border-{{ $log->type->css() }} px-3">
+                                                {{ $log->message }}
+                                            </span>
+                                        @else
+                                            <div>
+                                                {!! $log->message !!}
+                                                <style>
+                                                    .sf-dump {
+                                                        margin: 0!important;
+                                                        z-index: 0!important;
+                                                    }
+                                                </style>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td @class($borderLog)>{{ $log->created_at }}</td>
                                 </tr>

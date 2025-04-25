@@ -13,4 +13,6 @@ enum CssLevelClassEnum: string
     case WARNING = 'warning';
 
     case DANGER = 'danger';
+
+    case EMPTY = '';
 }
