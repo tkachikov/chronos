@@ -25,10 +25,22 @@ class ScheduleRepository
 
     public function save(array $params): Schedule
     {
+        if ($params['args']) {
+            $newArgs = [];
+            foreach ($params['args'] as $key => $value) {
+                $newArgs[] = [
+                    'key' => $key,
+                    'value' => $value,
+                ];
+            }
+            $params['args'] = $newArgs;
+        }
+
         $id = $params['id'] ?? null;
         $scheduleObject = new Schedule();
         $data = collect($params)->only($scheduleObject->getFillable())->toArray();
         $data['user_id'] = Auth::id();
+
         if ($id) {
             $schedule = Schedule::findOrFail($id);
             $schedule->update($data);

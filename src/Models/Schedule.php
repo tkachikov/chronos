@@ -50,6 +50,21 @@ class Schedule extends Model
         );
     }
 
+    public function args(): Attribute
+    {
+        return Attribute::make(
+            get: function ($values) {
+                $args = [];
+
+                foreach (json_decode($values, true) as $item) {
+                    $args[$item['key']] = $item['value'];
+                }
+
+                return $args;
+            },
+        );
+    }
+
     public function command(): BelongsTo
     {
         return $this->belongsTo(Command::class);
