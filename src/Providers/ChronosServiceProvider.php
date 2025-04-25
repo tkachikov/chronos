@@ -7,6 +7,10 @@ namespace Tkachikov\Chronos\Providers;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosDdTestCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosDumpTestCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosOnlyArgumentsTestCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosOnlyOptionsTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosRunBackgroundCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
@@ -44,9 +48,13 @@ class ChronosServiceProvider extends ServiceProvider
         }
         $this->commands([
             ChronosTestCommand::class,
+            ChronosDdTestCommand::class,
+            ChronosDumpTestCommand::class,
             ChronosFreeLogsCommand::class,
             ChronosAnswerTestCommand::class,
             ChronosUpdateMetricsCommand::class,
+            ChronosOnlyOptionsTestCommand::class,
+            ChronosOnlyArgumentsTestCommand::class,
         ]);
     }
 

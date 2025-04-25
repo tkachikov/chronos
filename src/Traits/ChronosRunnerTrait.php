@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Traits;
 
+use JetBrains\PhpStorm\NoReturn;
+use Symfony\Component\VarDumper\Cloner\VarCloner;
+use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 use Throwable;
 use Tkachikov\Memory\Memory as MemoryHelper;
 use Tkachikov\Chronos\Models\CommandLog;
@@ -68,6 +71,32 @@ trait ChronosRunnerTrait
         if ($style !== TypeMessageEnum::COMMENT->value) {
             $this->appendLog(TypeMessageEnum::from($style), $string);
         }
+    }
+
+    public function dump($value): void
+    {
+        $cloner = new VarCloner();
+        $dumper = new HtmlDumper();
+        $output = '';
+        $dumper->dump(
+            $cloner->cloneVar($value),
+            function ($line) use (&$output) {
+                $output .= "\r\n$line";
+            },
+        );
+        dump($value);
+        $this->appendLog(TypeMessageEnum::DUMP, $output);
+    }
+
+    #[NoReturn]
+    public function dd($value): void
+    {
+        $this->dump($value);
+        $this->appendLog(TypeMessageEnum::INFO, 'Finished command');
+        $this->saveLogs();
+        $this->updateRun(self::FAILURE);
+
+        exit(1);
     }
 
     private function initDi(): void

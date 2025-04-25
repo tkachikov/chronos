@@ -18,6 +18,8 @@ enum TypeMessageEnum: string
 
     case WARNING = 'warning';
 
+    case DUMP = 'dump';
+
     /**
      * @return string
      */
@@ -28,6 +30,7 @@ enum TypeMessageEnum: string
             self::INFO => CssLevelClassEnum::PRIMARY,
             self::QUESTION, self::ALERT => CssLevelClassEnum::WARNING,
             self::ERROR, self::WARNING => CssLevelClassEnum::DANGER,
+            default => CssLevelClassEnum::EMPTY,
         })->value;
     }
 }
