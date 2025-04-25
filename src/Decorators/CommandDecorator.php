@@ -38,10 +38,29 @@ class CommandDecorator
 
     public function getShortName(): string
     {
-        return str($this->getFullName())
-            ->before('Command')
-            ->after($this->getDirectory())
-            ->toString();
+        $withoutPostfix = str($this->getFullName())->before('Command');
+        $directory = str($this->getDirectory());
+        $parentPlural = $directory->plural();
+        $parentSingular = $directory->singular();
+        $prefix = $withoutPostfix
+            ->kebab()
+            ->explode('-')
+            ->first();
+        $prefix = str($prefix)->studly();
+
+        if ($parentPlural->is($prefix)) {
+            return $withoutPostfix
+                ->after($parentPlural)
+                ->toString();
+        }
+
+        if ($parentSingular->isNotEmpty()) {
+            return $withoutPostfix
+                ->after($parentSingular)
+                ->toString();
+        }
+
+        return $withoutPostfix->toString();
     }
 
     public function getFullName(): string
