@@ -10,7 +10,7 @@ use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 use Illuminate\Support\Facades\Log;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 
-class ChronosRunBackgroundCommand extends Command
+final class ChronosRunBackgroundCommand extends Command
 {
     use ChronosRunnerTrait;
 

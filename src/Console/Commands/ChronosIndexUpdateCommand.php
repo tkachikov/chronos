@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 
-class ChronosIndexUpdateCommand extends Command
+final class ChronosIndexUpdateCommand extends Command
 {
     protected $signature = 'chronos:update-indexes';
 

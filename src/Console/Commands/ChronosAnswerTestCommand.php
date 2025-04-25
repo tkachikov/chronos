@@ -7,7 +7,7 @@ namespace Tkachikov\Chronos\Console\Commands;
 use Illuminate\Console\Command;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 
-class ChronosAnswerTestCommand extends Command
+final class ChronosAnswerTestCommand extends Command
 {
     use ChronosRunnerTrait;
 
