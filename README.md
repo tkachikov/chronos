@@ -20,6 +20,19 @@
 
 This package for setting commands in schedule.
 
+## Upgrade
+### From 1.3.0 to 1.3.1
+Run command:
+```
+    php artisan chronos:update-time-params
+```
+
+### From 1.3.9 to 1.4
+Run command:
+```
+    php artisan chronos:update-args
+```
+
 ## Installation
 
 Require this package with composer using the following command
