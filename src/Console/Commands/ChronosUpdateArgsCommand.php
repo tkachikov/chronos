@@ -27,7 +27,7 @@ final class ChronosUpdateArgsCommand extends Command
 
                 $args = json_decode($schedule->args, true);
 
-                if (is_string(array_keys($args)[0])) {
+                if ($args && is_string(array_keys($args)[0])) {
                     $newArgs = [];
 
                     foreach (json_decode($schedule->args, true) as $key => $value) {
