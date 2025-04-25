@@ -6,22 +6,16 @@ namespace Tkachikov\Chronos\Decorators;
 
 use ReflectionObject;
 use ReflectionException;
-use Illuminate\Console\Command;
-use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
 use Tkachikov\Chronos\Models\Command as CommandModel;
-use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
-use Symfony\Component\Console\Command\Command as SymfonyCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosFreeLogsCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
+use Symfony\Component\Console\Command\Command;
 
 class CommandDecorator
 {
     private string $commandPath = 'App\\Console\\Commands\\';
 
-    private CommandModel $model;
-
     public function __construct(
-        private readonly Command|SymfonyCommand $command,
+        private readonly Command $command,
+        private readonly CommandModel $model,
     ) {
     }
 
@@ -30,19 +24,8 @@ class CommandDecorator
         return $this->command->$method(...$args);
     }
 
-    public function model(CommandModel $model): self
-    {
-        $this->model = $model;
-
-        return $this;
-    }
-
     public function getModel(): CommandModel
     {
-        if (!isset($this->model)) {
-            $this->model = CommandModel::firstOrCreate(['class' => $this->command::class]);
-        }
-
         return $this->model;
     }
 

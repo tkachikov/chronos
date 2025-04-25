@@ -64,12 +64,10 @@ final readonly class CommandManager
 
     public function getDecorator(Command $command): CommandDecorator
     {
-        $decorator = new CommandDecorator($command);
         $model = $this
             ->commandRepository
             ->getOrCreateByClass($command::class);
-        $decorator->model($model);
 
-        return $decorator;
+        return new CommandDecorator($command, $model);
     }
 }
