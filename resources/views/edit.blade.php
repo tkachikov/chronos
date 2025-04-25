@@ -134,14 +134,24 @@
             };
 
             var formData = new FormData();
+            var isValidate = true;
             formData.append('_token', '{{ csrf_token() }}');
             document.querySelectorAll('[form=runCommandInRealTime]').forEach((v) => {
                 if (v.type !== 'checkbox' || v.checked) {
+                    if (v.hasAttribute('required') && !v.value) {
+                        isValidate = false;
+                        v.reportValidity();
+                    }
                     formData.append(v.name, v.value);
                 }
             });
 
-            xhr.send(formData);
+            if (isValidate) {
+                xhr.send(formData);
+            } else {
+                $('#runMessageError').hide();
+                $('#runCommandInRealTime').prop('disabled', false);
+            }
         }
         function getLogs() {
             var timer = setInterval(() => {
