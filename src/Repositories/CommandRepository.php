@@ -7,31 +7,36 @@ namespace Tkachikov\Chronos\Repositories;
 use Illuminate\Database\Eloquent\Collection;
 use Tkachikov\Chronos\Models\Command;
 
-final readonly class CommandRepository
+final readonly class CommandRepository implements CommandRepositoryInterface
 {
-    /**
-     * @return Collection<int, Command>
-     */
+    private Collection $commands;
+
     public function get(): Collection
     {
-        return Command::get();
+        return $this->commands ??= Command::get()->keyBy('class');
     }
 
     public function getOrCreateByClass(string $class): Command
     {
-        return $this->getByClass($class) ?? $this->createByClass($class);
+        return $this->getByClass($class)
+            ?? $this->createByClass($class);
     }
 
     public function getByClass(string $class): ?Command
     {
         return $this
             ->get()
-            ->where('class', $class)
-            ->first();
+            ->get($class);
     }
 
     public function createByClass(string $class): Command
     {
-        return Command::firstOrCreate(['class' => $class]);
+        $command = Command::firstOrCreate(['class' => $class]);
+
+        if ($command->wasRecentlyCreated) {
+            $this->commands->push($command);
+        }
+
+        return $command;
     }
 }

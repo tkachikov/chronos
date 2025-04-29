@@ -7,14 +7,14 @@ namespace Tkachikov\Chronos;
 use Illuminate\Support\Collection;
 use Symfony\Component\Console\Command\Command;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
-use Tkachikov\Chronos\Repositories\ArtisanRepository;
-use Tkachikov\Chronos\Repositories\CommandRepository;
+use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
+use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 
 final readonly class CommandManager
 {
     public function __construct(
-        private ArtisanRepository $artisanRepository,
-        private CommandRepository $commandRepository,
+        private ArtisanRepositoryInterface $artisanRepository,
+        private CommandRepositoryInterface $commandRepository,
     ) {}
 
     /**

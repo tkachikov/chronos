@@ -19,9 +19,23 @@ use Tkachikov\Chronos\Console\Commands\ChronosIndexUpdateCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateArgsCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateTimeParamsCommand;
+use Tkachikov\Chronos\Repositories\ArtisanRepository;
+use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
+use Tkachikov\Chronos\Repositories\CommandRepository;
+use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 
 class ChronosServiceProvider extends ServiceProvider
 {
+    public $singletons = [
+        ArtisanRepositoryInterface::class => ArtisanRepository::class,
+        CommandRepositoryInterface::class => CommandRepository::class,
+    ];
+
+    public function register(): void
+    {
+        //
+    }
+
     public function boot(): void
     {
         $this->loadViews();
@@ -30,11 +44,6 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadPublishing();
         $this->loadMigrations();
         $this->loadTranslations();
-    }
-
-    public function register(): void
-    {
-        //
     }
 
     public function loadCommands(): void
