@@ -8,11 +8,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\Console\Command\Command;
 
-final readonly class ArtisanRepository
+final readonly class ArtisanRepository implements ArtisanRepositoryInterface
 {
+    private Collection $commands;
+
     public function get(): Collection
     {
-        return collect(Artisan::all())
+        return $this->commands ??= collect(Artisan::all())
             ->keyBy(fn(Command $command) => $command::class);
     }
 }
