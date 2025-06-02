@@ -63,7 +63,7 @@ class CommandRunService
         $this->command = $command;
         $this->uuid = $uuid;
 
-        return cache()->get($this->getKey());
+        return cache()->get($this->getKey()) ?? [];
     }
 
     public function setAnswer(Command $command, string $uuid, string $answer): void
