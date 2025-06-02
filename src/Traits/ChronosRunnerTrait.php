@@ -73,25 +73,27 @@ trait ChronosRunnerTrait
         }
     }
 
-    public function dump($value): void
+    public function dump(mixed ...$vars): void
     {
-        $cloner = new VarCloner();
-        $dumper = new HtmlDumper();
-        $output = '';
-        $dumper->dump(
-            $cloner->cloneVar($value),
-            function ($line) use (&$output) {
-                $output .= "\r\n$line";
-            },
-        );
-        dump($value);
-        $this->appendLog(TypeMessageEnum::DUMP, $output);
+        foreach ($vars as $var) {
+            $cloner = new VarCloner();
+            $dumper = new HtmlDumper();
+            $output = '';
+            $dumper->dump(
+                $cloner->cloneVar($var),
+                function ($line) use (&$output) {
+                    $output .= "\r\n$line";
+                },
+            );
+            dump($var);
+            $this->appendLog(TypeMessageEnum::DUMP, $output);
+        }
     }
 
     #[NoReturn]
-    public function dd($value): void
+    public function dd(mixed ...$vars): void
     {
-        $this->dump($value);
+        $this->dump(...$vars);
         $this->appendLog(TypeMessageEnum::INFO, 'Finished command');
         $this->saveLogs();
         $this->updateRun(self::FAILURE);
