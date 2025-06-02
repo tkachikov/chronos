@@ -19,6 +19,12 @@ final class ChronosDdTestCommand extends Command
     #[NoReturn]
     public function handle(): void
     {
-        $this->dd((object) ['test' => 'Test', 'test2' => 123]);
+        $this->dd(
+            (object) [
+                'test' => 'Test',
+                'test2' => 123,
+            ],
+            "it's work!",
+        );
     }
 }

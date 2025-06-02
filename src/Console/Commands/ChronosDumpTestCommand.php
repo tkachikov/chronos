@@ -22,5 +22,6 @@ final class ChronosDumpTestCommand extends Command
         $this->dump(123);
         $this->dump([1, 2, 3]);
         $this->dump((object) ['test' => 'Test', 'test2' => 123]);
+        $this->dump(123, 'test', (object) ['test' => 'test2']);
     }
 }
