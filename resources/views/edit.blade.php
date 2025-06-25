@@ -52,6 +52,7 @@
 @section('footer_scripts')
     <script>
         var methods = {{ Js::from($times) }};
+        var autoScroll = true;
 
         function resetMethodParams() {
             $('#time_params_container').hide();
@@ -189,6 +190,15 @@
                 message = `<div class="row mx-auto w-100 py-1"><div class="col pl-5"><pre class="m-0">${message}</pre></div></div>`;
                 document.getElementById('terminal').innerHTML += message;
             }
+
+            if (autoScroll) {
+                document
+                    .querySelector('#terminal .row:last-child')
+                    .scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'end',
+                    });
+            }
         }
         function sendAnswer(event) {
             if (event.code === 'Enter') {
@@ -208,5 +218,11 @@
         }
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+        const terminal = document.getElementById('terminal');
+
+        terminal.addEventListener('scroll', () => {
+            autoScroll = terminal.scrollTop + terminal.clientHeight >= terminal.scrollHeight - 10;
+        });
     </script>
 @endsection
