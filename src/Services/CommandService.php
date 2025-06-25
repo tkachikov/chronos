@@ -65,7 +65,7 @@ class CommandService
     {
         return $this
             ->getBaseCommands()
-            ->sortBy(fn(CommandDecorator $decorator) => $decorator->getDirectory())
+            ->sortBy(fn(CommandDecorator $decorator) => $decorator->getGroupName() ?? $decorator->getDirectory())
             ->toArray();
     }
 

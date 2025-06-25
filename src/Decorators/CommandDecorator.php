@@ -42,9 +42,13 @@ class CommandDecorator
     public function getShortName(): string
     {
         $withoutPostfix = str($this->getFullName())->before('Command');
-        $directory = str($this->getDirectory());
-        $parentPlural = $directory->plural();
-        $parentSingular = $directory->singular();
+
+        $groupName = $this->getGroupName();
+        $directory = $this->getDirectory();
+        $prefix = str($groupName ?? $directory);
+        $parentPlural = $prefix->plural();
+        $parentSingular = $prefix->singular();
+
         $prefix = $withoutPostfix
             ->kebab()
             ->explode('-')
@@ -99,15 +103,19 @@ class CommandDecorator
         $afterPath = str($this->commandPath)
             ->substr(0, strlen($this->commandPath) - 1);
         $group = str(dirname($file))->replace('/', '\\')->after($afterPath);
+
         if ($group->startsWith('\\')) {
             $group = $group->substr(1);
         }
-        $chronosPath = 'Tkachikov\\Chronos\\Console\\Commands';
-        if ($group->startsWith($chronosPath)) {
-            $group = $group->replace($chronosPath, 'Chronos');
-        }
 
         return $group->toString();
+    }
+
+    public function getGroupName(): ?string
+    {
+        return $this
+            ->getChronosCommandAttribute()
+            ?->group;
     }
 
     public function runInSchedule(): bool
@@ -154,22 +162,12 @@ class CommandDecorator
      */
     private function notRun(string $attribute): bool
     {
-        $reflection = new ReflectionObject($this->command);
+        $chronosCommandAttribute = $this->getChronosCommandAttribute();
 
-        /** @var list<ReflectionAttribute> $chronosCommandAttribute */
-        $chronosCommandAttributes = $reflection->getAttributes(ChronosCommand::class);
-
-        if (count($chronosCommandAttributes) > 1) {
-            throw new Exception('ChronosCommand attribute must be used only once.');
-        }
-
-        if (empty($chronosCommandAttributes)) {
+        if ($chronosCommandAttribute === null) {
             return in_array($attribute, $this->getAttributes())
                 && $this->customNotRun(__FUNCTION__);
         }
-
-        /** @var ChronosCommand $chronosCommandAttribute */
-        $chronosCommandAttribute = $chronosCommandAttributes[0]->newInstance();
 
         $notRun = match ($attribute) {
             'notRunInManual' => $chronosCommandAttribute->notRunInManual,
@@ -252,5 +250,24 @@ class CommandDecorator
                 $value,
             ),
         );
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function getChronosCommandAttribute(): ?ChronosCommand
+    {
+        $reflection = new ReflectionObject($this->command);
+        $attributes = $reflection->getAttributes(ChronosCommand::class);
+
+        if (empty($attributes)) {
+            return null;
+        }
+
+        if (count($attributes) > 1) {
+            throw new Exception('ChronosCommand attribute must be used only once.');
+        }
+
+        return $attributes[0]->newInstance();
     }
 }

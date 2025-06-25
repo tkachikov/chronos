@@ -6,8 +6,12 @@ namespace Tkachikov\Chronos\Console\Commands;
 
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Services\MigrationService;
 
+#[ChronosCommand(
+    group: 'Chronos',
+)]
 final class ChronosInstallCommand extends Command
 {
     protected $signature = 'chronos:install {--migrate}';

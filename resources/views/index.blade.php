@@ -21,6 +21,9 @@
                             <th colspan="3" class="text-center">Memory</th>
                         </tr>
                         <tr>
+                            @if(request('sortKey'))
+                                <th>Group name</th>
+                            @endif
                             <th>Command</th>
                             <th>Name</th>
                             <th>Description</th>
@@ -64,19 +67,24 @@
                         </tr>
                         </thead>
                         <tbody>
-                            @php($prevDirectory = null)
+                            @php($prevGroupName = null)
                             @foreach($commands as $command)
                                 @php($border = ['border-bottom-0' => $loop->last])
-                                @php($directory = $command->getDirectory())
-                                @if(!request('sortKey') && $directory && $prevDirectory !== $directory)
-                                    @php($prevDirectory = $directory)
+                                @php($groupName = $command->getGroupName() ?? $command->getDirectory())
+                                @if(!request('sortKey') && $groupName && $prevGroupName !== $groupName)
+                                    @php($prevGroupName = $groupName)
                                     <tr>
                                         <td colspan="13" class="border-bottom-0">
-                                            <h2 class="text-center h2 m-0 mt-5">{{ $prevDirectory }}</h2>
+                                            <h2 class="text-center h2 m-0 mt-5">{{ $prevGroupName }}</h2>
                                         </td>
                                     </tr>
                                 @endif
                                 <tr>
+                                    @if(request('sortKey'))
+                                        <td @class($border)>
+                                            {{ $groupName }}
+                                        </td>
+                                    @endif
                                     <td @class($border)>{{ $command->getShortName() }}</td>
                                     <td @class($border)>
                                         <a class="btn btn-link text-decoration-none p-0 text-start" href="{{ route('chronos.edit', $command->getModel()) }}">

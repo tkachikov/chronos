@@ -6,8 +6,12 @@ namespace Tkachikov\Chronos\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Models\Schedule;
 
+#[ChronosCommand(
+    group: 'Chronos',
+)]
 final class ChronosUpdateArgsCommand extends Command
 {
     protected $signature = 'chronos:update-args';

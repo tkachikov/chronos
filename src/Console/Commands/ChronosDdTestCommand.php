@@ -6,8 +6,12 @@ namespace Tkachikov\Chronos\Console\Commands;
 
 use Illuminate\Console\Command;
 use JetBrains\PhpStorm\NoReturn;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 
+#[ChronosCommand(
+    group: 'Chronos',
+)]
 final class ChronosDdTestCommand extends Command
 {
     use ChronosRunnerTrait;

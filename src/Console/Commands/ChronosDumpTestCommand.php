@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Console\Commands;
 
 use Illuminate\Console\Command;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 
+#[ChronosCommand(
+    group: 'Chronos',
+)]
 final class ChronosDumpTestCommand extends Command
 {
     use ChronosRunnerTrait;
