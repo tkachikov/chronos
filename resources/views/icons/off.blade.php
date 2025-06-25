@@ -1,0 +1,1 @@
+<span class="text-danger me-2" style="font-size: 10px;">&#128308;</span>
