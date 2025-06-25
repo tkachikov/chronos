@@ -49,25 +49,21 @@ class CommandDecorator
         $parentPlural = $parentPrefix->plural();
         $parentSingular = $parentPrefix->singular();
 
-        $prefix = $withoutPostfix
-            ->kebab()
-            ->explode('-')
-            ->first();
-        $prefix = str($prefix)->studly();
+        $after = '';
 
-        if ($parentPlural->is($prefix)) {
-            return $withoutPostfix
-                ->after($parentPlural)
-                ->toString();
+        if ($withoutPostfix->startsWith($parentSingular)) {
+            $after = $parentSingular;
         }
 
-        if ($parentSingular->is($prefix)) {
-            return $withoutPostfix
-                ->after($parentSingular)
-                ->toString();
+        if ($withoutPostfix->startsWith($parentPlural)) {
+            $after = $parentPlural;
         }
 
-        return $withoutPostfix->toString();
+        $shortName = $withoutPostfix
+            ->after($after)
+            ->toString();
+
+        return $shortName ?: $withoutPostfix->toString();
     }
 
     public function getFullName(): string

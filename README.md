@@ -123,12 +123,27 @@ Run `chronos:test` command in real time. Out messages pushing in custom terminal
 
 ### Run attributes
 
+`Deprecated attributes`<br>
 If you need off run command from Chronos dashboard (`notRunInManual`) or schedules (`notRunInSchedule`) set attributes:<br>
 For example all off:
 ```php
 // ...
 #[notRunInManual]
 #[notRunInSchedule]
+class TestCommand extends Command
+{
+    // ...
+}
+```
+Starts with version 1.4.7 available attribute is `ChronosCommand`. Example:
+```php
+// ...
+use Tkachikov\Chronos\Attributes\ChronosCommand;
+
+#[ChronosCommand(
+    notRunInManual: false,
+    notRunInSchedule: true,
+)]
 class TestCommand extends Command
 {
     // ...
@@ -154,6 +169,24 @@ Open your command and set params for it in `Create schedule` and save.
 
 For off command click button edit, check to off `Run` and save:
 ![Off schedule](images/off_schedule.png)
+
+## Group name
+
+In default base class name directory for group name.<br>
+You must be setting property `group` in `ChronosCommand` attribute. Example:
+
+```php
+// ...
+use Tkachikov\Chronos\Attributes\ChronosCommand;
+
+#[ChronosCommand(
+    group: 'MyGroup',
+)]
+class TestCommand extends Command
+{
+    // ...
+}
+```
 
 ### Statistics
 
