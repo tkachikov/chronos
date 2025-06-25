@@ -26,7 +26,7 @@
                             <th>Description</th>
                             <th>Run in schedule</th>
                             <th>Run in manual</th>
-                            <th>Info in db</th>
+                            <th>Schedulers</th>
                             @foreach(['time', 'memory'] as $type)
                                 @foreach(['avg', 'min', 'max'] as $key)
                                     @php
@@ -77,9 +77,9 @@
                                     </tr>
                                 @endif
                                 <tr>
-                                    <td @class($border) style="{{ request('sortKey') ?: 'padding-left: 50px;' }}">{{ $command->getShortName() }}</td>
+                                    <td @class($border)>{{ $command->getShortName() }}</td>
                                     <td @class($border)>
-                                        <a class="btn btn-link text-decoration-none" href="{{ route('chronos.edit', $command->getModel()) }}">
+                                        <a class="btn btn-link text-decoration-none p-0 text-start" href="{{ route('chronos.edit', $command->getModel()) }}">
                                             {{ $command->getName() }}
                                         </a>
                                     </td>
@@ -99,7 +99,7 @@
                                             @if($command->getModel()->schedules->count())
                                                 @foreach($command->getModel()->schedules as $schedule)
                                                     <tr @class([$schedule->run ? 'text-success' : 'text-secondary'])>
-                                                        <td @class(['border-bottom-0' => $loop->last])>
+                                                        <td @class(['border-bottom-0' => $loop->last, 'p-0'])>
                                                             {{ $times[$schedule->time_method]['title'] }}
                                                             @if($schedule->time_params)
                                                                 {{ implode(', ', $schedule->time_params) }}
@@ -109,8 +109,8 @@
                                                 @endforeach
                                             @else
                                                 <tr>
-                                                    <td class="border-bottom-0">
-                                                        <span class="text-danger">{{ "hasn't in db" }}</span>
+                                                    <td class="border-bottom-0 p-0">
+                                                        <span class="text-danger">{{ "hasn't" }}</span>
                                                     </td>
                                                 </tr>
                                             @endif
