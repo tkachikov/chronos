@@ -45,9 +45,9 @@ class CommandDecorator
 
         $groupName = $this->getGroupName();
         $directory = $this->getDirectory();
-        $prefix = str($groupName ?? $directory);
-        $parentPlural = $prefix->plural();
-        $parentSingular = $prefix->singular();
+        $parentPrefix = str($groupName ?? $directory);
+        $parentPlural = $parentPrefix->plural();
+        $parentSingular = $parentPrefix->singular();
 
         $prefix = $withoutPostfix
             ->kebab()
@@ -61,7 +61,7 @@ class CommandDecorator
                 ->toString();
         }
 
-        if ($parentSingular->isNotEmpty()) {
+        if ($parentSingular->is($prefix)) {
             return $withoutPostfix
                 ->after($parentSingular)
                 ->toString();
