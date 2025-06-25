@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Decorators;
 
+use Exception;
+use ReflectionAttribute;
 use ReflectionObject;
 use ReflectionException;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 use Symfony\Component\Console\Command\Command;
 
@@ -146,12 +149,40 @@ class CommandDecorator
         return str($this->command::class)->startsWith($nameSpace);
     }
 
+    /**
+     * @throws Exception
+     */
     private function notRun(string $attribute): bool
     {
-        return in_array($attribute, $this->getAttributes())
+        $reflection = new ReflectionObject($this->command);
+
+        /** @var list<ReflectionAttribute> $chronosCommandAttribute */
+        $chronosCommandAttributes = $reflection->getAttributes(ChronosCommand::class);
+
+        if (count($chronosCommandAttributes) > 1) {
+            throw new Exception('ChronosCommand attribute must be used only once.');
+        }
+
+        if (empty($chronosCommandAttributes)) {
+            return in_array($attribute, $this->getAttributes())
+                && $this->customNotRun(__FUNCTION__);
+        }
+
+        /** @var ChronosCommand $chronosCommandAttribute */
+        $chronosCommandAttribute = $chronosCommandAttributes[0]->newInstance();
+
+        $notRun = match ($attribute) {
+            'notRunInManual' => $chronosCommandAttribute->notRunInManual,
+            'notRunInSchedule' => $chronosCommandAttribute->notRunInSchedule,
+        };
+
+        return $notRun
             && $this->customNotRun(__FUNCTION__);
     }
 
+    /**
+     * @deprecated Starts with version 1.4.7
+     */
     private function getAttributes(): array
     {
         return array_map(
