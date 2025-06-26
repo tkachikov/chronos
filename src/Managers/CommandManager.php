@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos;
+namespace Tkachikov\Chronos\Managers;
 
 use Illuminate\Support\Collection;
 use Symfony\Component\Console\Command\Command;

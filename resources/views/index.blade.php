@@ -28,6 +28,7 @@
                             <th>Description</th>
                             <th>Runs in</th>
                             <th>Schedulers</th>
+                            <th>Last run</th>
                             @foreach(['time', 'memory'] as $type)
                                 @foreach(['avg', 'min', 'max'] as $key)
                                     @php
@@ -150,6 +151,26 @@
                                             @endif
                                             </tbody>
                                         </table>
+                                    </td>
+                                    <td>
+                                        @if($lastRun = $lastRuns->get($command->getModel()->id))
+                                            <div class="row w-100 mx-auto">
+                                                <div class="col px-0">
+                                                    @switch($lastRun->state)
+                                                        @case(0)
+                                                            @include('chronos::icons.on')
+                                                        @break
+                                                        @case(1)
+                                                            @include('chronos::icons.off')
+                                                            @break
+                                                        @case(2)
+                                                            @include('chronos::icons.wait')
+                                                            @break
+                                                    @endswitch
+                                                    <span>{{ $lastRun->created_at }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </td>
                                     @foreach(['time', 'memory'] as $type)
                                         @foreach(['avg', 'min', 'max'] as $key)

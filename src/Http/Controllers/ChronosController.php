@@ -15,6 +15,7 @@ use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Jobs\CommandRunJob;
+use Tkachikov\Chronos\Services\ChronosRealTimeRunner;
 use Tkachikov\Chronos\Services\CommandRunService;
 use Tkachikov\Chronos\Services\CommandService;
 use Tkachikov\Chronos\Services\ScheduleService;
@@ -27,8 +28,8 @@ class ChronosController extends Controller
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
         private readonly CommandRunService $commandRunService,
-    ) {
-    }
+        private readonly ChronosRealTimeRunner $chronosRealTimeRunner,
+    ) {}
 
     public function index(
         Request $request,
@@ -40,8 +41,13 @@ class ChronosController extends Controller
                 $request->get('sortBy'),
             );
 
+        $lastRuns = $this
+            ->commandRunService
+            ->getLastRunForEachCommand();
+
         return view('chronos::index', [
             'commands' => $commands,
+            'lastRuns' => $lastRuns,
             'times' => $this->commandService->getTimes(),
         ]);
     }
@@ -122,7 +128,7 @@ class ChronosController extends Controller
         
         try {
             $uuid = $this
-                ->commandRunService
+                ->chronosRealTimeRunner
                 ->initRun($command, $request->input('args', []));
         } catch (Exception $e) {
             $message = $e->getMessage();
@@ -135,11 +141,11 @@ class ChronosController extends Controller
         Command $command,
         string $uuid,
     ) {
-        return response()->json($this->commandRunService->getLogs($command, $uuid));
+        return response()->json($this->chronosRealTimeRunner->getLogs($command, $uuid));
     }
 
     public function setAnswerForRunning(Request $request, Command $command, string $uuid)
     {
-        $this->commandRunService->setAnswer($command, $uuid, $request->string('answer')->toString());
+        $this->chronosRealTimeRunner->setAnswer($command, $uuid, $request->string('answer')->toString());
     }
 }
