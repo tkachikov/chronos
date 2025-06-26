@@ -23,12 +23,15 @@ use Tkachikov\Chronos\Repositories\ArtisanRepository;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
 use Tkachikov\Chronos\Repositories\CommandRepository;
 use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
+use Tkachikov\Chronos\Repositories\CommandRunRepository;
+use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 
 class ChronosServiceProvider extends ServiceProvider
 {
     public $singletons = [
         ArtisanRepositoryInterface::class => ArtisanRepository::class,
         CommandRepositoryInterface::class => CommandRepository::class,
+        CommandRunRepositoryInterface::class => CommandRunRepository::class,
     ];
 
     public function register(): void

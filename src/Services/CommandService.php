@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services;
 
 use Illuminate\Support\Collection;
-use Tkachikov\Chronos\CommandManager;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
+use Tkachikov\Chronos\Managers\CommandManager;
 
 class CommandService
 {
@@ -65,7 +65,7 @@ class CommandService
     {
         return $this
             ->getBaseCommands()
-            ->sortBy(fn(CommandDecorator $decorator) => $decorator->getDirectory())
+            ->sortBy(fn(CommandDecorator $decorator) => $decorator->getGroupName() ?? $decorator->getDirectory())
             ->toArray();
     }
 
@@ -77,6 +77,7 @@ class CommandService
         $appCommands = $this
             ->manager
             ->getApps();
+
         $chronosCommands = $this
             ->manager
             ->getChronos();

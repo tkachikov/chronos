@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Decorators;
 
+use Exception;
+use ReflectionAttribute;
 use ReflectionObject;
 use ReflectionException;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 use Symfony\Component\Console\Command\Command;
 
@@ -39,28 +42,28 @@ class CommandDecorator
     public function getShortName(): string
     {
         $withoutPostfix = str($this->getFullName())->before('Command');
-        $directory = str($this->getDirectory());
-        $parentPlural = $directory->plural();
-        $parentSingular = $directory->singular();
-        $prefix = $withoutPostfix
-            ->kebab()
-            ->explode('-')
-            ->first();
-        $prefix = str($prefix)->studly();
 
-        if ($parentPlural->is($prefix)) {
-            return $withoutPostfix
-                ->after($parentPlural)
-                ->toString();
+        $groupName = $this->getGroupName();
+        $directory = $this->getDirectory();
+        $parentPrefix = str($groupName ?? $directory);
+        $parentPlural = $parentPrefix->plural();
+        $parentSingular = $parentPrefix->singular();
+
+        $after = '';
+
+        if ($withoutPostfix->startsWith($parentSingular)) {
+            $after = $parentSingular;
         }
 
-        if ($parentSingular->isNotEmpty()) {
-            return $withoutPostfix
-                ->after($parentSingular)
-                ->toString();
+        if ($withoutPostfix->startsWith($parentPlural)) {
+            $after = $parentPlural;
         }
 
-        return $withoutPostfix->toString();
+        $shortName = $withoutPostfix
+            ->after($after)
+            ->toString();
+
+        return $shortName ?: $withoutPostfix->toString();
     }
 
     public function getFullName(): string
@@ -96,15 +99,19 @@ class CommandDecorator
         $afterPath = str($this->commandPath)
             ->substr(0, strlen($this->commandPath) - 1);
         $group = str(dirname($file))->replace('/', '\\')->after($afterPath);
+
         if ($group->startsWith('\\')) {
             $group = $group->substr(1);
         }
-        $chronosPath = 'Tkachikov\\Chronos\\Console\\Commands';
-        if ($group->startsWith($chronosPath)) {
-            $group = $group->replace($chronosPath, 'Chronos');
-        }
 
         return $group->toString();
+    }
+
+    public function getGroupName(): ?string
+    {
+        return $this
+            ->getChronosCommandAttribute()
+            ?->group;
     }
 
     public function runInSchedule(): bool
@@ -146,12 +153,30 @@ class CommandDecorator
         return str($this->command::class)->startsWith($nameSpace);
     }
 
+    /**
+     * @throws Exception
+     */
     private function notRun(string $attribute): bool
     {
-        return in_array($attribute, $this->getAttributes())
+        $chronosCommandAttribute = $this->getChronosCommandAttribute();
+
+        if ($chronosCommandAttribute === null) {
+            return in_array($attribute, $this->getAttributes())
+                && $this->customNotRun(__FUNCTION__);
+        }
+
+        $notRun = match ($attribute) {
+            'notRunInManual' => $chronosCommandAttribute->notRunInManual,
+            'notRunInSchedule' => $chronosCommandAttribute->notRunInSchedule,
+        };
+
+        return $notRun
             && $this->customNotRun(__FUNCTION__);
     }
 
+    /**
+     * @deprecated Starts with version 1.4.7
+     */
     private function getAttributes(): array
     {
         return array_map(
@@ -221,5 +246,24 @@ class CommandDecorator
                 $value,
             ),
         );
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function getChronosCommandAttribute(): ?ChronosCommand
+    {
+        $reflection = new ReflectionObject($this->command);
+        $attributes = $reflection->getAttributes(ChronosCommand::class);
+
+        if (empty($attributes)) {
+            return null;
+        }
+
+        if (count($attributes) > 1) {
+            throw new Exception('ChronosCommand attribute must be used only once.');
+        }
+
+        return $attributes[0]->newInstance();
     }
 }

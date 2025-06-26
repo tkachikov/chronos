@@ -29,6 +29,10 @@
             <div class="col-8">{{ $command->getSignature() }}</div>
         </div>
         <div class="row w-100 mx-auto py-3 align-items-center">
+            <div class="col-4">Group</div>
+            <div class="col-8">{{ $command->getGroupName() ?? $command->getDirectory() }}</div>
+        </div>
+        <div class="row w-100 mx-auto py-3 align-items-center">
             <div class="col-4">Run in schedule</div>
             <div class="col-8">
                 @if($command->runInSchedule())

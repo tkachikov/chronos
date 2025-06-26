@@ -1,0 +1,1 @@
+<span class="text-success me-2" style="font-size: 10px;">&#128993;</span>

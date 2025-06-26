@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Console\Commands;
 
 use Illuminate\Console\Command;
-use Tkachikov\Chronos\Services\CommandRunService;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
+use Tkachikov\Chronos\Services\ChronosRealTimeRunner;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
-use Illuminate\Support\Facades\Log;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 
+#[ChronosCommand(
+    group: 'Chronos',
+)]
 final class ChronosRunBackgroundCommand extends Command
 {
     use ChronosRunnerTrait;
@@ -18,7 +21,7 @@ final class ChronosRunBackgroundCommand extends Command
 
     protected $description = 'Command for run other commands in background';
 
-    public function handle(CommandRunService $service): int
+    public function handle(ChronosRealTimeRunner $service): int
     {
         $data = cache()->get($this->argument('uuid'));
         $command = CommandModel::findOrFail($data['command_id']);

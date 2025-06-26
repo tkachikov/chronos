@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Console\Commands;
 
 use Illuminate\Console\Command;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Models\Schedule;
 
+#[ChronosCommand(
+    group: 'Chronos',
+)]
 final class ChronosUpdateTimeParamsCommand extends Command
 {
     protected $signature = 'chronos:update-time-params';

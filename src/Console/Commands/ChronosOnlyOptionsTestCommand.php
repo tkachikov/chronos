@@ -6,8 +6,12 @@ namespace Tkachikov\Chronos\Console\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 
+#[ChronosCommand(
+    group: 'Chronos',
+)]
 final class ChronosOnlyOptionsTestCommand extends Command
 {
     use ChronosRunnerTrait;

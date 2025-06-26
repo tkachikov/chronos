@@ -21,12 +21,14 @@
                             <th colspan="3" class="text-center">Memory</th>
                         </tr>
                         <tr>
+                            @if(request('sortKey'))
+                                <th>Group name</th>
+                            @endif
                             <th>Command</th>
-                            <th>Name</th>
                             <th>Description</th>
-                            <th>Run in schedule</th>
-                            <th>Run in manual</th>
-                            <th>Info in db</th>
+                            <th>Runs in</th>
+                            <th>Schedulers</th>
+                            <th>Last run</th>
                             @foreach(['time', 'memory'] as $type)
                                 @foreach(['avg', 'min', 'max'] as $key)
                                     @php
@@ -64,58 +66,111 @@
                         </tr>
                         </thead>
                         <tbody>
-                            @php($prevDirectory = null)
+                            @php($prevGroupName = null)
                             @foreach($commands as $command)
                                 @php($border = ['border-bottom-0' => $loop->last])
-                                @php($directory = $command->getDirectory())
-                                @if(!request('sortKey') && $directory && $prevDirectory !== $directory)
-                                    @php($prevDirectory = $directory)
+                                @php($groupName = $command->getGroupName() ?? $command->getDirectory())
+                                @if(!request('sortKey') && $groupName && $prevGroupName !== $groupName)
+                                    @php($prevGroupName = $groupName)
                                     <tr>
                                         <td colspan="13" class="border-bottom-0">
-                                            <h2 class="text-center h2 m-0 mt-5">{{ $prevDirectory }}</h2>
+                                            <h2 class="text-center h2 m-0 mt-5">{{ $prevGroupName }}</h2>
                                         </td>
                                     </tr>
                                 @endif
                                 <tr>
-                                    <td @class($border) style="{{ request('sortKey') ?: 'padding-left: 50px;' }}">{{ $command->getShortName() }}</td>
+                                    @if(request('sortKey'))
+                                        <td @class($border)>
+                                            {{ $groupName }}
+                                        </td>
+                                    @endif
                                     <td @class($border)>
-                                        <a class="btn btn-link text-decoration-none" href="{{ route('chronos.edit', $command->getModel()) }}">
-                                            {{ $command->getName() }}
-                                        </a>
+                                        <div class="row w-100 mx-auto">
+                                            <div class="col px-0">
+                                                <a class="btn btn-link text-decoration-none p-0 text-start" href="{{ route('chronos.edit', $command->getModel()) }}">
+                                                    {{ $command->getShortName() }}
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="row w-100 mx-auto">
+                                            <div class="col">
+                                                {{ $command->getName() }}
+                                            </div>
+                                        </div>
                                     </td>
                                     <td @class($border)>{{ $command->getDescription() }}</td>
-                                    @foreach (['runInSchedule', 'runInManual'] as $runMethod)
-                                        <td @class($border)>
-                                            @if($command->$runMethod())
-                                                <span class="text-success">Yes</span>
-                                            @else
-                                                <span class="text-danger">No</span>
-                                            @endif
-                                        </td>
-                                    @endforeach
+                                    <td @class($border)>
+                                        <div class="row w-100 mx-auto">
+                                            <div class="col-3 px-0 d-flex align-items-center">
+                                                @if($command->runInManual())
+                                                    @include('chronos::icons.on')
+                                                @else
+                                                    @include('chronos::icons.off')
+                                                @endif
+                                                <span>Manual</span>
+                                            </div>
+                                        </div>
+                                        <div class="row w-100 mx-auto">
+                                            <div class="col-3 px-0 d-flex align-items-center">
+                                                @if($command->runInSchedule())
+                                                    @include('chronos::icons.on')
+                                                @else
+                                                    @include('chronos::icons.off')
+                                                @endif
+                                                <span>Schedule</span>
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td @class($border)>
                                         <table class="table m-0">
                                             <tbody>
                                             @if($command->getModel()->schedules->count())
                                                 @foreach($command->getModel()->schedules as $schedule)
-                                                    <tr @class([$schedule->run ? 'text-success' : 'text-secondary'])>
-                                                        <td @class(['border-bottom-0' => $loop->last])>
-                                                            {{ $times[$schedule->time_method]['title'] }}
-                                                            @if($schedule->time_params)
-                                                                {{ implode(', ', $schedule->time_params) }}
-                                                            @endif
+                                                    <tr>
+                                                        <td @class(['border-bottom-0' => $loop->last, 'p-0'])>
+                                                            <div class="row w-100 mx-auto">
+                                                                <div class="col px-0 d-flex align-items-center">
+                                                                    @if($schedule->run)
+                                                                        @include('chronos::icons.on')
+                                                                    @else
+                                                                        @include('chronos::icons.off')
+                                                                    @endif
+                                                                    <span>
+                                                                        {{ $times[$schedule->time_method]['title'] }}
+                                                                    </span>
+                                                                    <span>
+                                                                        @if($schedule->time_params)
+                                                                            {{ implode(', ', $schedule->time_params) }}
+                                                                        @endif
+                                                                    </span>
+                                                                </div>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 @endforeach
-                                            @else
-                                                <tr>
-                                                    <td class="border-bottom-0">
-                                                        <span class="text-danger">{{ "hasn't in db" }}</span>
-                                                    </td>
-                                                </tr>
                                             @endif
                                             </tbody>
                                         </table>
+                                    </td>
+                                    <td>
+                                        @if($lastRun = $lastRuns->get($command->getModel()->id))
+                                            <div class="row w-100 mx-auto">
+                                                <div class="col px-0">
+                                                    @switch($lastRun->state)
+                                                        @case(0)
+                                                            @include('chronos::icons.on')
+                                                        @break
+                                                        @case(1)
+                                                            @include('chronos::icons.off')
+                                                            @break
+                                                        @case(2)
+                                                            @include('chronos::icons.wait')
+                                                            @break
+                                                    @endswitch
+                                                    <span>{{ $lastRun->created_at }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </td>
                                     @foreach(['time', 'memory'] as $type)
                                         @foreach(['avg', 'min', 'max'] as $key)

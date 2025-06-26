@@ -8,7 +8,11 @@ use Doctrine\DBAL\Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Tkachikov\Chronos\Attributes\ChronosCommand;
 
+#[ChronosCommand(
+    group: 'Chronos',
+)]
 final class ChronosIndexUpdateCommand extends Command
 {
     protected $signature = 'chronos:update-indexes';
