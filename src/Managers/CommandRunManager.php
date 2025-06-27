@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 
-final readonly class CommandRunManager
+final readonly class CommandRunManager implements CommandRunManagerInterface
 {
     /**
      * @var Collection<int, CommandRun> $lastRunForEachCommand

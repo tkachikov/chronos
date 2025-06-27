@@ -19,6 +19,8 @@ use Tkachikov\Chronos\Console\Commands\ChronosIndexUpdateCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateArgsCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateTimeParamsCommand;
+use Tkachikov\Chronos\Managers\CommandRunManager;
+use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
 use Tkachikov\Chronos\Repositories\ArtisanRepository;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
 use Tkachikov\Chronos\Repositories\CommandRepository;
@@ -32,6 +34,7 @@ class ChronosServiceProvider extends ServiceProvider
         ArtisanRepositoryInterface::class => ArtisanRepository::class,
         CommandRepositoryInterface::class => CommandRepository::class,
         CommandRunRepositoryInterface::class => CommandRunRepository::class,
+        CommandRunManagerInterface::class => CommandRunManager::class,
     ];
 
     public function register(): void

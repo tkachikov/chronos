@@ -116,7 +116,7 @@
                         </div>
                     </div>
 
-                    <div class="row w-100 mx-auto">
+                    <div class="row w-100 mx-auto mb-3">
                         <div class="col">
                             <label for="schedulers">
                                 Schedulers
@@ -130,6 +130,29 @@
                                     <option
                                             value="{{ $case->value }}"
                                             @selected(request('schedulers') === $case->value)
+                                    >
+                                        {{ $case->value }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row w-100 mx-auto">
+                        <div class="col">
+                            <label for="lastRunState">
+                                Last run
+                            </label>
+                            <select
+                                    id="lastRunState"
+                                    class="form-control"
+                                    name="lastRunState"
+                            >
+                                <option value="">All</option>
+                                @foreach(\Tkachikov\Chronos\Enums\LastRunStateFilterEnum::cases() as $case)
+                                    <option
+                                            value="{{ $case->value }}"
+                                            @selected(request('lastRunState') === $case->value)
                                     >
                                         {{ $case->value }}
                                     </option>

@@ -19,7 +19,6 @@ use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Jobs\CommandRunJob;
 use Tkachikov\Chronos\Services\ChronosRealTimeRunner;
-use Tkachikov\Chronos\Services\CommandRunService;
 use Tkachikov\Chronos\Services\CommandService;
 use Tkachikov\Chronos\Services\ScheduleService;
 use Tkachikov\Chronos\Http\Requests\ScheduleRunRequest;
@@ -30,7 +29,6 @@ class ChronosController extends Controller
     public function __construct(
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
-        private readonly CommandRunService $commandRunService,
         private readonly ChronosRealTimeRunner $chronosRealTimeRunner,
     ) {}
 
@@ -49,13 +47,8 @@ class ChronosController extends Controller
                 filter: $filterDto,
             );
 
-        $lastRuns = $this
-            ->commandRunService
-            ->getLastRunForEachCommand();
-
         return view('chronos::index', [
             'commands' => $commands,
-            'lastRuns' => $lastRuns,
             'times' => $this->commandService->getTimes(),
         ]);
     }

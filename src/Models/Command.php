@@ -31,4 +31,11 @@ class Command extends Model
     {
         return $this->hasOne(CommandMetric::class);
     }
+
+    public function lastRun(): HasOne
+    {
+        return $this
+            ->hasOne(CommandRun::class)
+            ->latest('id');
+    }
 }

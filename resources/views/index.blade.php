@@ -156,10 +156,10 @@
                                         </table>
                                     </td>
                                     <td @class($border)>
-                                        @if($lastRun = $lastRuns->get($command->getModel()->id))
+                                        @if($command->getModel()->lastRun)
                                             <div class="row w-100 mx-auto">
                                                 <div class="col px-0">
-                                                    @switch($lastRun->state)
+                                                    @switch($command->getModel()->lastRun->state)
                                                         @case(0)
                                                             @include('chronos::icons.on')
                                                         @break
@@ -170,7 +170,7 @@
                                                             @include('chronos::icons.wait')
                                                             @break
                                                     @endswitch
-                                                    <span>{{ $lastRun->created_at }}</span>
+                                                    <span>{{ $command->getModel()->lastRun->created_at }}</span>
                                                 </div>
                                             </div>
                                         @endif

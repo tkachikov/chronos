@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Decorators;
 
 use Exception;
-use ReflectionAttribute;
 use ReflectionObject;
 use ReflectionException;
 use Tkachikov\Chronos\Attributes\ChronosCommand;

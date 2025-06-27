@@ -8,9 +8,11 @@ use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
 use Tkachikov\Chronos\Dto\FilterDto;
 use Tkachikov\Chronos\Dto\SortDto;
+use Tkachikov\Chronos\Enums\LastRunStateFilterEnum;
 use Tkachikov\Chronos\Enums\RunsInFilterEnum;
 use Tkachikov\Chronos\Enums\SchedulersFilterEnum;
 use Tkachikov\Chronos\Managers\CommandManager;
+use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
 use Tkachikov\Chronos\Models\CommandMetric;
 use Tkachikov\Chronos\Models\Schedule;
 
@@ -18,6 +20,7 @@ class CommandService
 {
     public function __construct(
         private readonly CommandManager $manager,
+        private readonly CommandRunManagerInterface $commandRunManager,
     ) {}
 
     public function get(
@@ -36,8 +39,22 @@ class CommandService
             );
         }
 
+        $lastRuns = $this
+            ->commandRunManager
+            ->getLastRunForEachCommand();
+
         return $this
             ->getBaseCommands()
+            ->transform(function (CommandDecorator $decorator) use ($lastRuns) {
+                $decorator
+                    ->getModel()
+                    ->setRelation(
+                        'lastRun',
+                        $lastRuns->get($decorator->getModel()->id),
+                    );
+
+                return $decorator;
+            })
             ->when(
                 value: in_array($sort->column, CommandMetric::$sortKeys, true),
 
@@ -109,6 +126,21 @@ class CommandService
                                 SchedulersFilterEnum::ALL_OFF => $schedules
                                     ->filter(fn(Schedule $schedule) => !$schedule->run)
                                     ->count() === $schedules->count() && $schedules->count() > 0,
+                                default => true,
+                            };
+                    }
+
+                    if ($filter->lastRunState) {
+                        $lastRun = $decorator
+                            ->getModel()
+                            ->lastRun;
+
+                        $isValid = $isValid
+                            && match ($filter->lastRunState) {
+                                LastRunStateFilterEnum::NEVER_RUN => !$lastRun,
+                                LastRunStateFilterEnum::SUCCESS => $lastRun?->state === 0,
+                                LastRunStateFilterEnum::FAILED => $lastRun?->state === 1,
+                                LastRunStateFilterEnum::RUNNING => $lastRun?->state === 2,
                                 default => true,
                             };
                     }
