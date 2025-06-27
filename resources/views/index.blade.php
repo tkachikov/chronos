@@ -9,6 +9,9 @@
             <h1 class="h1 m-0">Commands</h1>
         </a>
     </div>
+
+    @include('chronos::filters')
+
     <div class="row w-100 mx-auto">
         <div class="col">
             <div class="card">

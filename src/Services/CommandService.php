@@ -6,7 +6,10 @@ namespace Tkachikov\Chronos\Services;
 
 use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
+use Tkachikov\Chronos\Dto\FilterDto;
+use Tkachikov\Chronos\Dto\SortDto;
 use Tkachikov\Chronos\Managers\CommandManager;
+use Tkachikov\Chronos\Models\CommandMetric;
 
 class CommandService
 {
@@ -14,11 +17,55 @@ class CommandService
         private readonly CommandManager $manager,
     ) {}
 
-    public function get(?string $sortKey = null, ?string $sortBy = null): array
-    {
-        return $sortKey && $sortBy
-            ? $this->getWithSort($sortKey, $sortBy)
-            : $this->getWithSortDefault();
+    public function get(
+        SortDto|string|null $sort = null,
+        FilterDto|string|null $filter = null,
+    ): array {
+        if (
+            is_string($sort)
+            || is_null($sort)
+        ) {
+            $sort = new SortDto(
+                column: $sort,
+                direction: is_string($filter) || is_null($filter)
+                    ? $filter
+                    : null,
+            );
+        }
+
+        return $this
+            ->getBaseCommands()
+            ->when(
+                value: in_array($sort->column, CommandMetric::$sortKeys, true),
+
+                callback: fn(Collection $commands): Collection => $commands
+                    ->sortBy(
+                        callback: fn(CommandDecorator $decorator) => $decorator
+                            ->getModel()
+                            ->metrics
+                            ->{$sort->column}
+                            ?? ($sort->direction === 'asc' ? INF : -INF),
+
+                        descending: $sort->direction === 'desc',
+                    ),
+
+                default: fn(Collection $commands): Collection => $commands
+                    ->sortBy(
+                        callback: fn(CommandDecorator $decorator) =>
+                            $decorator->getGroupName()
+                            ?? $decorator->getDirectory(),
+                    ),
+            )
+            ->filter(function (CommandDecorator $decorator) use ($filter): bool {
+                if ($filter->search) {
+                    return str($decorator->getFullName())->contains($filter->search, true)
+                        || str($decorator->getSignature())->contains($filter->search, true)
+                        || str($decorator->getDescription())->contains($filter->search, true);
+                }
+
+                return true;
+            })
+            ->toArray();
     }
 
     /**
@@ -44,29 +91,6 @@ class CommandService
             ->has($class);
 
         return $existsInApps || $existsInChronos;
-    }
-
-    public function getWithSort(string $sortKey, string $sortBy): array
-    {
-        return $this
-            ->getBaseCommands()
-            ->sortBy(
-                callback: fn(CommandDecorator $decorator) => $decorator
-                    ->getModel()
-                    ->metrics
-                    ->$sortKey
-                    ?? ($sortBy === 'asc' ? INF : -INF),
-                descending: $sortBy === 'desc',
-            )
-            ->toArray();
-    }
-
-    public function getWithSortDefault(): array
-    {
-        return $this
-            ->getBaseCommands()
-            ->sortBy(fn(CommandDecorator $decorator) => $decorator->getGroupName() ?? $decorator->getDirectory())
-            ->toArray();
     }
 
     /**

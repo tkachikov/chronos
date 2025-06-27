@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\RedirectResponse;
+use Tkachikov\Chronos\Converters\FilterConverter;
+use Tkachikov\Chronos\Converters\SortConverter;
+use Tkachikov\Chronos\Http\Requests\IndexRequest;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Models\CommandLog;
@@ -32,13 +35,18 @@ class ChronosController extends Controller
     ) {}
 
     public function index(
-        Request $request,
+        IndexRequest $request,
+        SortConverter $sortConverter,
+        FilterConverter $filterConverter,
     ): View {
+        $sortDto = $sortConverter->convert($request);
+        $filterDto = $filterConverter->convert($request);
+
         $commands = $this
             ->commandService
             ->get(
-                $request->get('sortKey'),
-                $request->get('sortBy'),
+                sort: $sortDto,
+                filter: $filterDto,
             );
 
         $lastRuns = $this
