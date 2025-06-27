@@ -10,13 +10,15 @@ use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\RedirectResponse;
+use Tkachikov\Chronos\Converters\FilterConverter;
+use Tkachikov\Chronos\Converters\SortConverter;
+use Tkachikov\Chronos\Http\Requests\IndexRequest;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Jobs\CommandRunJob;
 use Tkachikov\Chronos\Services\ChronosRealTimeRunner;
-use Tkachikov\Chronos\Services\CommandRunService;
 use Tkachikov\Chronos\Services\CommandService;
 use Tkachikov\Chronos\Services\ScheduleService;
 use Tkachikov\Chronos\Http\Requests\ScheduleRunRequest;
@@ -27,27 +29,26 @@ class ChronosController extends Controller
     public function __construct(
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
-        private readonly CommandRunService $commandRunService,
         private readonly ChronosRealTimeRunner $chronosRealTimeRunner,
     ) {}
 
     public function index(
-        Request $request,
+        IndexRequest $request,
+        SortConverter $sortConverter,
+        FilterConverter $filterConverter,
     ): View {
+        $sortDto = $sortConverter->convert($request);
+        $filterDto = $filterConverter->convert($request);
+
         $commands = $this
             ->commandService
             ->get(
-                $request->get('sortKey'),
-                $request->get('sortBy'),
+                sort: $sortDto,
+                filter: $filterDto,
             );
-
-        $lastRuns = $this
-            ->commandRunService
-            ->getLastRunForEachCommand();
 
         return view('chronos::index', [
             'commands' => $commands,
-            'lastRuns' => $lastRuns,
             'times' => $this->commandService->getTimes(),
         ]);
     }

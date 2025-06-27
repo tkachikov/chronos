@@ -9,6 +9,9 @@
             <h1 class="h1 m-0">Commands</h1>
         </a>
     </div>
+
+    @include('chronos::filters', ['times' => $times])
+
     <div class="row w-100 mx-auto">
         <div class="col">
             <div class="card">
@@ -152,11 +155,11 @@
                                             </tbody>
                                         </table>
                                     </td>
-                                    <td>
-                                        @if($lastRun = $lastRuns->get($command->getModel()->id))
+                                    <td @class($border)>
+                                        @if($command->getModel()->lastRun)
                                             <div class="row w-100 mx-auto">
                                                 <div class="col px-0">
-                                                    @switch($lastRun->state)
+                                                    @switch($command->getModel()->lastRun->state)
                                                         @case(0)
                                                             @include('chronos::icons.on')
                                                         @break
@@ -167,14 +170,16 @@
                                                             @include('chronos::icons.wait')
                                                             @break
                                                     @endswitch
-                                                    <span>{{ $lastRun->created_at }}</span>
+                                                    <span>{{ $command->getModel()->lastRun->created_at }}</span>
                                                 </div>
                                             </div>
                                         @endif
                                     </td>
                                     @foreach(['time', 'memory'] as $type)
                                         @foreach(['avg', 'min', 'max'] as $key)
-                                            <td @class($border)>{{ $command->getModel()->metrics->{$type.'_'.$key} ?? '' }}</td>
+                                            <td @class($border)>
+                                                {{ $command->getModel()->metrics->{$type.'_'.$key} ?? '' }}
+                                            </td>
                                         @endforeach
                                     @endforeach
                                 </tr>
