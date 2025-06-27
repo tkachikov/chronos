@@ -55,7 +55,7 @@
                         </div>
                     </div>
 
-                    <div class="row w-100 mx-auto">
+                    <div class="row w-100 mx-auto mb-3">
                         <div class="col">
                             <label for="search">
                                 Search
@@ -68,6 +68,28 @@
                                     value="{{ request('search') }}"
                                     placeholder="Name, signature or description"
                             >
+                        </div>
+                    </div>
+
+                    <div class="row w-100 mx-auto">
+                        <div class="col">
+                            <label for="runsIn">
+                                Runs In
+                            </label>
+                            <select
+                                    id="runsIn"
+                                    class="form-control"
+                                    name="runsIn"
+                            >
+                                @foreach(\Tkachikov\Chronos\Enums\RunsInEnum::cases() as $case)
+                                    <option
+                                            value="{{ $case->value }}"
+                                            @selected(request('runsIn') === $case->value)
+                                    >
+                                        {{ $case->value }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                 </form>

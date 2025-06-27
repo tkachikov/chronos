@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
 use Tkachikov\Chronos\Dto\FilterDto;
 use Tkachikov\Chronos\Dto\SortDto;
+use Tkachikov\Chronos\Enums\RunsInEnum;
 use Tkachikov\Chronos\Managers\CommandManager;
 use Tkachikov\Chronos\Models\CommandMetric;
 
@@ -56,15 +57,33 @@ class CommandService
                             ?? $decorator->getDirectory(),
                     ),
             )
-            ->filter(function (CommandDecorator $decorator) use ($filter): bool {
-                if ($filter->search) {
-                    return str($decorator->getFullName())->contains($filter->search, true)
-                        || str($decorator->getSignature())->contains($filter->search, true)
-                        || str($decorator->getDescription())->contains($filter->search, true);
-                }
+            ->filter(
+                function (
+                    CommandDecorator $decorator,
+                ) use (
+                    $filter,
+                ): bool {
+                    $isValid = true;
 
-                return true;
-            })
+                    if ($filter->search) {
+                        $isValid = str($decorator->getFullName())->contains($filter->search, true)
+                            || str($decorator->getSignature())->contains($filter->search, true)
+                            || str($decorator->getDescription())->contains($filter->search, true);
+                    }
+
+                    if ($filter->runsIn) {
+                        $isValid = $isValid && match ($filter->runsIn) {
+                            RunsInEnum::MANUAL_ON => $decorator->runInManual(),
+                            RunsInEnum::MANUAL_OFF => $decorator->notRunInManual(),
+                            RunsInEnum::SCHEDULE_ON => $decorator->runInSchedule(),
+                            RunsInEnum::SCHEDULE_OFF => $decorator->notRunInSchedule(),
+                            default => true,
+                        };
+                    }
+
+                    return $isValid;
+                }
+            )
             ->toArray();
     }
 
