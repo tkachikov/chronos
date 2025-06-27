@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Enums;
 
-enum RunsInEnum: string
+enum RunsInFilterEnum: string
 {
     case ALL = 'All';
     case MANUAL_ON = 'Manual on';

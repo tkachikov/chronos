@@ -71,7 +71,7 @@
                         </div>
                     </div>
 
-                    <div class="row w-100 mx-auto">
+                    <div class="row w-100 mx-auto mb-3">
                         <div class="col">
                             <label for="runsIn">
                                 Runs In
@@ -81,10 +81,55 @@
                                     class="form-control"
                                     name="runsIn"
                             >
-                                @foreach(\Tkachikov\Chronos\Enums\RunsInEnum::cases() as $case)
+                                @foreach(\Tkachikov\Chronos\Enums\RunsInFilterEnum::cases() as $case)
                                     <option
                                             value="{{ $case->value }}"
                                             @selected(request('runsIn') === $case->value)
+                                    >
+                                        {{ $case->value }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row w-100 mx-auto mb-3">
+                        <div class="col">
+                            <label for="scheduleMethod">
+                                Schedule method
+                            </label>
+                            <select
+                                    id="scheduleMethod"
+                                    class="form-control"
+                                    name="scheduleMethod"
+                            >
+                                <option value="">All</option>
+                                @foreach($times as $method => $time)
+                                    <option
+                                            value="{{ $method }}"
+                                            @selected(request('scheduleMethod') === $method)
+                                    >
+                                        {{ $time['title'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row w-100 mx-auto">
+                        <div class="col">
+                            <label for="schedulers">
+                                Schedulers
+                            </label>
+                            <select
+                                    id="schedulers"
+                                    class="form-control"
+                                    name="schedulers"
+                            >
+                                @foreach(\Tkachikov\Chronos\Enums\SchedulersFilterEnum::cases() as $case)
+                                    <option
+                                            value="{{ $case->value }}"
+                                            @selected(request('schedulers') === $case->value)
                                     >
                                         {{ $case->value }}
                                     </option>

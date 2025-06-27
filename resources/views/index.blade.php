@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    @include('chronos::filters')
+    @include('chronos::filters', ['times' => $times])
 
     <div class="row w-100 mx-auto">
         <div class="col">
@@ -155,7 +155,7 @@
                                             </tbody>
                                         </table>
                                     </td>
-                                    <td>
+                                    <td @class($border)>
                                         @if($lastRun = $lastRuns->get($command->getModel()->id))
                                             <div class="row w-100 mx-auto">
                                                 <div class="col px-0">
@@ -177,7 +177,9 @@
                                     </td>
                                     @foreach(['time', 'memory'] as $type)
                                         @foreach(['avg', 'min', 'max'] as $key)
-                                            <td @class($border)>{{ $command->getModel()->metrics->{$type.'_'.$key} ?? '' }}</td>
+                                            <td @class($border)>
+                                                {{ $command->getModel()->metrics->{$type.'_'.$key} ?? '' }}
+                                            </td>
                                         @endforeach
                                     @endforeach
                                 </tr>

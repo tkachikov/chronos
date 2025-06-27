@@ -8,9 +8,11 @@ use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
 use Tkachikov\Chronos\Dto\FilterDto;
 use Tkachikov\Chronos\Dto\SortDto;
-use Tkachikov\Chronos\Enums\RunsInEnum;
+use Tkachikov\Chronos\Enums\RunsInFilterEnum;
+use Tkachikov\Chronos\Enums\SchedulersFilterEnum;
 use Tkachikov\Chronos\Managers\CommandManager;
 use Tkachikov\Chronos\Models\CommandMetric;
+use Tkachikov\Chronos\Models\Schedule;
 
 class CommandService
 {
@@ -73,12 +75,42 @@ class CommandService
 
                     if ($filter->runsIn) {
                         $isValid = $isValid && match ($filter->runsIn) {
-                            RunsInEnum::MANUAL_ON => $decorator->runInManual(),
-                            RunsInEnum::MANUAL_OFF => $decorator->notRunInManual(),
-                            RunsInEnum::SCHEDULE_ON => $decorator->runInSchedule(),
-                            RunsInEnum::SCHEDULE_OFF => $decorator->notRunInSchedule(),
+                            RunsInFilterEnum::MANUAL_ON => $decorator->runInManual(),
+                            RunsInFilterEnum::MANUAL_OFF => $decorator->notRunInManual(),
+                            RunsInFilterEnum::SCHEDULE_ON => $decorator->runInSchedule(),
+                            RunsInFilterEnum::SCHEDULE_OFF => $decorator->notRunInSchedule(),
                             default => true,
                         };
+                    }
+
+                    $schedules = $decorator
+                        ->getModel()
+                        ->schedules;
+
+                    if ($filter->scheduleMethod) {
+                        $isValid = $isValid
+                            && in_array(
+                                $filter->scheduleMethod,
+                                $schedules
+                                    ->pluck('time_method')
+                                    ->toArray(),
+                            );
+                    }
+
+                    if ($filter->schedulers) {
+                        $isValid = $isValid
+                            && match ($filter->schedulers) {
+                                SchedulersFilterEnum::MISSING => $schedules->count() === 0,
+                                SchedulersFilterEnum::HAS_ONE => $schedules->count() === 1,
+                                SchedulersFilterEnum::HAS_MANY => $schedules->count() > 1,
+                                SchedulersFilterEnum::SOME_OFF => $schedules
+                                    ->filter(fn(Schedule $schedule) => !$schedule->run)
+                                    ->count() > 0,
+                                SchedulersFilterEnum::ALL_OFF => $schedules
+                                    ->filter(fn(Schedule $schedule) => !$schedule->run)
+                                    ->count() === $schedules->count() && $schedules->count() > 0,
+                                default => true,
+                            };
                     }
 
                     return $isValid;

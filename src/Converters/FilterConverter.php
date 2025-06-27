@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Converters;
 
 use Tkachikov\Chronos\Dto\FilterDto;
-use Tkachikov\Chronos\Enums\RunsInEnum;
+use Tkachikov\Chronos\Enums\RunsInFilterEnum;
+use Tkachikov\Chronos\Enums\SchedulersFilterEnum;
 use Tkachikov\Chronos\Http\Requests\IndexRequest;
 
 final readonly class FilterConverter
@@ -14,7 +15,9 @@ final readonly class FilterConverter
     {
         return new FilterDto(
             search: $request->get('search'),
-            runsIn: $request->enum('runsIn', RunsInEnum::class),
+            runsIn: $request->enum('runsIn', RunsInFilterEnum::class),
+            scheduleMethod: $request->get('scheduleMethod'),
+            schedulers: $request->enum('schedulers', SchedulersFilterEnum::class),
         );
     }
 }
