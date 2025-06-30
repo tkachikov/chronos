@@ -89,23 +89,22 @@ class ChronosRealTimeRunner
 
     public function sigterm(Command $command, string $uuid): void
     {
-        if (!function_exists('posix_kill')) {
-            $this->appendLog('POSIX not installed');
-
-            return;
-        }
-
         $this->command = $command;
         $this->uuid = $uuid;
 
         $this->appendLog('SIGTERM');
 
-        $data = cache()->get($this->getKey());
-        $pid = data_get($data, 'pid');
+        $this->sendSignal(SIGTERM);
+    }
 
-        if ($pid) {
-            posix_kill($pid, SIGTERM);
-        }
+    public function sigkill(Command $command, string $uuid): void
+    {
+        $this->command = $command;
+        $this->uuid = $uuid;
+
+        $this->appendLog('SIGKILL');
+
+        $this->sendSignal(SIGKILL);
     }
 
     private function runProcess(): int
@@ -223,8 +222,11 @@ class ChronosRealTimeRunner
     {
         $data = cache()->get($this->getKey());
         $data['data'][] = $log;
+
+        $hasPosixKill = function_exists('posix_kill');
         $data['signals'] = [
-            'sigterm' => function_exists('posix_kill'),
+            'sigterm' => $hasPosixKill && defined('SIGTERM'),
+            'sigkill' => $hasPosixKill && defined('SIGKILL'),
         ];
 
         if ($status) {
@@ -239,5 +241,21 @@ class ChronosRealTimeRunner
         $data = cache()->get($this->getKey());
         $data['pid'] = $pid;
         cache()->set($this->getKey(), $data);
+    }
+
+    private function sendSignal(int $signal): void
+    {
+        if (!function_exists('posix_kill')) {
+            $this->appendLog('POSIX not installed');
+
+            return;
+        }
+
+        $data = cache()->get($this->getKey());
+        $pid = data_get($data, 'pid');
+
+        if ($pid) {
+            posix_kill($pid, $signal);
+        }
     }
 }

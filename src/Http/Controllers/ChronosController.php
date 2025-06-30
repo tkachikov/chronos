@@ -156,4 +156,11 @@ class ChronosController extends Controller
             ->chronosRealTimeRunner
             ->sigterm($command, $uuid);
     }
+
+    public function sigkill(Command $command, string $uuid): void
+    {
+        $this
+            ->chronosRealTimeRunner
+            ->sigkill($command, $uuid);
+    }
 }

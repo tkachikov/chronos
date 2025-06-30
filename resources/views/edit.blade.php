@@ -56,6 +56,7 @@
         var pid = null;
 
         $('#sigterm').hide();
+        $('#sigkill').hide();
 
         function resetMethodParams() {
             $('#time_params_container').hide();
@@ -172,8 +173,14 @@
 
                         pid = data.pid;
 
-                        if (pid && data.signals.sigterm) {
-                            $('#sigterm').show();
+                        if (pid) {
+                            if (data.signals.sigterm) {
+                                $('#sigterm').show();
+                            }
+
+                            if (data.signals.sigkill) {
+                                $('#sigkill').show();
+                            }
                         }
 
                         data.data.forEach((value, index) => {
@@ -187,6 +194,7 @@
                             clearInterval(timer);
                             pid = null;
                             $('#sigterm').hide();
+                            $('#sigkill').hide();
                             $('#runMessageError').hide();
                             $('#runCommandInRealTime').prop('disabled', false);
                         }
@@ -236,6 +244,17 @@
 
             let commandId = '{{ $command->getModel()->id }}';
             xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/sigterm`, true);
+
+            var formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+
+            xhr.send(formData);
+        }
+        function sigkill() {
+            var xhr = new XMLHttpRequest();
+
+            let commandId = '{{ $command->getModel()->id }}';
+            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/sigkill`, true);
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');

@@ -18,6 +18,7 @@ Route::controller(ChronosController::class)
                 Route::get('{uuid}/logs', 'getLogsForRunInRealTime')->name('logs');
                 Route::post('{uuid}/answer', 'setAnswerForRunning')->name('answer');
                 Route::post('{uuid}/sigterm', 'sigterm')->name('sigterm');
+                Route::post('{uuid}/sigkill', 'sigkill')->name('sigkill');
             });
             Route::prefix('schedules')->name('schedules.')->group(function () {
                 Route::delete('{schedule}', 'destroy')->name('destroy');
