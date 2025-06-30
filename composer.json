@@ -4,6 +4,7 @@
     "keywords": ["laravel", "command", "schedule", "chronos"],
     "license": "MIT",
     "autoload": {
+        "files": ["src/constants.php"],
         "psr-4": {
             "Tkachikov\\Chronos\\": "src/",
             "Tkachikov\\Chronos\\Tests\\": "tests/"

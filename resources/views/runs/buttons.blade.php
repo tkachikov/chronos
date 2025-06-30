@@ -62,6 +62,7 @@
                 <div class="modal-footer">
                     <span id="runMessageError" class="text-danger"></span>
                     <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">Close</button>
+                    <button id="sigterm" class="btn btn-outline-warning" type="button" onclick="sigterm()">SIGTERM</button>
                     <button id="runCommandInRealTime" class="btn btn-danger" onclick="runRealTime()">Run</button>
                 </div>
             </div>
