@@ -53,6 +53,10 @@
     <script>
         var methods = {{ Js::from($times) }};
         var autoScroll = true;
+        var pid = null;
+
+        $('#sigterm').hide();
+        $('#sigkill').hide();
 
         function resetMethodParams() {
             $('#time_params_container').hide();
@@ -108,6 +112,8 @@
         var logs = [];
 
         function runRealTime() {
+            pid = null;
+
             $('#runMessageError').hide();
             $('#runCommandInRealTime').prop('disabled', true);
 
@@ -122,7 +128,7 @@
                         let answer = JSON.parse(xhr.responseText);
 
                         if (answer.uuid !== null) {
-                            uuidForRunInRealTime = JSON.parse(xhr.responseText).uuid;
+                            uuidForRunInRealTime = answer.uuid;
                             logs = [];
                             document.getElementById('terminal').innerHTML = '';
                             getLogs();
@@ -164,14 +170,31 @@
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         let data = JSON.parse(xhr.responseText);
+
+                        pid = data.pid;
+
+                        if (pid) {
+                            if (data.signals.sigterm) {
+                                $('#sigterm').show();
+                            }
+
+                            if (data.signals.sigkill) {
+                                $('#sigkill').show();
+                            }
+                        }
+
                         data.data.forEach((value, index) => {
                             if (!logs.hasOwnProperty(index)) {
                                 logs[index] = value.trim();
                                 setLog(value.trim());
                             }
                         });
+
                         if (data.status) {
                             clearInterval(timer);
+                            pid = null;
+                            $('#sigterm').hide();
+                            $('#sigkill').hide();
                             $('#runMessageError').hide();
                             $('#runCommandInRealTime').prop('disabled', false);
                         }
@@ -216,6 +239,29 @@
                 xhr.send(formData);
             }
         }
+        function sigterm() {
+            var xhr = new XMLHttpRequest();
+
+            let commandId = '{{ $command->getModel()->id }}';
+            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/sigterm`, true);
+
+            var formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+
+            xhr.send(formData);
+        }
+        function sigkill() {
+            var xhr = new XMLHttpRequest();
+
+            let commandId = '{{ $command->getModel()->id }}';
+            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/sigkill`, true);
+
+            var formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+
+            xhr.send(formData);
+        }
+
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 

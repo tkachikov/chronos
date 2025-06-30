@@ -149,4 +149,18 @@ class ChronosController extends Controller
     {
         $this->chronosRealTimeRunner->setAnswer($command, $uuid, $request->string('answer')->toString());
     }
+
+    public function sigterm(Command $command, string $uuid): void
+    {
+        $this
+            ->chronosRealTimeRunner
+            ->sigterm($command, $uuid);
+    }
+
+    public function sigkill(Command $command, string $uuid): void
+    {
+        $this
+            ->chronosRealTimeRunner
+            ->sigkill($command, $uuid);
+    }
 }

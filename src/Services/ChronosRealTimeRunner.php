@@ -87,11 +87,35 @@ class ChronosRealTimeRunner
         return $this->runProcess();
     }
 
+    public function sigterm(Command $command, string $uuid): void
+    {
+        $this->command = $command;
+        $this->uuid = $uuid;
+
+        $this->appendLog('SIGTERM');
+
+        $this->sendSignal(SIGTERM);
+    }
+
+    public function sigkill(Command $command, string $uuid): void
+    {
+        $this->command = $command;
+        $this->uuid = $uuid;
+
+        $this->appendLog('SIGKILL');
+
+        $this->sendSignal(SIGKILL);
+    }
+
     private function runProcess(): int
     {
         $this->process = $this->createProcess();
 
+        $pid = data_get(proc_get_status($this->process), 'pid');
+        $this->setPid($pid);
+
         $this->appendLog('Process created');
+        $this->appendLog('PID: ' . $pid);
 
         $this->listen();
 
@@ -145,6 +169,7 @@ class ChronosRealTimeRunner
 
         while (!feof($this->pipes[1])) {
             $in = fread($this->pipes[1], 1024);
+
             if ($in) {
                 $this->appendLog($in);
             }
@@ -152,17 +177,29 @@ class ChronosRealTimeRunner
             $read = [STDIN];
             $write = null;
             $error = null;
+
             if (stream_select($read, $write, $error, 0) > 0) {
                 $answerKey = $this->getKey() . '-answer';
+
                 if (!cache()->has($answerKey) && str_contains($in, "\n >")) {
                     cache()->set($answerKey, 0);
                     $this->appendLog(':wait:');
                 }
+
                 $answer = cache()->get($answerKey);
+
                 if ($answer != 0) {
                     cache()->delete($answerKey);
                     fwrite($this->pipes[0], $answer.PHP_EOL);
                 }
+            }
+
+            $status = proc_get_status($this->process);
+
+            if (!data_get($status, 'running')) {
+                $this->appendLog('Process finished: ' . data_get($status, 'exitcode'));
+
+                break;
             }
 
             usleep(100000);
@@ -185,9 +222,40 @@ class ChronosRealTimeRunner
     {
         $data = cache()->get($this->getKey());
         $data['data'][] = $log;
+
+        $hasPosixKill = function_exists('posix_kill');
+        $data['signals'] = [
+            'sigterm' => $hasPosixKill && defined('SIGTERM'),
+            'sigkill' => $hasPosixKill && defined('SIGKILL'),
+        ];
+
         if ($status) {
             $data['status'] = $status;
         }
+
         cache()->set($this->getKey(), $data);
+    }
+
+    private function setPid(int $pid): void
+    {
+        $data = cache()->get($this->getKey());
+        $data['pid'] = $pid;
+        cache()->set($this->getKey(), $data);
+    }
+
+    private function sendSignal(int $signal): void
+    {
+        if (!function_exists('posix_kill')) {
+            $this->appendLog('POSIX not installed');
+
+            return;
+        }
+
+        $data = cache()->get($this->getKey());
+        $pid = data_get($data, 'pid');
+
+        if ($pid) {
+            posix_kill($pid, $signal);
+        }
     }
 }
