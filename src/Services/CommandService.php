@@ -39,6 +39,8 @@ class CommandService
             );
         }
 
+        $filter ??= new FilterDto();
+
         $lastRuns = $this
             ->commandRunManager
             ->getLastRunForEachCommand();
