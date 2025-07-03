@@ -28,7 +28,7 @@ final class ChronosAnswerTestCommand extends Command
         if ($this->confirm('Are you old 18 years?')) {
             $this->info('Has access');
         } else {
-            $this->warning('Access denied');
+            $this->warn('Access denied');
         }
 
         return self::SUCCESS;
