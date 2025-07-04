@@ -53,7 +53,6 @@
     <script>
         var methods = {{ Js::from($times) }};
         var autoScroll = true;
-        var pid = null;
 
         $('#sigterm').hide();
         $('#sigkill').hide();
@@ -112,8 +111,6 @@
         var logs = [];
 
         function runRealTime() {
-            pid = null;
-
             $('#runMessageError').hide();
             $('#runCommandInRealTime').prop('disabled', true);
 
@@ -171,16 +168,12 @@
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         let data = JSON.parse(xhr.responseText);
 
-                        pid = data.pid;
+                        if (data.signals.sigterm) {
+                            $('#sigterm').show();
+                        }
 
-                        if (pid) {
-                            if (data.signals.sigterm) {
-                                $('#sigterm').show();
-                            }
-
-                            if (data.signals.sigkill) {
-                                $('#sigkill').show();
-                            }
+                        if (data.signals.sigkill) {
+                            $('#sigkill').show();
                         }
 
                         data.data.forEach((value, index) => {
@@ -192,7 +185,6 @@
 
                         if (data.status) {
                             clearInterval(timer);
-                            pid = null;
                             $('#sigterm').hide();
                             $('#sigkill').hide();
                             $('#runMessageError').hide();

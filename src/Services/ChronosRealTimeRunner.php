@@ -105,17 +105,18 @@ class ChronosRealTimeRunner
         $this->appendLog('SIGKILL');
 
         $this->sendSignal(SIGKILL);
+
+        $this
+            ->command
+            ->lastRun
+            ->update(['state' => 3]);
     }
 
     private function runProcess(): int
     {
         $this->process = $this->createProcess();
 
-        $pid = data_get(proc_get_status($this->process), 'pid');
-        $this->setPid($pid);
-
         $this->appendLog('Process created');
-        $this->appendLog('PID: ' . $pid);
 
         $this->listen();
 
@@ -236,13 +237,6 @@ class ChronosRealTimeRunner
         cache()->set($this->getKey(), $data);
     }
 
-    private function setPid(int $pid): void
-    {
-        $data = cache()->get($this->getKey());
-        $data['pid'] = $pid;
-        cache()->set($this->getKey(), $data);
-    }
-
     private function sendSignal(int $signal): void
     {
         if (!function_exists('posix_kill')) {
@@ -251,11 +245,10 @@ class ChronosRealTimeRunner
             return;
         }
 
-        $data = cache()->get($this->getKey());
-        $pid = data_get($data, 'pid');
+        $pid = cache()->get('chronos-commands-pid-' . $this->command->id);
 
         if ($pid) {
-            posix_kill($pid, $signal);
+            \exec('kill -' . $signal . ' ' . $pid);
         }
     }
 }

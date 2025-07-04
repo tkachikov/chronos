@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Tkachikov\Chronos\CommandHandler;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CommandRun extends Model
@@ -29,7 +28,8 @@ class CommandRun extends Model
             'success',
             'failed',
             'waiting',
-        ][$this->state ?? CommandHandler::WAITING];
+            'killed',
+        ][$this->state];
     }
 
     public function getStateCssAttribute(): string
@@ -37,7 +37,8 @@ class CommandRun extends Model
         return [
             'success',
             'danger',
-            'warning'
-        ][$this->state ?? CommandHandler::WAITING];
+            'warning',
+            'danger',
+        ][$this->state];
     }
 }
