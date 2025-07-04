@@ -27,6 +27,8 @@ trait ChronosRunnerTrait
 
     private DatabaseHelper $databaseHelper;
 
+    private ?CommandModel $model;
+
     private CommandRun $run;
 
     private array $logs = [];
@@ -40,16 +42,28 @@ trait ChronosRunnerTrait
         $this->memoryHelper->reset();
         $this->createRun();
         $this->appendLog(TypeMessageEnum::INFO, 'Running command');
+
+        $this->trap(SIGTERM, fn($s) => $this->info('Signal received: ' . $s));
+
+        if ($this->getModel()) {
+            cache()->set(
+                'chronos-commands-pid-' . $this->getModel()->id,
+                getmypid(),
+            );
+        }
+
         try {
             $state = parent::run($input, $output);
         } catch (Throwable $e) {
             report($e);
             $state = self::FAILURE;
             $this->appendLog(TypeMessageEnum::ERROR, $e->getMessage());
+        } finally {
+            $this->appendLog(TypeMessageEnum::INFO, 'Finished command');
+            $this->saveLogs();
+            $this->updateRun($state);
         }
-        $this->appendLog(TypeMessageEnum::INFO, 'Finished command');
-        $this->saveLogs();
-        $this->updateRun($state);
+
         if (isset($e)) {
             throw $e;
         }
@@ -113,12 +127,13 @@ trait ChronosRunnerTrait
             !$this->databaseHelper->hasConnect()
             || !$this->databaseHelper->hasTable(CommandModel::class)
             || !$this->databaseHelper->hasTable(CommandRun::class)
-            || !($model = CommandModel::firstWhere('class', $this::class))
+            || !$this->getModel()
         ) {
             return;
         }
+
         $this->run = CommandRun::create([
-            'command_id' => $model->id,
+            'command_id' => $this->getModel()->id,
             'schedule_id' => null,
             'state' => self::$waiting,
         ]);
@@ -126,9 +141,13 @@ trait ChronosRunnerTrait
 
     private function updateRun(int $state): void
     {
-        if (!isset($this->run)) {
+        if (
+            !isset($this->run)
+            || $this->run->state === $state
+        ) {
             return;
         }
+
         $this->run->update([
             'state' => $state,
             'memory' => $this->memoryHelper->showPeak(),
@@ -168,5 +187,20 @@ trait ChronosRunnerTrait
         return is_string($message) || is_numeric($message)
             ? $message
             : json_encode($message, JSON_PRETTY_PRINT);
+    }
+
+    private function getModel(): ?CommandModel
+    {
+        if (
+            !$this->databaseHelper->hasTable(CommandModel::class)
+        ) {
+            return $this->model ??= null;
+        }
+
+        if (!isset($this->model)) {
+            $this->model = CommandModel::firstWhere('class', $this::class);
+        }
+
+        return $this->model;
     }
 }
