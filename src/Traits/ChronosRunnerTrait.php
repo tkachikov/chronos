@@ -159,13 +159,22 @@ trait ChronosRunnerTrait
         if (!isset($this->run)) {
             return;
         }
+
+        if (str($message)->length() > 10000) {
+            $message = str($message)
+                    ->substr(0, 10000)
+                    ->append('...')
+                    ->toString();
+        }
+
         $this->logs[] = [
             'command_run_id' => $this->run->id ?? null,
             'type' => $type->value,
             'message' => $message,
             'created_at' => now()->format('Y-m-d H:i:s'),
         ];
-        if (count($this->logs) === self::$maxLogSize) {
+
+        if (count($this->logs) >= self::$maxLogSize) {
             $this->saveLogs();
         }
     }
