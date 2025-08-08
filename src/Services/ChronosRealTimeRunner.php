@@ -167,12 +167,17 @@ class ChronosRealTimeRunner
         $this->appendLog('Waiting messages...');
 
         stream_set_blocking($this->pipes[1], false);
+        $in = '';
 
         while (!feof($this->pipes[1])) {
-            $in = fread($this->pipes[1], 1024);
+            $in .= fread($this->pipes[1], 1024);
 
-            if ($in) {
+            if (
+                $in
+                && mb_check_encoding($in, 'UTF-8')
+            ) {
                 $this->appendLog($in);
+                $in = '';
             }
 
             $read = [STDIN];
