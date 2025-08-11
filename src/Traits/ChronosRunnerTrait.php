@@ -99,8 +99,14 @@ trait ChronosRunnerTrait
                     $output .= "\r\n$line";
                 },
             );
+
             dump($var);
-            $this->appendLog(TypeMessageEnum::DUMP, $output);
+
+            if (strlen($output) < CHRONOS_MAX_MESSAGE_LENGTH) {
+                $this->appendLog(TypeMessageEnum::DUMP, $output);
+            } else {
+                $this->appendLog(TypeMessageEnum::INFO, 'Message is too long.');
+            }
         }
     }
 
@@ -160,9 +166,9 @@ trait ChronosRunnerTrait
             return;
         }
 
-        if (str($message)->length() > 10000) {
+        if (str($message)->length() > CHRONOS_MAX_MESSAGE_LENGTH) {
             $message = str($message)
-                    ->substr(0, 10000)
+                    ->substr(0, CHRONOS_MAX_MESSAGE_LENGTH)
                     ->append('...')
                     ->toString();
         }
