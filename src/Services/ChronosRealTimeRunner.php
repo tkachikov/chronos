@@ -170,7 +170,7 @@ class ChronosRealTimeRunner
         $in = '';
 
         while (!feof($this->pipes[1])) {
-            $in .= fread($this->pipes[1], 1024);
+            $in .= fread($this->pipes[1], CHRONOS_READ_BYTES);
 
             if (
                 $in
@@ -202,7 +202,10 @@ class ChronosRealTimeRunner
 
             $status = proc_get_status($this->process);
 
-            if (!data_get($status, 'running')) {
+            if (
+                !data_get($status, 'running')
+                && empty($in)
+            ) {
                 $this->appendLog('Process finished: ' . data_get($status, 'exitcode'));
 
                 break;
