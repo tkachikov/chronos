@@ -38,7 +38,10 @@ class Schedule extends Model
             get: function () {
                 $args = [];
                 foreach ($this->args as $key => $value) {
-                    if (!str($key)->startsWith('--') || !is_bool($value)) {
+                    if (
+                        $value
+                        && (!str($key)->startsWith('--') || !is_bool($value))
+                    ) {
                         $args[$key] = $value;
                     } elseif ($value) {
                         $args[] = $key;
