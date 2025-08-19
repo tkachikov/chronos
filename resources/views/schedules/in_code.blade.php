@@ -3,7 +3,7 @@
         {{ $command->getShortName() . '::class'}},
         [
 @foreach($item->preparedArgs as $key => $arg)
-            '{{ $key }}' => {{ is_numeric($arg) ? $arg : (is_null($arg) ? 'null' : "'$arg'") }},
+            @if(is_string($key))'{{ $key }}' => @endif{{ is_numeric($arg) ? $arg : (is_null($arg) ? 'null' : "'$arg'") }},
 @endforeach
         ],
     )
