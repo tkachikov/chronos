@@ -109,7 +109,7 @@
                                             value="{{ $method }}"
                                             @selected(request('scheduleMethod') === $method)
                                     >
-                                        {{ $time['title'] }}
+                                        {{ $time->getTitle() }}
                                     </option>
                                 @endforeach
                             </select>

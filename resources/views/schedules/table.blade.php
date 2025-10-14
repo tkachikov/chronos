@@ -47,20 +47,7 @@
                         </td>
                     @endforeach
                     <td @class($border)>
-                        {{ $times[$item->time_method]['title'] }}
-                        @if($item->time_params)
-                            @if(count($item->time_params) === 1)
-                                {{ $item->time_params[0] }}
-                            @else
-                                @foreach($times[$item->time_method]['params'] as $key => $param)
-                                    <div class="row w-100 mx-auto">
-                                        <div class="px-0">
-                                            {{ $param['name'] }}: {{ $item->time_params[$key] }}
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @endif
-                        @endif
+                        {{ $times[$item->time_method]->getDescription($item) }}
                     </td>
                     <td @class($border)>
                         <div class="d-none d-xl-block">@include('chronos::schedules.in_code', ['item' => $item, 'command' => $command])</div>

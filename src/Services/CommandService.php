@@ -6,6 +6,8 @@ namespace Tkachikov\Chronos\Services;
 
 use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
+use Tkachikov\Chronos\Decorators\ParamDecorator;
+use Tkachikov\Chronos\Decorators\TimeDecorator;
 use Tkachikov\Chronos\Dto\FilterDto;
 use Tkachikov\Chronos\Dto\SortDto;
 use Tkachikov\Chronos\Enums\LastRunStateFilterEnum;
@@ -194,182 +196,349 @@ class CommandService
         return $appCommands->merge($chronosCommands);
     }
 
+    /**
+     * @return array<int, TimeDecorator>
+     */
     public function getTimes(): array
     {
-        return [
-            'cron' => ['title' => 'Cron', 'params' => [
-                [
-                    'name' => 'custom cron',
-                    'default' => '* * * * *',
+        $times = [
+            new TimeDecorator(
+                method: 'cron',
+                params: [
+                    new ParamDecorator(
+                        title: 'custom cron',
+                        default: '* * * * *',
+                    ),
                 ],
-            ]],
-
+            ),
             // Seconds section
-            'everySecond' => ['title' => 'Every second', 'params' => []],
-            'everyTwoSeconds' => ['title' => 'Every 2 seconds', 'params' => []],
-            'everyFiveSeconds' => ['title' => 'Every 5 seconds', 'params' => []],
-            'everyTenSeconds' => ['title' => 'Every 10 seconds', 'params' => []],
-            'everyFifteenSeconds' => ['title' => 'Every 15 seconds', 'params' => []],
-            'everyTwentySeconds' => ['title' => 'Every 20 seconds', 'params' => []],
-            'everyThirtySeconds' => ['title' => 'Every 30 seconds', 'params' => []],
-
+            new TimeDecorator(
+                method: 'everySecond',
+            ),
+            new TimeDecorator(
+                method: 'everyTwoSeconds',
+                title: 'Every 2 seconds',
+            ),
+            new TimeDecorator(
+                method: 'everyFiveSeconds',
+                title: 'Every 5 seconds',
+            ),
+            new TimeDecorator(
+                method: 'everyTenSeconds',
+                title: 'Every 10 seconds',
+            ),
+            new TimeDecorator(
+                method: 'everyFifteenSeconds',
+                title: 'Every 15 seconds',
+            ),
+            new TimeDecorator(
+                method: 'everyTwentySeconds',
+                title: 'Every 20 seconds',
+            ),
+            new TimeDecorator(
+                method: 'everyThirtySeconds',
+                title: 'Every 30 seconds',
+            ),
             // Minutes section
-            'everyMinute' => ['title' => 'Every 1 minute', 'params' => []],
-            'everyTwoMinutes' => ['title' => 'Every 2 minutes', 'params' => []],
-            'everyThreeMinutes' => ['title' => 'Every 3 minutes', 'params' => []],
-            'everyFourMinutes' => ['title' => 'Every 4 minutes', 'params' => []],
-            'everyFiveMinutes' => ['title' => 'Every 5 minutes', 'params' => []],
-            'everyTenMinutes' => ['title' => 'Every 10 minutes', 'params' => []],
-            'everyFifteenMinutes' => ['title' => 'Every 15 minutes', 'params' => []],
-            'everyThirtyMinutes' => ['title' => 'Every 30 minutes', 'params' => []],
-
+            new TimeDecorator(
+                method: 'everyMinute',
+                title: 'Every 1 minute',
+            ),
+            new TimeDecorator(
+                method: 'everyTwoMinutes',
+                title: 'Every 2 minutes',
+            ),
+            new TimeDecorator(
+                method: 'everyThreeMinutes',
+                title: 'Every 3 minutes',
+            ),
+            new TimeDecorator(
+                method: 'everyFourMinutes',
+                title: 'Every 4 minutes',
+            ),
+            new TimeDecorator(
+                method: 'everyFiveMinutes',
+                title: 'Every 5 minutes',
+            ),
+            new TimeDecorator(
+                method: 'everyTenMinutes',
+                title: 'Every 10 minutes',
+            ),
+            new TimeDecorator(
+                method: 'everyFifteenMinutes',
+                title: 'Every 15 minutes',
+            ),
+            new TimeDecorator(
+                method: 'everyThirtyMinutes',
+                title: 'Every 30 minutes',
+            ),
             // Hours section
-            'hourly' => ['title' => 'Every 1 hour', 'params' => []],
-            'hourlyAt' => ['title' => 'Every hour at', 'params' => [
-                [
-                    'name' => 'hour',
-                    'default' => null,
+            new TimeDecorator(
+                method: 'hourly',
+                title: 'Every 1 hour',
+            ),
+            new TimeDecorator(
+                method: 'hourlyAt',
+                params: [
+                    new ParamDecorator(
+                        title: 'minutes',
+                    ),
                 ],
-            ]],
-            'everyOddHour' => ['title' => 'Every odd hour', 'params' => [
-                [
-                    'name' => 'minutes',
-                    'default' => null,
+                title: 'Every hour at',
+                description: 'At %s minutes past every hour',
+            ),
+            new TimeDecorator(
+                method: 'everyOddHour',
+                params: [
+                    new ParamDecorator(
+                        title: 'minutes',
+                    ),
                 ],
-            ]],
-            'everyTwoHours' => ['title' => 'Every 2 hour', 'params' => [
-                [
-                    'name' => 'minutes',
-                    'default' => null,
+                description: 'At %s minutes past every odd hour',
+            ),
+            new TimeDecorator(
+                method: 'everyTwoHours',
+                params: [
+                    new ParamDecorator(
+                        title: 'minutes',
+                    ),
                 ],
-            ]],
-            'everyThreeHours' => ['title' => 'Every 3 hour', 'params' => [
-                [
-                    'name' => 'minutes',
-                    'default' => null,
+                title: 'Every 2 hours',
+                description: 'At %s minutes past every 2 hours',
+            ),
+            new TimeDecorator(
+                method: 'everyThreeHours',
+                params: [
+                    new ParamDecorator(
+                        title: 'minutes',
+                    ),
                 ],
-            ]],
-            'everyFourHours' => ['title' => 'Every 4 hour', 'params' => [
-                [
-                    'name' => 'minutes',
-                    'default' => null,
+                title: 'Every 3 hours',
+                description: 'At %s minutes past every 3 hours',
+            ),
+            new TimeDecorator(
+                method: 'everyFourHours',
+                params: [
+                    new ParamDecorator(
+                        title: 'minutes',
+                    ),
                 ],
-            ]],
-            'everySixHours' => ['title' => 'Every 6 hour', 'params' => [
-                [
-                    'name' => 'minutes',
-                    'default' => null,
+                title: 'Every 4 hours',
+                description: 'At %s minutes past every 4 hours',
+            ),
+            new TimeDecorator(
+                method: 'everySixHours',
+                params: [
+                    new ParamDecorator(
+                        title: 'minutes',
+                    ),
                 ],
-            ]],
-
+                title: 'Every 6 hours',
+                description: 'At %s minutes past every 6 hours',
+            ),
             // Days section
-            'daily' => ['title' => 'Daily', 'params' => []],
-            'dailyAt' => ['title' => 'Daily at', 'params' => [
-                [
-                    'name' => 'time',
-                    'default' => null,
+            new TimeDecorator(
+                method: 'daily',
+                title: 'Every day',
+            ),
+            // Days section
+            new TimeDecorator(
+                method: 'dailyAt',
+                params: [
+                    new ParamDecorator(
+                        title: 'time',
+                    ),
                 ],
-            ]],
-            'twiceDaily' => ['title' => 'Twice daily', 'params' => [
-                [
-                    'name' => 'first hour',
-                    'default' => null,
+                title: 'Every day at',
+                description: 'Every day at %s',
+            ),
+            new TimeDecorator(
+                method: 'twiceDaily',
+                params: [
+                    new ParamDecorator(
+                        title: 'first hour',
+                    ),
+                    new ParamDecorator(
+                        title: 'second hour',
+                    ),
                 ],
-                [
-                    'name' => 'second hour',
-                    'default' => null,
+                title: 'Twice a day',
+                description: 'Every day at %s:00 and %s:00',
+            ),
+            new TimeDecorator(
+                method: 'twiceDailyAt',
+                params: [
+                    new ParamDecorator(
+                        title: 'first hour',
+                    ),
+                    new ParamDecorator(
+                        title: 'second hour',
+                    ),
+                    new ParamDecorator(
+                        title: 'minutes',
+                    ),
                 ],
-            ]],
-            'twiceDailyAt' => ['title' => 'Twice daily at', 'params' => [
-                [
-                    'name' => 'first hour',
-                    'default' => null,
-                ],
-                [
-                    'name' => 'second hour',
-                    'default' => null,
-                ],
-                [
-                    'name' => 'minutes',
-                    'default' => null,
-                ],
-            ]],
-
+                title: 'Twice a day at',
+                getDescriptionCallable: fn(Schedule $schedule) => sprintf(
+                    'Every day at %s:%s and %s:%s',
+                    $schedule->time_params[0],
+                    $schedule->time_params[2],
+                    $schedule->time_params[1],
+                    $schedule->time_params[2],
+                ),
+            ),
             // Weeks section
-            'weekly' => ['title' => 'Weekly', 'params' => []],
-            'weeklyOn' => ['title' => 'Weekly on', 'params' => [
-                [
-                    'name' => 'day of week',
-                    'default' => null,
+            new TimeDecorator(
+                method: 'weekly',
+                title: 'Every week',
+            ),
+            new TimeDecorator(
+                method: 'weeklyOn',
+                params: [
+                    new ParamDecorator(
+                        title: 'day of week',
+                    ),
+                    new ParamDecorator(
+                        title: 'time',
+                    ),
                 ],
-                [
-                    'name' => 'time',
-                    'default' => null,
-                ],
-            ]],
-
+                title: 'Every week on',
+                getDescriptionCallable: fn (Schedule $schedule) => sprintf(
+                    'Every %s at %s',
+                    now()
+                        ->startOfWeek()
+                        ->addDays($schedule->time_params[0] - 1)
+                        ->format('l'),
+                    $schedule->time_params[1],
+                ),
+            ),
             // Months section
-            'monthly' => ['title' => 'Monthly', 'params' => []],
-            'monthlyOn' => ['title' => 'Monthly on', 'params' => [
-                [
-                    'name' => 'day of month',
-                    'default' => null,
+            new TimeDecorator(
+                method: 'monthly',
+                title: 'Every month',
+            ),
+            new TimeDecorator(
+                method: 'monthlyOn',
+                params: [
+                    new ParamDecorator(
+                        title: 'day of month',
+                    ),
+                    new ParamDecorator(
+                        title: 'time',
+                    ),
                 ],
-                [
-                    'name' => 'time',
-                    'default' => null,
+                title: 'Every month on',
+                getDescriptionCallable: fn (Schedule $schedule) => sprintf(
+                    'On the %s day of every month at %s',
+                    now()
+                        ->startOfMonth()
+                        ->addDays($schedule->time_params[0] - 1)
+                        ->format('jS'),
+                    $schedule->time_params[1],
+                ),
+            ),
+            new TimeDecorator(
+                method: 'twiceMonthly',
+                params: [
+                    new ParamDecorator(
+                        title: 'first day of month',
+                    ),
+                    new ParamDecorator(
+                        title: 'second day of month',
+                    ),
+                    new ParamDecorator(
+                        title: 'time',
+                    ),
                 ],
-            ]],
-            'twiceMonthly' => ['title' => 'Twice monthly', 'params' => [
-                [
-                    'name' => 'first day of month',
-                    'default' => null,
+                title: 'Every month a twice',
+                getDescriptionCallable: fn (Schedule $schedule) => sprintf(
+                    'On the %s and %s days of every month at %s',
+                    now()
+                        ->startOfMonth()
+                        ->addDays($schedule->time_params[0] - 1)
+                        ->format('jS'),
+                    now()
+                        ->startOfMonth()
+                        ->addDays($schedule->time_params[1] - 1)
+                        ->format('jS'),
+                    $schedule->time_params[2],
+                ),
+            ),
+            new TimeDecorator(
+                method: 'lastDayOfMonth',
+                params: [
+                    new ParamDecorator(
+                        title: 'time',
+                    ),
                 ],
-                [
-                    'name' => 'second day of month',
-                    'default' => null,
-                ],
-                [
-                    'name' => 'time',
-                    'default' => null,
-                ],
-            ]],
-            'lastDayOfMonth' => ['title' => 'Last of day month', 'params' => [
-                [
-                    'name' => 'time',
-                    'default' => null,
-                ],
-            ]],
-
+                title: 'Last of day month',
+                description: 'On the last day of the month at %s',
+            ),
             // Quarters section
-            'quarterly' => ['title' => 'Quarterly', 'params' => []],
-            'quarterlyOn' => ['title' => 'Quarterly on', 'params' => [
-                [
-                    'name' => 'day of quarter',
-                    'default' => null,
+            new TimeDecorator(
+                method: 'quarterly',
+                title: 'Every quarter',
+            ),
+            new TimeDecorator(
+                method: 'quarterlyOn',
+                params: [
+                    new ParamDecorator(
+                        title: 'day of quarter',
+                    ),
+                    new ParamDecorator(
+                        title: 'time',
+                    ),
                 ],
-                [
-                    'name' => 'time',
-                    'default' => null,
-                ],
-            ]],
-
+                title: 'Quarterly on',
+                getDescriptionCallable: fn (Schedule $schedule) => sprintf(
+                    'On the %s day of every quarter at %s',
+                    now()
+                        ->startOfMonth()
+                        ->addDays($schedule->time_params[0] - 1)
+                        ->format('jS'),
+                    $schedule->time_params[1],
+                ),
+            ),
             // Years section
-            'yearly' => ['title' => 'Yearly', 'params' => []],
-            'yearlyOn' => ['title' => 'Yearly on', 'params' => [
-                [
-                    'name' => 'month',
-                    'default' => null,
+            new TimeDecorator(
+                method: 'yearly',
+                title: 'Every year',
+            ),
+            new TimeDecorator(
+                method: 'yearlyOn',
+                params: [
+                    new ParamDecorator(
+                        title: 'month',
+                    ),
+                    new ParamDecorator(
+                        title: 'day',
+                    ),
+                    new ParamDecorator(
+                        title: 'time',
+                    ),
                 ],
-                [
-                    'name' => 'day',
-                    'default' => null,
-                ],
-                [
-                    'name' => 'time',
-                    'default' => null,
-                ],
-            ]],
+                title: 'Yearly on',
+                getDescriptionCallable: fn (Schedule $schedule) => sprintf(
+                    'On the %s day of %s at %s',
+                    now()
+                        ->startOfMonth()
+                        ->addDays($schedule->time_params[1] - 1)
+                        ->format('jS'),
+                    now()
+                        ->startOfYear()
+                        ->addMonths( $schedule->time_params[0] - 1)
+                        ->translatedFormat('F'),
+                    $schedule->time_params[2],
+                ),
+            ),
         ];
+
+        return array_combine(
+            array_map(
+                fn(TimeDecorator $time) => $time->method,
+                $times,
+            ),
+            $times,
+        );
     }
 }

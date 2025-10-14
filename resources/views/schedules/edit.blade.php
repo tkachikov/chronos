@@ -63,9 +63,9 @@
                 <div class="row w-100 mx-auto">
                     <div class="col">
                         <select id="time_method" class="form-control" name="time_method" form="updateForm" oninput="changeMethod(this.value)">
-                            @foreach($times as $method => $params)
+                            @foreach($times as $method => $time)
                                 <option value="{{ $method }}" @selected($schedule?->time_method === $method)>
-                                    {{ $params['title'] }}
+                                    {{ $time->getTitle() }}
                                 </option>
                             @endforeach
                         </select>
@@ -73,13 +73,13 @@
                 </div>
                 <div class="row w-100 mx-auto px-0 mt-3" id="time_params_container">
                     <div class="col px-0">
-                        @foreach($times as $method => $options)
-                            @if($options['params'])
+                        @foreach($times as $method => $time)
+                            @if($time->params)
                                 <div class="row w-100 mx-auto px-0" id="time_params_for_{{ $method }}">
-                                    @foreach($options['params'] as $key => $param)
+                                    @foreach($time->params as $key => $param)
                                         <div class="col">
                                             <label for="time_params[{{ $key }}]">
-                                                {{ $param['name'] }}
+                                                {{ $param->title }}
                                             </label>
                                             <input
                                                     type="text"
@@ -87,7 +87,7 @@
                                                     name="time_params[{{ $key }}]"
                                                     class="form-control"
                                                     form="updateForm"
-                                                    value="{{ $schedule?->time_params[$key] ?? $param['default'] ?? '' }}"
+                                                    value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
                                             >
                                         </div>
                                     @endforeach
