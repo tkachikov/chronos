@@ -21,17 +21,20 @@ final class ChronosInstallCommand extends Command
 
     public function handle(): int
     {
-        $this->comment('Publishing Chronos Service Provider...');
-        $this->callSilent('vendor:publish', ['--tag' => 'chronos-provider']);
+        $this->info('Chronos');
 
-        $this->comment('Publishing Chronos Configuration...');
+        $this->callSilent('vendor:publish', ['--tag' => 'chronos-provider']);
+        $this->info("\tPublished  service provider");
+
         $this->callSilent('vendor:publish', ['--tag' => 'chronos-config']);
+        $this->info("\tPublished  configuration");
 
         $this->registerServiceProvider();
+        $this->info("\tRegistered service provider");
 
         if ($this->option('migrate')) {
-            $this->comment('Install migrations...');
             Artisan::call(MigrateCommand::class);
+            $this->info("\tInstalled  migrations");
         }
 
         return self::SUCCESS;
