@@ -3,17 +3,28 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Tkachikov\Chronos\Services\MigrationService;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        app(MigrationService::class)->createCommandLogs();
+        if (Schema::hasTable('command_logs')) {
+            return;
+        }
+
+        Schema::create('command_logs', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('command_run_id')->index();
+            $table->string('type');
+            $table->text('message');
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
-        app(MigrationService::class)->removeCommandLogs();
+        Schema::dropIfExists('command_logs');
     }
 };

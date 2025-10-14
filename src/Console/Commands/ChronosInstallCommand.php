@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Console\Commands;
 
+use Illuminate\Database\Console\Migrations\MigrateCommand;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
-use Tkachikov\Chronos\Services\MigrationService;
 
 #[ChronosCommand(
     group: 'Chronos',
@@ -29,8 +30,8 @@ final class ChronosInstallCommand extends Command
         $this->registerServiceProvider();
 
         if ($this->option('migrate')) {
-            $this->comment('Reinstall migrations...');
-            $this->reinstallMigrations();
+            $this->comment('Install migrations...');
+            Artisan::call(MigrateCommand::class);
         }
 
         return self::SUCCESS;
@@ -65,12 +66,5 @@ final class ChronosInstallCommand extends Command
             "namespace {$namespace}\Providers;",
             file_get_contents(app_path('Providers/ChronosServiceProvider.php'))
         ));
-    }
-
-    protected function reinstallMigrations(): void
-    {
-        $migrationService = app(MigrationService::class);
-        $migrationService->removeAll();
-        $migrationService->createAll();
     }
 }
