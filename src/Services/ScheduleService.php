@@ -68,7 +68,11 @@ class ScheduleService
 
     public function saveSchedule(array $input): Schedule
     {
-        return $this->scheduleRepository->save($input);
+        $input['time_params'] ??= null;
+
+        return $this
+            ->scheduleRepository
+            ->save($input);
     }
 
     public function updateWaitingRun(string $class, string $message): void
