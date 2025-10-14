@@ -139,12 +139,9 @@
                                                                         @include('chronos::icons.off')
                                                                     @endif
                                                                     <span>
-                                                                        {{ $times[$schedule->time_method]['title'] }}
-                                                                    </span>
-                                                                    <span>
-                                                                        @if($schedule->time_params)
-                                                                            {{ implode(', ', $schedule->time_params) }}
-                                                                        @endif
+                                                                        @php($methodTitle = $times[$schedule->time_method]['title'])
+                                                                        @php($paramsTitle = $schedule->time_params ? ' ' . implode(', ', $schedule->time_params) : '')
+                                                                        {{ $methodTitle . $paramsTitle }}
                                                                     </span>
                                                                 </div>
                                                             </div>
