@@ -8,6 +8,9 @@ use Tkachikov\Chronos\Models\Schedule;
 
 final readonly class TimeDecorator
 {
+    /**
+     * @param array<int, ParamDecorator> $params
+     */
     public function __construct(
         public string $method,
         public array $params = [],
