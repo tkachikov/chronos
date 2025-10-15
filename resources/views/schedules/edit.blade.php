@@ -1,3 +1,5 @@
+@use(Tkachikov\Chronos\Enums\TimeHelp)
+
 <div class="card shadow mb-5">
     <div class="card-header">
         <h2 class="h2 m-0 text-muted">
@@ -37,7 +39,8 @@
                                    name="{{ $key }}"
                                    form="updateForm"
                                    onchange="changeSystem(this)">
-                            <label class="form-check-label" for="{{ $key }}">{{ $schedule?->{$key} ?? null ? 'On' : 'Off' }}</label>
+                            <label class="form-check-label"
+                                   for="{{ $key }}">{{ $schedule?->{$key} ?? null ? 'On' : 'Off' }}</label>
                         </div>
                     </div>
                     @if($key === 'without_overlapping')
@@ -46,7 +49,8 @@
                                    class="form-control"
                                    type="integer"
                                    name="without_overlapping_time"
-                                   value="{{ $schedule?->{$key.'_time'} ?? 1440 }}" @style(['display: none' => !$schedule?->{$key}])
+                                   value="{{ $schedule?->{$key.'_time'} ?? 1440 }}"
+                                   @style(['display: none' => !$schedule?->{$key}])
                                    form="updateForm">
                         </div>
                     @endif
@@ -62,7 +66,8 @@
             <div class="col-8 px-0">
                 <div class="row w-100 mx-auto">
                     <div class="col">
-                        <select id="time_method" class="form-control" name="time_method" form="updateForm" oninput="changeMethod(this.value)">
+                        <select id="time_method" class="form-control" name="time_method" form="updateForm"
+                                oninput="changeMethod(this.value)">
                             @foreach($times as $method => $time)
                                 <option value="{{ $method }}" @selected($schedule?->time_method === $method)>
                                     {{ $time->getTitle() }}
@@ -81,14 +86,37 @@
                                             <label for="time_params[{{ $key }}]">
                                                 {{ $param->title }}
                                             </label>
-                                            <input
-                                                    type="text"
-                                                    id="time_params[{{ $key }}]"
-                                                    name="time_params[{{ $key }}]"
-                                                    class="form-control"
-                                                    form="updateForm"
-                                                    value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
-                                            >
+                                            @if(in_array($param->help, [TimeHelp::Minutes, TimeHelp::Hours, TimeHelp::Months]))
+                                                <select
+                                                        id="time_params[{{ $key }}]"
+                                                        name="time_params[{{ $key }}]"
+                                                        class="form-control"
+                                                        form="updateForm"
+                                                >
+                                                    @foreach($param->help->getDictionary() as $value => $name)
+                                                        <option
+                                                                value="{{ $value }}"
+                                                                @selected(($schedule?->time_params[$key] ?? '') == $value)
+                                                        >
+                                                            {{ $name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <input
+                                                        type="text"
+                                                        id="time_params[{{ $key }}]"
+                                                        name="time_params[{{ $key }}]"
+                                                        class="form-control"
+                                                        form="updateForm"
+                                                        value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
+                                                >
+                                            @endif
+                                            @if($param->help)
+                                                <div class="form-text">
+                                                    {{ $param->help }}
+                                                </div>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
@@ -111,7 +139,8 @@
         <div class="row w-100 mx-auto py-3 align-items-center justify-content-center">
             @if($schedule?->id)
                 <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-                    <a data-bs-toggle="modal" data-bs-target="#deleteModal_{{ $schedule->id }}" class="btn btn-danger w-100">
+                    <a data-bs-toggle="modal" data-bs-target="#deleteModal_{{ $schedule->id }}"
+                       class="btn btn-danger w-100">
                         Delete
                     </a>
                     @include('chronos::delete-modal', ['id' => 'deleteModal_has_'.$schedule->id, 'action' => route('chronos.schedules.destroy', ['command' => $command->getModel(), 'schedule' => $schedule->id])])

@@ -6,6 +6,7 @@ namespace Tkachikov\Chronos\Repositories;
 
 use Tkachikov\Chronos\Decorators\ParamDecorator;
 use Tkachikov\Chronos\Decorators\TimeDecorator;
+use Tkachikov\Chronos\Enums\TimeHelp;
 use Tkachikov\Chronos\Models\Schedule;
 
 final readonly class TimeRepository implements TimeRepositoryInterface
@@ -93,6 +94,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        help: TimeHelp::Minutes,
                     ),
                 ],
                 title: 'Every hour at',
@@ -103,6 +105,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        help: TimeHelp::Minutes,
                     ),
                 ],
                 description: 'At %s minutes past every odd hour',
@@ -112,6 +115,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        help: TimeHelp::Minutes,
                     ),
                 ],
                 title: 'Every 2 hours',
@@ -122,6 +126,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        help: TimeHelp::Minutes,
                     ),
                 ],
                 title: 'Every 3 hours',
@@ -132,6 +137,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        help: TimeHelp::Minutes,
                     ),
                 ],
                 title: 'Every 4 hours',
@@ -142,6 +148,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        help: TimeHelp::Minutes,
                     ),
                 ],
                 title: 'Every 6 hours',
@@ -158,6 +165,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'time',
+                        help: TimeHelp::Time,
                     ),
                 ],
                 title: 'Every day at',
@@ -168,9 +176,11 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'first hour',
+                        help: TimeHelp::Hours,
                     ),
                     new ParamDecorator(
                         title: 'second hour',
+                        help: TimeHelp::Hours,
                     ),
                 ],
                 title: 'Twice a day',
@@ -181,12 +191,15 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'first hour',
+                        help: TimeHelp::Hours,
                     ),
                     new ParamDecorator(
                         title: 'second hour',
+                        help: TimeHelp::Hours,
                     ),
                     new ParamDecorator(
                         title: 'minutes',
+                        help: TimeHelp::Minutes,
                     ),
                 ],
                 title: 'Twice a day at',
@@ -208,9 +221,11 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'day of week',
+                        help: TimeHelp::DayOfWeek,
                     ),
                     new ParamDecorator(
                         title: 'time',
+                        help: TimeHelp::Time,
                     ),
                 ],
                 title: 'Every week on',
@@ -233,9 +248,11 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'day of month',
+                        help: TimeHelp::DayOfMonth,
                     ),
                     new ParamDecorator(
                         title: 'time',
+                        help: TimeHelp::Time,
                     ),
                 ],
                 title: 'Every month on',
@@ -253,12 +270,15 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'first day of month',
+                        help: TimeHelp::DayOfMonth,
                     ),
                     new ParamDecorator(
                         title: 'second day of month',
+                        help: TimeHelp::DayOfMonth,
                     ),
                     new ParamDecorator(
                         title: 'time',
+                        help: TimeHelp::Time,
                     ),
                 ],
                 title: 'Every month a twice',
@@ -280,6 +300,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'time',
+                        help: TimeHelp::Time,
                     ),
                 ],
                 title: 'Last of day month',
@@ -295,9 +316,11 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'day of quarter',
+                        help: TimeHelp::DayOfQuarter,
                     ),
                     new ParamDecorator(
                         title: 'time',
+                        help: TimeHelp::Time,
                     ),
                 ],
                 title: 'Quarterly on',
@@ -320,12 +343,15 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'month',
+                        help: TimeHelp::Months,
                     ),
                     new ParamDecorator(
                         title: 'day',
+                        help: TimeHelp::DayOfMonth,
                     ),
                     new ParamDecorator(
                         title: 'time',
+                        help: TimeHelp::Time,
                     ),
                 ],
                 title: 'Yearly on',
