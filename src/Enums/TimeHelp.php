@@ -4,22 +4,31 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Enums;
 
+use Exception;
+
 enum TimeHelp: string
 {
-    case Minutes = 'From 0 to 59';
-    case Hours = 'Format 24 hours. From 0 to 23';
-    case Time = 'Format 24 hours. Example: 14:55';
-    case Months = '1 - January, 2 - February and etc. From 1 to 12';
-    case DayOfWeek = '1 - Monday, 2 - Tuesday and etc. Example: 3';
-    case DayOfMonth = 'from 1 to 28|29|30|31';
-    case DayOfQuarter = 'from 1 to 90|91|92';
+    case Minutes = 'minutes';
+    case Hours = 'hours';
+    case Time = 'time';
+    case Months = 'months';
+    case DayOfWeek = 'day_of_week';
+    case DayOfMonth = 'day_of_month';
+    case DayOfQuarter = 'day_of_quarter';
 
+    /**
+     * @throws Exception
+     */
     public function getDictionary(): array
     {
         return match ($this) {
             self::Minutes => $this->getMinutesDictionary(),
             self::Hours => $this->getHoursDictionary(),
             self::Months => $this->getMonthDictionary(),
+            self::DayOfWeek => $this->getDayOfWeekDictionary(),
+            self::DayOfMonth => $this->getDayOfMonthsDictionary(),
+            self::DayOfQuarter => $this->getDayOfQuarterDictionary(),
+            self::Time => throw new Exception('To be implemented'),
         };
     }
 
@@ -50,5 +59,44 @@ enum TimeHelp: string
         );
 
         return array_combine($months, $names);
+    }
+
+    private function getDayOfWeekDictionary(): array
+    {
+        $daysOfWeek = range(1, 7);
+
+        $names = array_map(
+            fn($v) => now()
+                ->startOfWeek()
+                ->addDays($v - 1)
+                ->format('l'),
+            $daysOfWeek,
+        );
+
+        return array_combine($daysOfWeek, $names);
+    }
+
+    private function getDayOfMonthsDictionary(): array
+    {
+        $daysOfMonth = range(1, 31);
+
+        $names = array_map(
+            fn($v) => now()
+                ->startOfWeek()
+                ->addDays($v - 1)
+                ->format('jS'),
+            $daysOfMonth,
+        );
+
+        sort($names, SORT_NUMERIC);
+
+        return array_combine($daysOfMonth, $names);
+    }
+
+    private function getDayOfQuarterDictionary(): array
+    {
+        $daysOfQuarter = range(1, 90);
+
+        return array_combine($daysOfQuarter, $daysOfQuarter);
     }
 }

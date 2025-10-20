@@ -86,7 +86,16 @@
                                             <label for="time_params[{{ $key }}]">
                                                 {{ $param->title }}
                                             </label>
-                                            @if(in_array($param->help, [TimeHelp::Minutes, TimeHelp::Hours, TimeHelp::Months]))
+                                            @if($param->help === TimeHelp::Time)
+                                                <input
+                                                        type="time"
+                                                        id="time_params[{{ $key }}]"
+                                                        name="time_params[{{ $key }}]"
+                                                        class="form-control"
+                                                        form="updateForm"
+                                                        value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
+                                                >
+                                            @elseif($param->help instanceof TimeHelp)
                                                 <select
                                                         id="time_params[{{ $key }}]"
                                                         name="time_params[{{ $key }}]"
@@ -111,11 +120,6 @@
                                                         form="updateForm"
                                                         value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
                                                 >
-                                            @endif
-                                            @if($param->help)
-                                                <div class="form-text">
-                                                    {{ $param->help }}
-                                                </div>
                                             @endif
                                         </div>
                                     @endforeach
