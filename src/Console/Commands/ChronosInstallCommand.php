@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Console\Commands;
 
+use Illuminate\Database\Console\Migrations\MigrateCommand;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
-use Tkachikov\Chronos\Services\MigrationService;
 
 #[ChronosCommand(
     group: 'Chronos',
@@ -20,17 +21,20 @@ final class ChronosInstallCommand extends Command
 
     public function handle(): int
     {
-        $this->comment('Publishing Chronos Service Provider...');
-        $this->callSilent('vendor:publish', ['--tag' => 'chronos-provider']);
+        $this->info('Chronos');
 
-        $this->comment('Publishing Chronos Configuration...');
+        $this->callSilent('vendor:publish', ['--tag' => 'chronos-provider']);
+        $this->info("\tPublished  service provider");
+
         $this->callSilent('vendor:publish', ['--tag' => 'chronos-config']);
+        $this->info("\tPublished  configuration");
 
         $this->registerServiceProvider();
+        $this->info("\tRegistered service provider");
 
         if ($this->option('migrate')) {
-            $this->comment('Reinstall migrations...');
-            $this->reinstallMigrations();
+            Artisan::call(MigrateCommand::class);
+            $this->info("\tInstalled  migrations");
         }
 
         return self::SUCCESS;
@@ -65,12 +69,5 @@ final class ChronosInstallCommand extends Command
             "namespace {$namespace}\Providers;",
             file_get_contents(app_path('Providers/ChronosServiceProvider.php'))
         ));
-    }
-
-    protected function reinstallMigrations(): void
-    {
-        $migrationService = app(MigrationService::class);
-        $migrationService->removeAll();
-        $migrationService->createAll();
     }
 }

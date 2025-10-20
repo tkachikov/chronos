@@ -10,6 +10,7 @@
         <table class="table m-0">
             <thead>
             <tr>
+                <th>ID</th>
                 <th>Date</th>
                 <th>Exec (sec)</th>
                 <th>Memory</th>
@@ -28,6 +29,7 @@
             @foreach($runs as $run)
                 @php($border = ['border-bottom-0' => $loop->last])
                 <tr>
+                    <td @class($border)>{{ $run->id }}</td>
                     <td @class($border)>{{ $run->created_at }}</td>
                     <td @class($border)>{{ $run->created_at->diffInSeconds($run->updated_at) }}</td>
                     <td @class($border)>{{ $run->memory }}</td>
