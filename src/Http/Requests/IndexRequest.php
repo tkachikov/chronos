@@ -10,7 +10,7 @@ use Tkachikov\Chronos\Enums\LastRunStateFilterEnum;
 use Tkachikov\Chronos\Enums\RunsInFilterEnum;
 use Tkachikov\Chronos\Enums\SchedulersFilterEnum;
 use Tkachikov\Chronos\Models\CommandMetric;
-use Tkachikov\Chronos\Services\CommandService;
+use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 
 final class IndexRequest extends FormRequest
 {
@@ -28,7 +28,7 @@ final class IndexRequest extends FormRequest
             ],
             'scheduleMethod' => [
                 'nullable',
-                Rule::in(array_keys(app(CommandService::class)->getTimes())),
+                Rule::in(array_keys(app(TimeRepositoryInterface::class)->get())),
             ],
             'schedulers' => [
                 'nullable',

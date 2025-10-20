@@ -28,10 +28,13 @@ use Tkachikov\Chronos\Repositories\CommandRepository;
 use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 use Tkachikov\Chronos\Repositories\CommandRunRepository;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
+use Tkachikov\Chronos\Repositories\TimeRepository;
+use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 
 class ChronosServiceProvider extends ServiceProvider
 {
     public $singletons = [
+        TimeRepositoryInterface::class => TimeRepository::class,
         ArtisanRepositoryInterface::class => ArtisanRepository::class,
         CommandRepositoryInterface::class => CommandRepository::class,
         CommandRunRepositoryInterface::class => CommandRunRepository::class,

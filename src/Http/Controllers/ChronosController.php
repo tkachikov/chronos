@@ -18,6 +18,7 @@ use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Jobs\CommandRunJob;
+use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 use Tkachikov\Chronos\Services\ChronosRealTimeRunner;
 use Tkachikov\Chronos\Services\CommandService;
 use Tkachikov\Chronos\Services\ScheduleService;
@@ -30,6 +31,7 @@ class ChronosController extends Controller
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
         private readonly ChronosRealTimeRunner $chronosRealTimeRunner,
+        private readonly TimeRepositoryInterface $timeRepository,
     ) {}
 
     public function index(
@@ -47,10 +49,14 @@ class ChronosController extends Controller
                 filter: $filterDto,
             );
 
-        return view('chronos::index', [
-            'commands' => $commands,
-            'times' => $this->commandService->getTimes(),
-        ]);
+        $times = $this
+            ->timeRepository
+            ->get();
+
+        return view('chronos::index', compact(
+            'commands',
+            'times',
+        ));
     }
 
     /**
@@ -75,7 +81,9 @@ class ChronosController extends Controller
 
         return view('chronos::edit', [
             'command' => $decorator,
-            'times' => $this->commandService->getTimes(),
+            'times' => $this
+                ->timeRepository
+                ->get(),
             'schedule' => $schedule,
             'runs' => $runs,
             'logs' => $logs,

@@ -3,17 +3,30 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Tkachikov\Chronos\Services\MigrationService;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        app(MigrationService::class)->createCommandRuns();
+        if (Schema::hasTable('command_runs')) {
+            return;
+        }
+
+        Schema::create('command_runs', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('command_id')->index();
+            $table->unsignedBigInteger('schedule_id')->nullable();
+            $table->string('telescope_id')->nullable();
+            $table->unsignedTinyInteger('state')->nullable();
+            $table->string('memory')->nullable();
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
-        app(MigrationService::class)->removeCommandRuns();
+        Schema::dropIfExists('command_runs');
     }
 };
