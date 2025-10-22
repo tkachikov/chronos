@@ -23,9 +23,7 @@ final class ChronosRunBackgroundCommand extends Command
 
     public function handle(ChronosRealTimeRunner $service): int
     {
-        $data = cache()->get($this->argument('uuid'));
-        $command = CommandModel::findOrFail($data['command_id']);
-        $service->run($command, $data['uuid'], $data['args']);
+        $service->run($this->argument('uuid'));
 
         return self::SUCCESS;
     }

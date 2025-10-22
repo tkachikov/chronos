@@ -138,11 +138,18 @@ trait ChronosRunnerTrait
             return;
         }
 
-        $this->run = CommandRun::create([
-            'command_id' => $this->getModel()->id,
-            'schedule_id' => null,
-            'state' => self::$waiting,
-        ]);
+        $pid = getmypid();
+        $uuid = cache()->get($pid);
+        $data = cache()->get($uuid);
+
+        $this->run = new CommandRun();
+        $this->run->command()->associate($this->getModel());
+        $this->run->user()->associate($data['user'] ?? null);
+        $this->run->uuid = $uuid;
+        $this->run->pid = $pid;
+        $this->run->state = self::$waiting;
+        $this->run->args = $data['args'] ?? [];
+        $this->run->save();
     }
 
     private function updateRun(int $state): void

@@ -11,11 +11,13 @@
             <thead>
             <tr>
                 <th>ID</th>
+                <th>User</th>
                 <th>Date</th>
                 <th>Exec (sec)</th>
                 <th>Memory</th>
                 <th>Schedule ID</th>
                 <th>Telescope</th>
+                <th>Args</th>
                 <th>State</th>
                 <th class="w-50">Logs</th>
             </tr>
@@ -30,6 +32,7 @@
                 @php($border = ['border-bottom-0' => $loop->last])
                 <tr>
                     <td @class($border)>{{ $run->id }}</td>
+                    <td @class($border)>{{ $run->user?->email ?? $run->user?->id }}</td>
                     <td @class($border)>{{ $run->created_at }}</td>
                     <td @class($border)>{{ $run->created_at->diffInSeconds($run->updated_at) }}</td>
                     <td @class($border)>{{ $run->memory }}</td>
@@ -46,9 +49,14 @@
                         @endif
                     </td>
                     <td @class($border)>
-                                                <span class="text-{{ $run->stateCss }}">
-                                                    {{ $run->stateTitle }}
-                                                </span>
+                        @if($run->args)
+                            {{ $command->getNameWithArguments($run->args) }}
+                        @endif
+                    </td>
+                    <td @class($border)>
+                        <span class="text-{{ $run->stateCss }}">
+                            {{ $run->stateTitle }}
+                        </span>
                     </td>
                     <td @class($border)>
                         <table class="table m-0">

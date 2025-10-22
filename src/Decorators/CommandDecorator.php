@@ -38,6 +38,26 @@ class CommandDecorator
         return $this->getName() . ($args ? " $args" : '');
     }
 
+    public function getArgumentsForExec(array $args = []): string
+    {
+        return implode(
+            ' ',
+            $this->getArgumentsForExecToArray($args),
+        );
+    }
+
+    public function getArgumentsForExecToArray(array $args = []): array
+    {
+        return array_filter(
+            array_map(
+                fn ($v, $k) => $this->prepareArgs($k, $v),
+                $args,
+                array_keys($args),
+            ),
+            fn ($v) => $v,
+        );
+    }
+
     public function getShortName(): string
     {
         $withoutPostfix = str($this->getFullName())->before('Command');
@@ -188,21 +208,6 @@ class CommandDecorator
     {
         return !method_exists($this->command, $method)
             || $this->command->$method();
-    }
-
-    private function getArgumentsForExec(array $args = []): string
-    {
-        return implode(
-            ' ',
-            array_filter(
-                array_map(
-                    fn ($v, $k) => $this->prepareArgs($k, $v),
-                    $args,
-                    array_keys($args),
-                ),
-                fn ($v) => $v,
-            ),
-        );
     }
 
     private function prepareArgs(string $key, mixed $value): string

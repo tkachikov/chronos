@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services;
 
 use Exception;
+use Illuminate\Database\Eloquent\Model;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
 use Tkachikov\Chronos\Models\Command;
 use Illuminate\Support\Facades\Storage;
@@ -27,11 +28,13 @@ class ChronosRealTimeRunner
 
     public function __construct(
         private readonly CommandService $commandService,
-    ) {
-    }
+    ) {}
 
-    public function initRun(Command $command, array $args): string
-    {
+    public function initRun(
+        Command $command,
+        array $args,
+        ?Model $user = null,
+    ): string {
         $this->command = $command;
         $this->args = $args;
         $this->uuid = Str::uuid()->toString();
@@ -46,14 +49,13 @@ class ChronosRealTimeRunner
             'data' => [],
             'status' => false,
         ]);
-        $uuid = Str::uuid()->toString();
-        cache()->set($uuid, [
+        cache()->set($this->uuid, [
             'command_id' => $this->command->id,
             'args' => $this->args,
-            'uuid' => $this->uuid,
+            'user' => $user,
         ]);
         $command = base_path('artisan chronos:run-background');
-        \exec("php $command $uuid > /dev/null 2>&1 &");
+        \exec("php $command $this->uuid > /dev/null 2>&1 &");
 
         return $this->uuid;
     }
@@ -73,12 +75,14 @@ class ChronosRealTimeRunner
         cache()->set($this->getKey() . '-answer', $answer);
     }
 
-    public function run(Command $command, string $uuid, array $args = []): int
-    {
-        $this->command = $command;
-        $this->args = $args;
+    public function run(
+        string $uuid,
+    ): int {
+        $data = cache()->get($uuid);
+        $this->command = Command::find($data['command_id']);
+        $this->args = $data['args'];
         $this->uuid = $uuid;
-        $this->decorator = $this->commandService->getByClass($command->class);
+        $this->decorator = $this->commandService->getByClass($this->command->class);
 
         if (!$this->decorator->runInManual()) {
             return 1;
@@ -114,7 +118,14 @@ class ChronosRealTimeRunner
 
     private function runProcess(): int
     {
+        $this->appendLog('UUID: ' . $this->uuid);
+        $this->appendLog(implode(' ', $this->getCliCommandToArray()));
+
         $this->process = $this->createProcess();
+
+        $pid = proc_get_status($this->process)['pid'];
+        $this->appendLog('PID: ' . $pid);
+        cache()->set($pid, $this->uuid);
 
         $this->appendLog('Process created');
 
@@ -143,7 +154,7 @@ class ChronosRealTimeRunner
         ];
 
         $process = proc_open(
-            $this->getCliCommand(),
+            $this->getCliCommandToArray(),
             $descriptions,
             $this->pipes,
             null,
@@ -155,6 +166,20 @@ class ChronosRealTimeRunner
         }
 
         return $process;
+    }
+
+    private function getCliCommandToArray(): array
+    {
+        return [
+            'php',
+            base_path('artisan'),
+            $this
+                ->decorator
+                ->getName(),
+            ...$this
+                ->decorator
+                ->getArgumentsForExecToArray($this->args),
+        ];
     }
 
     private function getCliCommand(): string

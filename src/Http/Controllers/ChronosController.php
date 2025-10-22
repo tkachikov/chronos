@@ -138,7 +138,11 @@ class ChronosController extends Controller
         try {
             $uuid = $this
                 ->chronosRealTimeRunner
-                ->initRun($command, $request->input('args', []));
+                ->initRun(
+                    $command,
+                    $request->input('args', []),
+                    $request->user(),
+                );
         } catch (Exception $e) {
             $message = $e->getMessage();
         }
