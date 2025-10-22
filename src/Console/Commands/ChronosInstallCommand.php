@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Console\Commands;
 
-use Illuminate\Database\Console\Migrations\MigrateCommand;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
@@ -21,20 +19,18 @@ final class ChronosInstallCommand extends Command
 
     public function handle(): int
     {
-        $this->info('Chronos');
+        $this->call('vendor:publish', ['--tag' => 'chronos-provider']);
 
-        $this->callSilent('vendor:publish', ['--tag' => 'chronos-provider']);
-        $this->info("\tPublished  service provider");
-
-        $this->callSilent('vendor:publish', ['--tag' => 'chronos-config']);
-        $this->info("\tPublished  configuration");
+        $this->call('vendor:publish', ['--tag' => 'chronos-config']);
 
         $this->registerServiceProvider();
         $this->info("\tRegistered service provider");
 
         if ($this->option('migrate')) {
-            Artisan::call(MigrateCommand::class);
-            $this->info("\tInstalled  migrations");
+            $this->call('migrate', [
+                '--path' => 'vendor/tkachikov/chronos/database/migrations',
+                '--force' => true,
+            ]);
         }
 
         return self::SUCCESS;
