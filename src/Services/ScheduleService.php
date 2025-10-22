@@ -15,6 +15,7 @@ use Tkachikov\Chronos\Models\CommandMetric;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Repositories\ScheduleRepository;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
+use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 
 class ScheduleService
 {
@@ -22,6 +23,7 @@ class ScheduleService
         private readonly CommandService     $commandService,
         private readonly ScheduleRepository $scheduleRepository,
         private readonly DatabaseHelper     $databaseHelper,
+        private readonly TimeRepositoryInterface $timeRepository,
     ) {
     }
 
@@ -69,6 +71,21 @@ class ScheduleService
     public function saveSchedule(array $input): Schedule
     {
         $input['time_params'] ??= null;
+
+        $timeMethod = $input['time_method'];
+        $time = $this
+            ->timeRepository
+            ->get()[$timeMethod];
+
+        if (!$time->params) {
+            $input['time_params'] = null;
+        } else {
+            $input['time_params'] = array_slice(
+                $input['time_params'],
+                0,
+                count($time->params),
+            );
+        }
 
         return $this
             ->scheduleRepository
