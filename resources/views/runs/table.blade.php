@@ -12,11 +12,8 @@
             <tr>
                 <th>ID</th>
                 <th>User</th>
-                <th>Date</th>
                 <th>Exec (sec)</th>
                 <th>Memory</th>
-                <th>Schedule ID</th>
-                <th>Telescope</th>
                 <th>Args</th>
                 <th>State</th>
                 <th class="w-50">Logs</th>
@@ -33,21 +30,8 @@
                 <tr>
                     <td @class($border)>{{ $run->id }}</td>
                     <td @class($border)>{{ $run->user?->email ?? $run->user?->id }}</td>
-                    <td @class($border)>{{ $run->created_at }}</td>
                     <td @class($border)>{{ $run->created_at->diffInSeconds($run->updated_at) }}</td>
                     <td @class($border)>{{ $run->memory }}</td>
-                    <td @class($border)>{{ $run->schedule_id }}</td>
-                    <td @class($border)>
-                        @if($run->telescope_id)
-                            @if(config('telescope.enabled'))
-                                <a href="{{ route('telescope', "commands/{$run->telescope_id}") }}" target="_blank">link</a>
-                            @else
-                                <span class="text-danger">Off</span>
-                            @endif
-                        @else
-                            no link
-                        @endif
-                    </td>
                     <td @class($border)>
                         @if($run->args)
                             {{ $command->getNameWithArguments($run->args) }}

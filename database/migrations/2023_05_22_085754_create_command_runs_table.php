@@ -17,8 +17,6 @@ return new class extends Migration
         Schema::create('command_runs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('command_id')->index();
-            $table->unsignedBigInteger('schedule_id')->nullable();
-            $table->string('telescope_id')->nullable();
             $table->unsignedTinyInteger('state')->nullable();
             $table->string('memory')->nullable();
             $table->timestamps();
