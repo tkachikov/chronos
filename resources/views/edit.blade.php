@@ -107,7 +107,6 @@
             @endforeach
         @endif
 
-        var uuidForRunInRealTime;
         var logs = [];
 
         function runRealTime() {
@@ -122,17 +121,15 @@
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        let answer = JSON.parse(xhr.responseText);
+                        logs = [];
+                        document.getElementById('terminal').innerHTML = '';
+                        getLogs();
+                    }
 
-                        if (answer.uuid !== null) {
-                            uuidForRunInRealTime = answer.uuid;
-                            logs = [];
-                            document.getElementById('terminal').innerHTML = '';
-                            getLogs();
-                        } else if (answer.message !== null) {
-                            $('#runMessageError').show();
-                            $('#runMessageError').text(answer.message);
-                        }
+                    if (xhr.status === 400) {
+                        let res = JSON.parse(xhr.responseText);
+                        $('#runMessageError').show();
+                        $('#runMessageError').text(res.message);
                     }
                 }
             };
@@ -157,12 +154,13 @@
                 $('#runCommandInRealTime').prop('disabled', false);
             }
         }
+
         function getLogs() {
             var timer = setInterval(() => {
                 var xhr = new XMLHttpRequest();
 
                 let commandId = '{{ $command->getModel()->id }}';
-                xhr.open('GET', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/logs`, true);
+                xhr.open('GET', `/chronos/${commandId}/run-in-real-time/logs`, true);
 
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4 && xhr.status === 200) {
@@ -176,7 +174,7 @@
                             $('#sigkill').show();
                         }
 
-                        data.data.forEach((value, index) => {
+                        data.logs.forEach((value, index) => {
                             if (!logs.hasOwnProperty(index)) {
                                 logs[index] = value.trim();
                                 setLog(value.trim());

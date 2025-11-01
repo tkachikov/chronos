@@ -1,0 +1,178 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tkachikov\Chronos\Services;
+
+use Tkachikov\Chronos\Dto\RealTimeRunDto;
+use Tkachikov\Chronos\Enums\AnswerState;
+use Tkachikov\Chronos\Enums\Signals;
+
+final readonly class RealTimeStateService
+{
+    public function __construct(
+        public RealTimeRunDto $dto,
+        private RealTimeCacheService $cache,
+    ) {}
+
+    public static function make(
+        int $commandId,
+    ): self {
+        $cache = app(RealTimeCacheService::class);
+        $dto = $cache->get($commandId);
+
+        return new self($dto, $cache);
+    }
+
+    public function getArgs(): array
+    {
+        return $this
+            ->dto
+            ->args;
+    }
+
+    public function getAnswer(): string
+    {
+        return $this
+            ->dto
+            ->answer;
+    }
+
+    public function isNotAwaiting(): bool
+    {
+        return $this
+            ->dto
+            ->answerState === AnswerState::NotAwaiting;
+    }
+
+    public function isPending(): bool
+    {
+        return $this
+            ->dto
+            ->answerState === AnswerState::Pending;
+    }
+
+    public function isReceived(): bool
+    {
+        return $this
+            ->dto
+            ->answerState === AnswerState::Received;
+    }
+
+    public function appendLog(
+        string $message,
+    ): void {
+        $this
+            ->dto
+            ->logs[] = $message;
+
+        $this
+            ->cache
+            ->set($this->dto);
+    }
+
+    public function setPid(
+        int $pid,
+    ): void {
+        $this
+            ->dto
+            ->pid = $pid;
+
+        $this->appendLog('PID: ' . $pid);
+    }
+
+    public function notAwaiting(): void
+    {
+        $this
+            ->dto
+            ->answerState = AnswerState::NotAwaiting;
+
+        $this
+            ->dto
+            ->answer = null;
+
+        $this
+            ->cache
+            ->set($this->dto);
+    }
+
+    public function pending(): void
+    {
+        $this
+            ->dto
+            ->answerState = AnswerState::Pending;
+
+        $this->appendLog(':wait:');
+    }
+
+    public function received(
+        string $answer,
+    ): void {
+        $this
+            ->dto
+            ->answerState = AnswerState::Received;
+
+        $this
+            ->dto
+            ->answer = $answer;
+
+        $this
+            ->cache
+            ->set($this->dto);
+    }
+
+    public function sigterm(): void
+    {
+        $this->sendSignal(Signals::Sigterm);
+    }
+
+    public function sigkill(): void
+    {
+        $this->sendSignal(Signals::Sigkill);
+    }
+
+    public function finished(): void
+    {
+        $this
+            ->dto
+            ->status = true;
+
+        $this->appendLog('Finished');
+    }
+
+    public function delete(
+        int $commandId,
+    ): void {
+        $this
+            ->cache
+            ->delete($commandId);
+    }
+
+    private function sendSignal(
+        Signals $signal,
+    ): void {
+        $this->appendLog($signal->value);
+
+        if (!function_exists('posix_kill')) {
+            $this->appendLog('POSIX not installed');
+
+            return;
+        }
+
+        $pid = $this
+            ->dto
+            ->pid;
+
+        if (!$pid) {
+            $this->appendLog('PID not found');
+
+            return;
+        }
+
+        \exec(sprintf(
+            'kill -%d %d',
+            $signal->getSignal(),
+            $pid,
+        ));
+    }
+}

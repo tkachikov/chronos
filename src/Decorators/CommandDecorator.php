@@ -58,6 +58,26 @@ class CommandDecorator
         );
     }
 
+    public function getCliCommandToArray(
+        array $args = [],
+    ): array {
+        return [
+            'php',
+            base_path('artisan'),
+            $this->getName(),
+            ...$this->getArgumentsForExecToArray($args),
+        ];
+    }
+
+    public function getCliCommandToString(
+        array $args = [],
+    ): string {
+        return implode(
+            ' ',
+            $this->getCliCommandToArray($args),
+        );
+    }
+
     public function getShortName(): string
     {
         $withoutPostfix = str($this->getFullName())->before('Command');

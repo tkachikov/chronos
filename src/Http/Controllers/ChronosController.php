@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Http\Controllers;
 
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Throwable;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\RedirectResponse;
+use Tkachikov\Chronos\Actions\RealTimeInitializeAction;
+use Tkachikov\Chronos\Actions\RealTimeSendAnswerAction;
+use Tkachikov\Chronos\Actions\SigkillAction;
+use Tkachikov\Chronos\Actions\SigtermAction;
 use Tkachikov\Chronos\Converters\FilterConverter;
 use Tkachikov\Chronos\Converters\SortConverter;
+use Tkachikov\Chronos\Dto\RealTimeDto;
 use Tkachikov\Chronos\Http\Requests\IndexRequest;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\Schedule;
@@ -19,8 +25,8 @@ use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Jobs\CommandRunJob;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
-use Tkachikov\Chronos\Services\ChronosRealTimeRunner;
 use Tkachikov\Chronos\Services\CommandService;
+use Tkachikov\Chronos\Services\RealTimeCacheService;
 use Tkachikov\Chronos\Services\ScheduleService;
 use Tkachikov\Chronos\Http\Requests\ScheduleRunRequest;
 use Tkachikov\Chronos\Http\Requests\ScheduleSaveRequest;
@@ -30,7 +36,6 @@ class ChronosController extends Controller
     public function __construct(
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
-        private readonly ChronosRealTimeRunner $chronosRealTimeRunner,
         private readonly TimeRepositoryInterface $timeRepository,
     ) {}
 
@@ -131,48 +136,53 @@ class ChronosController extends Controller
     public function runInRealTime(
         Command $command,
         ScheduleRunRequest $request,
+        RealTimeInitializeAction $action,
     ) {
-        $uuid = null;
-        $message = null;
-        
         try {
-            $uuid = $this
-                ->chronosRealTimeRunner
-                ->initRun(
-                    $command,
-                    $request->input('args', []),
-                    $request->user(),
-                );
+            $dto = new RealTimeDto(
+                userId: Auth::id(),
+                commandId: $command->id,
+                args: $request->input('args', []),
+            );
+
+            $action->execute($dto);
         } catch (Exception $e) {
-            $message = $e->getMessage();
+            return response()
+                ->json(['message' => $e->getMessage()], 400);
         }
 
-        return response()->json(['uuid' => $uuid, 'message' => $message]);
+        return response()->json(['message' => 'running']);
     }
 
     public function getLogsForRunInRealTime(
         Command $command,
-        string $uuid,
+        RealTimeCacheService $cache,
     ) {
-        return response()->json($this->chronosRealTimeRunner->getLogs($command, $uuid));
+        return response()->json($cache->get($command->id));
     }
 
-    public function setAnswerForRunning(Request $request, Command $command, string $uuid)
-    {
-        $this->chronosRealTimeRunner->setAnswer($command, $uuid, $request->string('answer')->toString());
+    public function setAnswerForRunning(
+        Request $request,
+        Command $command,
+        RealTimeSendAnswerAction $action,
+    ): void {
+        $action->execute(
+            $command,
+            $request->post('answer'),
+        );
     }
 
-    public function sigterm(Command $command, string $uuid): void
-    {
-        $this
-            ->chronosRealTimeRunner
-            ->sigterm($command, $uuid);
+    public function sigterm(
+        Command $command,
+        SigtermAction $action,
+    ): void {
+        $action->execute($command);
     }
 
-    public function sigkill(Command $command, string $uuid): void
-    {
-        $this
-            ->chronosRealTimeRunner
-            ->sigkill($command, $uuid);
+    public function sigkill(
+        Command $command,
+        SigkillAction $action,
+    ): void {
+        $action->execute($command);
     }
 }
