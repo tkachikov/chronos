@@ -57,6 +57,7 @@ class ScheduleService
 
                 $runDto = new RunDto(
                     commandId: $schedule->command_id,
+                    schedule: true,
                     args: $schedule->args,
                 );
 

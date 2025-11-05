@@ -187,10 +187,18 @@ final readonly class StateService
 
     public function stopRunIfNeeded(): void
     {
-        if (!$this->dto->status) {
+        if (
+            !$this->dto->status
+            && !$this->dto->schedule
+        ) {
             return;
         }
 
+        $this->stopRun();
+    }
+
+    private function stopRun(): void
+    {
         $this
             ->cache
             ->delete($this->dto->commandId);

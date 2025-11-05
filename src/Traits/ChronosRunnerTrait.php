@@ -46,13 +46,6 @@ trait ChronosRunnerTrait
 
         $this->trap(SIGTERM, fn($s) => $this->info('Signal received: ' . $s));
 
-        if ($this->getModel()) {
-            cache()->set(
-                'chronos-commands-pid-' . $this->getModel()->id,
-                getmypid(),
-            );
-        }
-
         try {
             $state = parent::run($input, $output);
         } catch (Throwable $e) {
@@ -151,7 +144,6 @@ trait ChronosRunnerTrait
         $this->run = new CommandRun();
         $this->run->command()->associate($command);
         $this->run->user()->associate($state?->getUser());
-        $this->run->uuid = null;
         $this->run->pid = $state?->getPid();
         $this->run->state = self::$waiting;
         $this->run->args = $state?->getArgs();
@@ -171,6 +163,17 @@ trait ChronosRunnerTrait
             'state' => $state,
             'memory' => $this->memoryHelper->showPeak(),
         ]);
+
+        $command = $this->getModel();
+
+        /** @var ?StateService $state */
+        $state = rescue(
+            fn() => StateService::make($command->id),
+            null,
+            false,
+        );
+
+        $state?->stopRunIfNeeded();
     }
 
     private function appendLog(TypeMessageEnum $type, string|int|bool|float $message): void

@@ -11,6 +11,7 @@ final class RunDto
 {
     public function __construct(
         public int $commandId,
+        public bool $schedule,
         public ?Model $user = null,
         public array $args = [],
         public array $logs = [],

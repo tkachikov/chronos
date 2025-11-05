@@ -11,9 +11,6 @@ return new class extends Migration {
     {
         Schema::table('command_runs', function (Blueprint $table) {
             $table
-                ->string('uuid')
-                ->nullable();
-            $table
                 ->unsignedBigInteger('pid')
                 ->nullable();
             $table
@@ -27,7 +24,6 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('command_runs', function (Blueprint $table) {
-            $table->dropColumn('uuid');
             $table->dropColumn('pid');
             $table->dropMorphs('user');
             $table->dropColumn('args');
