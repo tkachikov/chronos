@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos\Actions;
+namespace Tkachikov\Chronos\Actions\RealTime;
 
 use Exception;
 use Tkachikov\Chronos\Converters\RealTimeConverter;
 use Tkachikov\Chronos\Dto\RealTimeDto;
-use Tkachikov\Chronos\Services\RealTimeCacheService;
+use Tkachikov\Chronos\Services\RealTime\CacheService;
 
-final readonly class RealTimeInitializeAction
+final readonly class InitializeAction
 {
     public function __construct(
-        private RealTimeCacheService $cache,
+        private CacheService $cache,
         private RealTimeConverter $converter,
     ) {}
 

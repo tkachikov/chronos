@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos\Services;
+namespace Tkachikov\Chronos\Services\RealTime;
 
 use Exception;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
 use Tkachikov\Chronos\Models\Command;
-use Illuminate\Support\Facades\Storage;
+use Tkachikov\Chronos\Services\CommandService;
 
-class ChronosRealTimeRunner
+class RunnerService
 {
     /** @var resource $process */
     private $process;
@@ -19,7 +20,7 @@ class ChronosRealTimeRunner
 
     private array $pipes = [];
 
-    private RealTimeStateService $state;
+    private StateService $state;
 
     public function __construct(
         private readonly CommandService $commandService,
@@ -31,7 +32,7 @@ class ChronosRealTimeRunner
     public function handle(
         int $commandId,
     ): void {
-        $this->state = RealTimeStateService::make($commandId);
+        $this->state = StateService::make($commandId);
         $command = Command::find($commandId);
         $this->decorator = $this
             ->commandService
@@ -133,10 +134,15 @@ class ChronosRealTimeRunner
                 $this
                     ->state
                     ->appendLog($in);
+
+                $this->checkAwaiting($in);
+
                 $in = '';
             }
 
-            $this->checkAnswerState($in);
+            // $this->checkAnswerState($in);
+            // $this->checkAwaiting($in);
+            $this->sendAnswerIfNeeded();
 
             $status = proc_get_status($this->process);
 
@@ -185,7 +191,7 @@ class ChronosRealTimeRunner
     private function checkAwaiting(
         string $in,
     ): void {
-        if (str_contains($in, "\n >")) {
+        if (!str_contains($in, "\n >")) {
             return;
         }
 
@@ -211,6 +217,10 @@ class ChronosRealTimeRunner
         ) {
             return;
         }
+
+        $this
+            ->state
+            ->appendLog('Send answer');
 
         $answer = $this
             ->state

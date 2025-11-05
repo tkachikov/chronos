@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos\Services;
+namespace Tkachikov\Chronos\Services\RealTime;
 
 use Illuminate\Cache\CacheManager;
 use Tkachikov\Chronos\Dto\RealTimeRunDto;
 
-final readonly class RealTimeCacheService
+final readonly class CacheService
 {
     public function __construct(
         private CacheManager $driver,

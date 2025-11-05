@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos\Services;
+namespace Tkachikov\Chronos\Services\RealTime;
 
 use Tkachikov\Chronos\Dto\RealTimeRunDto;
 use Tkachikov\Chronos\Enums\AnswerState;
 use Tkachikov\Chronos\Enums\Signals;
 
-final readonly class RealTimeStateService
+final readonly class StateService
 {
     public function __construct(
         public RealTimeRunDto $dto,
-        private RealTimeCacheService $cache,
+        private CacheService $cache,
     ) {}
 
     public static function make(
         int $commandId,
     ): self {
-        $cache = app(RealTimeCacheService::class);
+        $cache = app(CacheService::class);
         $dto = $cache->get($commandId);
 
         return new self($dto, $cache);
@@ -57,6 +57,27 @@ final readonly class RealTimeStateService
         return $this
             ->dto
             ->answerState === AnswerState::Received;
+    }
+
+    public function getLogs(): array
+    {
+        return $this
+            ->dto
+            ->logs;
+    }
+
+    public function getSignals(): array
+    {
+        return $this
+            ->dto
+            ->signals;
+    }
+
+    public function getStatus(): bool
+    {
+        return $this
+            ->dto
+            ->status;
     }
 
     public function appendLog(
@@ -140,12 +161,15 @@ final readonly class RealTimeStateService
         $this->appendLog('Finished');
     }
 
-    public function delete(
-        int $commandId,
-    ): void {
+    public function stopRunIfNeeded(): void
+    {
+        if (!$this->dto->status) {
+            return;
+        }
+
         $this
             ->cache
-            ->delete($commandId);
+            ->delete($this->dto->commandId);
     }
 
     private function sendSignal(
@@ -174,5 +198,7 @@ final readonly class RealTimeStateService
             $signal->getSignal(),
             $pid,
         ));
+
+        $this->finished();
     }
 }

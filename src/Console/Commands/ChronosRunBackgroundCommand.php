@@ -7,7 +7,7 @@ namespace Tkachikov\Chronos\Console\Commands;
 use Illuminate\Console\Command;
 use Throwable;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
-use Tkachikov\Chronos\Services\ChronosRealTimeRunner;
+use Tkachikov\Chronos\Services\RealTime\RunnerService;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 
 #[ChronosCommand(
@@ -24,7 +24,7 @@ final class ChronosRunBackgroundCommand extends Command
     /**
      * @throws Throwable
      */
-    public function handle(ChronosRealTimeRunner $service): int
+    public function handle(RunnerService $service): int
     {
         $commandId = (int) $this->argument('command_id');
         $service->handle($commandId);

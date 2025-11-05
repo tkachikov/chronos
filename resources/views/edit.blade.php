@@ -202,15 +202,15 @@
             } else {
                 message = `<div class="row mx-auto w-100 py-1"><div class="col pl-5"><pre class="m-0">${message}</pre></div></div>`;
                 document.getElementById('terminal').innerHTML += message;
-            }
 
-            if (autoScroll) {
-                document
-                    .querySelector('#terminal .row:last-child')
-                    .scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'end',
-                    });
+                if (autoScroll) {
+                    document
+                        .querySelector('#terminal .row:last-child')
+                        .scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'end',
+                        });
+                }
             }
         }
         function sendAnswer(event) {
@@ -220,7 +220,7 @@
                 var xhr = new XMLHttpRequest();
 
                 let commandId = '{{ $command->getModel()->id }}';
-                xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/answer`, true);
+                xhr.open('POST', `/chronos/${commandId}/run-in-real-time/answer`, true);
 
                 var formData = new FormData();
                 formData.append('_token', '{{ csrf_token() }}');
@@ -233,7 +233,7 @@
             var xhr = new XMLHttpRequest();
 
             let commandId = '{{ $command->getModel()->id }}';
-            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/sigterm`, true);
+            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/sigterm`, true);
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
@@ -244,7 +244,7 @@
             var xhr = new XMLHttpRequest();
 
             let commandId = '{{ $command->getModel()->id }}';
-            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/sigkill`, true);
+            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/sigkill`, true);
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');

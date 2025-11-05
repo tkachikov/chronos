@@ -5,31 +5,31 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Http\Controllers;
 
 use Exception;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Throwable;
-use Illuminate\Http\Request;
-use Illuminate\Contracts\View\View;
-use Illuminate\Routing\Controller;
-use Illuminate\Http\RedirectResponse;
-use Tkachikov\Chronos\Actions\RealTimeInitializeAction;
-use Tkachikov\Chronos\Actions\RealTimeSendAnswerAction;
-use Tkachikov\Chronos\Actions\SigkillAction;
-use Tkachikov\Chronos\Actions\SigtermAction;
+use Tkachikov\Chronos\Actions\RealTime\GetStateAndFinishRunAction;
+use Tkachikov\Chronos\Actions\RealTime\InitializeAction;
+use Tkachikov\Chronos\Actions\RealTime\SendAnswerAction;
+use Tkachikov\Chronos\Actions\RealTime\SigkillAction;
+use Tkachikov\Chronos\Actions\RealTime\SigtermAction;
 use Tkachikov\Chronos\Converters\FilterConverter;
 use Tkachikov\Chronos\Converters\SortConverter;
 use Tkachikov\Chronos\Dto\RealTimeDto;
 use Tkachikov\Chronos\Http\Requests\IndexRequest;
-use Tkachikov\Chronos\Models\Command;
-use Tkachikov\Chronos\Models\Schedule;
-use Tkachikov\Chronos\Models\CommandLog;
-use Tkachikov\Chronos\Models\CommandRun;
-use Tkachikov\Chronos\Jobs\CommandRunJob;
-use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
-use Tkachikov\Chronos\Services\CommandService;
-use Tkachikov\Chronos\Services\RealTimeCacheService;
-use Tkachikov\Chronos\Services\ScheduleService;
 use Tkachikov\Chronos\Http\Requests\ScheduleRunRequest;
 use Tkachikov\Chronos\Http\Requests\ScheduleSaveRequest;
+use Tkachikov\Chronos\Jobs\CommandRunJob;
+use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Models\CommandLog;
+use Tkachikov\Chronos\Models\CommandRun;
+use Tkachikov\Chronos\Models\Schedule;
+use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
+use Tkachikov\Chronos\Services\CommandService;
+use Tkachikov\Chronos\Services\ScheduleService;
 
 class ChronosController extends Controller
 {
@@ -136,7 +136,7 @@ class ChronosController extends Controller
     public function runInRealTime(
         Command $command,
         ScheduleRunRequest $request,
-        RealTimeInitializeAction $action,
+        InitializeAction $action,
     ) {
         try {
             $dto = new RealTimeDto(
@@ -156,15 +156,15 @@ class ChronosController extends Controller
 
     public function getLogsForRunInRealTime(
         Command $command,
-        RealTimeCacheService $cache,
+        GetStateAndFinishRunAction $action,
     ) {
-        return response()->json($cache->get($command->id));
+        return response()->json($action->execute($command));
     }
 
     public function setAnswerForRunning(
         Request $request,
         Command $command,
-        RealTimeSendAnswerAction $action,
+        SendAnswerAction $action,
     ): void {
         $action->execute(
             $command,
