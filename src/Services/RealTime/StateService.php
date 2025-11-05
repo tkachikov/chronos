@@ -24,6 +24,15 @@ final readonly class StateService
         return new self($dto, $cache);
     }
 
+    public function refresh(): self
+    {
+        $commandId = $this
+            ->dto
+            ->commandId;
+
+        return self::make($commandId);
+    }
+
     public function getArgs(): array
     {
         return $this

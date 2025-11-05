@@ -210,6 +210,10 @@ class RunnerService
 
     private function sendAnswerIfNeeded(): void
     {
+        $this->state = $this
+            ->state
+            ->refresh();
+
         if (
             !$this
                 ->state
@@ -217,10 +221,6 @@ class RunnerService
         ) {
             return;
         }
-
-        $this
-            ->state
-            ->appendLog('Send answer');
 
         $answer = $this
             ->state
