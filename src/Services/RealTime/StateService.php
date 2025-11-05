@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Services\RealTime;
 
-use Tkachikov\Chronos\Dto\RealTimeRunDto;
+use Illuminate\Database\Eloquent\Model;
+use Tkachikov\Chronos\Dto\RunDto;
 use Tkachikov\Chronos\Enums\AnswerState;
 use Tkachikov\Chronos\Enums\Signals;
 
 final readonly class StateService
 {
     public function __construct(
-        public RealTimeRunDto $dto,
+        public RunDto $dto,
         private CacheService $cache,
     ) {}
 
@@ -87,6 +88,20 @@ final readonly class StateService
         return $this
             ->dto
             ->status;
+    }
+
+    public function getPid(): ?int
+    {
+        return $this
+            ->dto
+            ->pid;
+    }
+
+    public function getUser(): ?Model
+    {
+        return $this
+            ->dto
+            ->user;
     }
 
     public function appendLog(

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services\RealTime;
 
 use Illuminate\Cache\CacheManager;
-use Tkachikov\Chronos\Dto\RealTimeRunDto;
+use Tkachikov\Chronos\Dto\RunDto;
 
 final readonly class CacheService
 {
@@ -24,7 +24,7 @@ final readonly class CacheService
     }
 
     public function set(
-        RealTimeRunDto $dto,
+        RunDto $dto,
     ): void {
         $key = $this->getKey($dto->commandId);
 
@@ -39,7 +39,7 @@ final readonly class CacheService
 
     public function get(
         int $commandId,
-    ): RealTimeRunDto {
+    ): RunDto {
         $key = $this->getKey($commandId);
 
         return $this

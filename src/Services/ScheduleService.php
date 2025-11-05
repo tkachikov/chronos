@@ -7,6 +7,8 @@ namespace Tkachikov\Chronos\Services;
 use Exception;
 use Throwable;
 use Illuminate\Support\Facades\DB;
+use Tkachikov\Chronos\Actions\InitializeCacheAction;
+use Tkachikov\Chronos\Dto\RunDto;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Models\CommandLog;
@@ -20,10 +22,11 @@ use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 class ScheduleService
 {
     public function __construct(
-        private readonly CommandService     $commandService,
+        private readonly CommandService $commandService,
         private readonly ScheduleRepository $scheduleRepository,
-        private readonly DatabaseHelper     $databaseHelper,
+        private readonly DatabaseHelper $databaseHelper,
         private readonly TimeRepositoryInterface $timeRepository,
+        private readonly InitializeCacheAction $initializeCacheAction,
     ) {
     }
 
@@ -35,18 +38,32 @@ class ScheduleService
         if (app()->isDownForMaintenance()) {
             return;
         }
+
         foreach ($this->scheduleRepository->get() as $schedule) {
             try {
                 if (!class_exists($schedule->command->class)) {
                     continue;
                 }
+
                 if (!$this->commandService->exists($schedule->command->class)) {
                     continue;
                 }
+
                 $decorator = $this->commandService->getByClass($schedule->command->class);
+
                 if (!$decorator->runInSchedule()) {
                     continue;
                 }
+
+                $runDto = new RunDto(
+                    commandId: $schedule->command_id,
+                    args: $schedule->args,
+                );
+
+                $this
+                    ->initializeCacheAction
+                    ->execute($runDto);
+
                 $args = $schedule->time_params ?? [];
                 $event = $scheduleConsole
                     ->command($schedule->command->class, $schedule->preparedArgs)
@@ -55,6 +72,7 @@ class ScheduleService
                     'without_overlapping' => [$schedule->without_overlapping_time],
                     'run_in_background' => [],
                 ];
+
                 foreach ($properties as $property => $params) {
                     if (!$schedule->$property) {
                         continue;

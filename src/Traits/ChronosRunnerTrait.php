@@ -8,6 +8,7 @@ use JetBrains\PhpStorm\NoReturn;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 use Throwable;
+use Tkachikov\Chronos\Services\RealTime\StateService;
 use Tkachikov\Memory\Memory as MemoryHelper;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
@@ -138,17 +139,22 @@ trait ChronosRunnerTrait
             return;
         }
 
-        $pid = getmypid();
-        $uuid = cache()->get($pid);
-        $data = cache()->get($uuid);
+        $command = $this->getModel();
+
+        /** @var ?StateService $state */
+        $state = rescue(
+            fn() => StateService::make($command->id),
+            null,
+            false,
+        );
 
         $this->run = new CommandRun();
-        $this->run->command()->associate($this->getModel());
-        $this->run->user()->associate($data['user'] ?? null);
-        $this->run->uuid = $uuid;
-        $this->run->pid = $pid;
+        $this->run->command()->associate($command);
+        $this->run->user()->associate($state?->getUser());
+        $this->run->uuid = null;
+        $this->run->pid = $state?->getPid();
         $this->run->state = self::$waiting;
-        $this->run->args = $data['args'] ?? [];
+        $this->run->args = $state?->getArgs();
         $this->run->save();
     }
 

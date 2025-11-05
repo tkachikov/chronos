@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Dto;
 
+use Illuminate\Database\Eloquent\Model;
 use Tkachikov\Chronos\Enums\AnswerState;
 
-final class RealTimeRunDto
+final class RunDto
 {
     public function __construct(
-        public int $userId,
         public int $commandId,
+        public ?Model $user = null,
         public array $args = [],
         public array $logs = [],
         public array $signals = [],

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Actions\RealTime;
 
 use Exception;
+use Tkachikov\Chronos\Actions\InitializeCacheAction;
 use Tkachikov\Chronos\Converters\RealTimeConverter;
 use Tkachikov\Chronos\Dto\RealTimeDto;
-use Tkachikov\Chronos\Services\RealTime\CacheService;
 
 final readonly class InitializeAction
 {
     public function __construct(
-        private CacheService $cache,
+        private InitializeCacheAction $initializeCacheAction,
         private RealTimeConverter $converter,
     ) {}
 
@@ -22,21 +22,13 @@ final readonly class InitializeAction
     public function execute(
         RealTimeDto $dto,
     ): void {
-        $alreadyRun = $this
-            ->cache
-            ->has($dto->commandId);
-
-        if ($alreadyRun) {
-            throw new Exception('Already run');
-        }
-
         $runDto = $this
             ->converter
             ->convert($dto);
 
         $this
-            ->cache
-            ->set($runDto);
+            ->initializeCacheAction
+            ->execute($runDto);
 
         \exec(sprintf(
             "php %s %s %d > /dev/null 2>&1 &",

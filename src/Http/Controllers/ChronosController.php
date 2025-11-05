@@ -140,9 +140,9 @@ class ChronosController extends Controller
     ) {
         try {
             $dto = new RealTimeDto(
-                userId: Auth::id(),
                 commandId: $command->id,
                 args: $request->input('args', []),
+                user: Auth::user(),
             );
 
             $action->execute($dto);
