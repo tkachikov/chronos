@@ -8,6 +8,7 @@ use JetBrains\PhpStorm\NoReturn;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 use Throwable;
+use Tkachikov\Chronos\Services\RealTime\StateService;
 use Tkachikov\Memory\Memory as MemoryHelper;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
@@ -44,13 +45,6 @@ trait ChronosRunnerTrait
         $this->appendLog(TypeMessageEnum::INFO, 'Running command');
 
         $this->trap(SIGTERM, fn($s) => $this->info('Signal received: ' . $s));
-
-        if ($this->getModel()) {
-            cache()->set(
-                'chronos-commands-pid-' . $this->getModel()->id,
-                getmypid(),
-            );
-        }
 
         try {
             $state = parent::run($input, $output);
@@ -138,11 +132,27 @@ trait ChronosRunnerTrait
             return;
         }
 
-        $this->run = CommandRun::create([
-            'command_id' => $this->getModel()->id,
-            'schedule_id' => null,
-            'state' => self::$waiting,
-        ]);
+        $command = $this->getModel();
+
+        /** @var ?StateService $state */
+        $state = rescue(
+            fn() => StateService::make($command->id),
+            null,
+            false,
+        );
+
+        $this->run = new CommandRun();
+
+        $this->run->command()->associate($command);
+        $this->run->state = self::$waiting;
+
+        if ($state) {
+            $this->run->user()->associate($state->getUser());
+            $this->run->pid = $state->getPid();
+            $this->run->args = $state->getArgs();
+        }
+
+        $this->run->save();
     }
 
     private function updateRun(int $state): void

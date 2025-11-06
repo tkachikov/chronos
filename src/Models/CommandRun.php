@@ -5,17 +5,13 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class CommandRun extends Model
 {
-    protected $fillable = [
-        'command_id',
-        'schedule_id',
-        'telescope_id',
-        'state',
-        'memory',
-    ];
+    protected $guarded = [];
 
     public function logs(): HasMany
     {
@@ -40,5 +36,22 @@ class CommandRun extends Model
             'warning',
             'danger',
         ][$this->state];
+    }
+
+    public function command(): BelongsTo
+    {
+        return $this->belongsTo(Command::class);
+    }
+
+    public function user(): MorphTo
+    {
+        return $this->morphTo('user');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'args' => 'array',
+        ];
     }
 }

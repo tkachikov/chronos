@@ -15,13 +15,15 @@ use Tkachikov\Chronos\Models\CommandMetric;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Repositories\ScheduleRepository;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
+use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 
 class ScheduleService
 {
     public function __construct(
-        private readonly CommandService     $commandService,
+        private readonly CommandService $commandService,
         private readonly ScheduleRepository $scheduleRepository,
-        private readonly DatabaseHelper     $databaseHelper,
+        private readonly DatabaseHelper $databaseHelper,
+        private readonly TimeRepositoryInterface $timeRepository,
     ) {
     }
 
@@ -33,18 +35,23 @@ class ScheduleService
         if (app()->isDownForMaintenance()) {
             return;
         }
+
         foreach ($this->scheduleRepository->get() as $schedule) {
             try {
                 if (!class_exists($schedule->command->class)) {
                     continue;
                 }
+
                 if (!$this->commandService->exists($schedule->command->class)) {
                     continue;
                 }
+
                 $decorator = $this->commandService->getByClass($schedule->command->class);
+
                 if (!$decorator->runInSchedule()) {
                     continue;
                 }
+
                 $args = $schedule->time_params ?? [];
                 $event = $scheduleConsole
                     ->command($schedule->command->class, $schedule->preparedArgs)
@@ -53,6 +60,7 @@ class ScheduleService
                     'without_overlapping' => [$schedule->without_overlapping_time],
                     'run_in_background' => [],
                 ];
+
                 foreach ($properties as $property => $params) {
                     if (!$schedule->$property) {
                         continue;
@@ -69,6 +77,21 @@ class ScheduleService
     public function saveSchedule(array $input): Schedule
     {
         $input['time_params'] ??= null;
+
+        $timeMethod = $input['time_method'];
+        $time = $this
+            ->timeRepository
+            ->get()[$timeMethod];
+
+        if (!$time->params) {
+            $input['time_params'] = null;
+        } else {
+            $input['time_params'] = array_slice(
+                $input['time_params'],
+                0,
+                count($time->params),
+            );
+        }
 
         return $this
             ->scheduleRepository
