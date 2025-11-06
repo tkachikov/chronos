@@ -69,6 +69,13 @@ final readonly class StateService
             ->answerState === AnswerState::Received;
     }
 
+    public function isSchedule(): bool
+    {
+        return $this
+            ->dto
+            ->schedule;
+    }
+
     public function getLogs(): array
     {
         return $this
@@ -187,17 +194,14 @@ final readonly class StateService
 
     public function stopRunIfNeeded(): void
     {
-        if (
-            !$this->dto->status
-            && !$this->dto->schedule
-        ) {
+        if (!$this->dto->status) {
             return;
         }
 
         $this->stopRun();
     }
 
-    private function stopRun(): void
+    public function stopRun(): void
     {
         $this
             ->cache

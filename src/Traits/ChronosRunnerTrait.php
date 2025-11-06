@@ -142,11 +142,16 @@ trait ChronosRunnerTrait
         );
 
         $this->run = new CommandRun();
+
         $this->run->command()->associate($command);
-        $this->run->user()->associate($state?->getUser());
-        $this->run->pid = $state?->getPid();
         $this->run->state = self::$waiting;
-        $this->run->args = $state?->getArgs();
+
+        if ($state) {
+            $this->run->user()->associate($state->getUser());
+            $this->run->pid = $state->getPid();
+            $this->run->args = $state->getArgs();
+        }
+
         $this->run->save();
     }
 
@@ -163,17 +168,6 @@ trait ChronosRunnerTrait
             'state' => $state,
             'memory' => $this->memoryHelper->showPeak(),
         ]);
-
-        $command = $this->getModel();
-
-        /** @var ?StateService $state */
-        $state = rescue(
-            fn() => StateService::make($command->id),
-            null,
-            false,
-        );
-
-        $state?->stopRunIfNeeded();
     }
 
     private function appendLog(TypeMessageEnum $type, string|int|bool|float $message): void

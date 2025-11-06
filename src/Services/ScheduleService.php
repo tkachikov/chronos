@@ -7,8 +7,6 @@ namespace Tkachikov\Chronos\Services;
 use Exception;
 use Throwable;
 use Illuminate\Support\Facades\DB;
-use Tkachikov\Chronos\Actions\InitializeCacheAction;
-use Tkachikov\Chronos\Dto\RunDto;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Models\CommandLog;
@@ -26,7 +24,6 @@ class ScheduleService
         private readonly ScheduleRepository $scheduleRepository,
         private readonly DatabaseHelper $databaseHelper,
         private readonly TimeRepositoryInterface $timeRepository,
-        private readonly InitializeCacheAction $initializeCacheAction,
     ) {
     }
 
@@ -54,16 +51,6 @@ class ScheduleService
                 if (!$decorator->runInSchedule()) {
                     continue;
                 }
-
-                $runDto = new RunDto(
-                    commandId: $schedule->command_id,
-                    schedule: true,
-                    args: $schedule->args,
-                );
-
-                $this
-                    ->initializeCacheAction
-                    ->execute($runDto);
 
                 $args = $schedule->time_params ?? [];
                 $event = $scheduleConsole
