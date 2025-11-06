@@ -5,32 +5,37 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Http\Controllers;
 
 use Exception;
-use Throwable;
-use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
-use Illuminate\Routing\Controller;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use Throwable;
+use Tkachikov\Chronos\Actions\RealTime\GetStateAndFinishRunAction;
+use Tkachikov\Chronos\Actions\RealTime\InitializeAction;
+use Tkachikov\Chronos\Actions\RealTime\SendAnswerAction;
+use Tkachikov\Chronos\Actions\RealTime\SigkillAction;
+use Tkachikov\Chronos\Actions\RealTime\SigtermAction;
 use Tkachikov\Chronos\Converters\FilterConverter;
 use Tkachikov\Chronos\Converters\SortConverter;
+use Tkachikov\Chronos\Dto\RealTimeDto;
 use Tkachikov\Chronos\Http\Requests\IndexRequest;
-use Tkachikov\Chronos\Models\Command;
-use Tkachikov\Chronos\Models\Schedule;
-use Tkachikov\Chronos\Models\CommandLog;
-use Tkachikov\Chronos\Models\CommandRun;
-use Tkachikov\Chronos\Jobs\CommandRunJob;
-use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
-use Tkachikov\Chronos\Services\ChronosRealTimeRunner;
-use Tkachikov\Chronos\Services\CommandService;
-use Tkachikov\Chronos\Services\ScheduleService;
 use Tkachikov\Chronos\Http\Requests\ScheduleRunRequest;
 use Tkachikov\Chronos\Http\Requests\ScheduleSaveRequest;
+use Tkachikov\Chronos\Jobs\CommandRunJob;
+use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Models\CommandLog;
+use Tkachikov\Chronos\Models\CommandRun;
+use Tkachikov\Chronos\Models\Schedule;
+use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
+use Tkachikov\Chronos\Services\CommandService;
+use Tkachikov\Chronos\Services\ScheduleService;
 
 class ChronosController extends Controller
 {
     public function __construct(
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
-        private readonly ChronosRealTimeRunner $chronosRealTimeRunner,
         private readonly TimeRepositoryInterface $timeRepository,
     ) {}
 
@@ -131,44 +136,53 @@ class ChronosController extends Controller
     public function runInRealTime(
         Command $command,
         ScheduleRunRequest $request,
+        InitializeAction $action,
     ) {
-        $uuid = null;
-        $message = null;
-        
         try {
-            $uuid = $this
-                ->chronosRealTimeRunner
-                ->initRun($command, $request->input('args', []));
+            $dto = new RealTimeDto(
+                commandId: $command->id,
+                args: $request->input('args', []),
+                user: Auth::user(),
+            );
+
+            $action->execute($dto);
         } catch (Exception $e) {
-            $message = $e->getMessage();
+            return response()
+                ->json(['message' => $e->getMessage()], 400);
         }
 
-        return response()->json(['uuid' => $uuid, 'message' => $message]);
+        return response()->json(['message' => 'running']);
     }
 
     public function getLogsForRunInRealTime(
         Command $command,
-        string $uuid,
+        GetStateAndFinishRunAction $action,
     ) {
-        return response()->json($this->chronosRealTimeRunner->getLogs($command, $uuid));
+        return response()->json($action->execute($command));
     }
 
-    public function setAnswerForRunning(Request $request, Command $command, string $uuid)
-    {
-        $this->chronosRealTimeRunner->setAnswer($command, $uuid, $request->string('answer')->toString());
+    public function setAnswerForRunning(
+        Request $request,
+        Command $command,
+        SendAnswerAction $action,
+    ): void {
+        $action->execute(
+            $command,
+            $request->post('answer'),
+        );
     }
 
-    public function sigterm(Command $command, string $uuid): void
-    {
-        $this
-            ->chronosRealTimeRunner
-            ->sigterm($command, $uuid);
+    public function sigterm(
+        Command $command,
+        SigtermAction $action,
+    ): void {
+        $action->execute($command);
     }
 
-    public function sigkill(Command $command, string $uuid): void
-    {
-        $this
-            ->chronosRealTimeRunner
-            ->sigkill($command, $uuid);
+    public function sigkill(
+        Command $command,
+        SigkillAction $action,
+    ): void {
+        $action->execute($command);
     }
 }

@@ -1,5 +1,37 @@
-<div class="row w-100 mx-auto mb-3">
-    <div class="col">
+<nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+        <div class="navbar-brand">
+            <a class="btn btn-link text-decoration-none" href="/">
+                <h1 class="h1 m-0">{{ config('app.name') }}</h1>
+            </a>
+            <span class="h4 m-0 py-3 text-muted">/</span>
+            <a class="btn btn-link text-decoration-none" href="{{ route('chronos.main') }}">
+                <h1 class="h1 m-0">Commands</h1>
+            </a>
+        </div>
+        <form
+                class="d-flex"
+                method="GET"
+                action="{{ route('chronos.main') }}"
+                role="search"
+        >
+            <input
+                    id="search"
+                    class="form-control me-2"
+                    type="search"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Name, signature or etc."
+            >
+
+            <button
+                    class="btn btn-outline-primary"
+                    type="submit"
+            >
+                Search
+            </button>
+        </form>
+
         <button
                 class="btn btn-outline-primary"
                 type="button"
@@ -9,10 +41,14 @@
         >
             Filters
         </button>
+    </div>
+</nav>
 
+<div class="row w-100 mx-auto mb-3">
+    <div class="col">
         <div
                 id="filters"
-                class="offcanvas offcanvas-start"
+                class="offcanvas offcanvas-end"
                 tabindex="-1"
                 aria-labelledby="filtersLabel"
         >
@@ -63,10 +99,10 @@
                             <input
                                     id="search"
                                     class="form-control"
-                                    type="text"
+                                    type="search"
                                     name="search"
                                     value="{{ request('search') }}"
-                                    placeholder="Name, signature or description"
+                                    placeholder="Name, signature or etc."
                             >
                         </div>
                     </div>

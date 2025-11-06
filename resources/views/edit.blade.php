@@ -107,7 +107,6 @@
             @endforeach
         @endif
 
-        var uuidForRunInRealTime;
         var logs = [];
 
         function runRealTime() {
@@ -122,17 +121,15 @@
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        let answer = JSON.parse(xhr.responseText);
+                        logs = [];
+                        document.getElementById('terminal').innerHTML = '';
+                        getLogs();
+                    }
 
-                        if (answer.uuid !== null) {
-                            uuidForRunInRealTime = answer.uuid;
-                            logs = [];
-                            document.getElementById('terminal').innerHTML = '';
-                            getLogs();
-                        } else if (answer.message !== null) {
-                            $('#runMessageError').show();
-                            $('#runMessageError').text(answer.message);
-                        }
+                    if (xhr.status === 400) {
+                        let res = JSON.parse(xhr.responseText);
+                        $('#runMessageError').show();
+                        $('#runMessageError').text(res.message);
                     }
                 }
             };
@@ -157,12 +154,13 @@
                 $('#runCommandInRealTime').prop('disabled', false);
             }
         }
+
         function getLogs() {
             var timer = setInterval(() => {
                 var xhr = new XMLHttpRequest();
 
                 let commandId = '{{ $command->getModel()->id }}';
-                xhr.open('GET', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/logs`, true);
+                xhr.open('GET', `/chronos/${commandId}/run-in-real-time/logs`, true);
 
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4 && xhr.status === 200) {
@@ -176,7 +174,7 @@
                             $('#sigkill').show();
                         }
 
-                        data.data.forEach((value, index) => {
+                        data.logs.forEach((value, index) => {
                             if (!logs.hasOwnProperty(index)) {
                                 logs[index] = value.trim();
                                 setLog(value.trim());
@@ -204,15 +202,15 @@
             } else {
                 message = `<div class="row mx-auto w-100 py-1"><div class="col pl-5"><pre class="m-0">${message}</pre></div></div>`;
                 document.getElementById('terminal').innerHTML += message;
-            }
 
-            if (autoScroll) {
-                document
-                    .querySelector('#terminal .row:last-child')
-                    .scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'end',
-                    });
+                if (autoScroll) {
+                    document
+                        .querySelector('#terminal .row:last-child')
+                        .scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'end',
+                        });
+                }
             }
         }
         function sendAnswer(event) {
@@ -222,7 +220,7 @@
                 var xhr = new XMLHttpRequest();
 
                 let commandId = '{{ $command->getModel()->id }}';
-                xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/answer`, true);
+                xhr.open('POST', `/chronos/${commandId}/run-in-real-time/answer`, true);
 
                 var formData = new FormData();
                 formData.append('_token', '{{ csrf_token() }}');
@@ -235,7 +233,7 @@
             var xhr = new XMLHttpRequest();
 
             let commandId = '{{ $command->getModel()->id }}';
-            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/sigterm`, true);
+            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/sigterm`, true);
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
@@ -246,7 +244,7 @@
             var xhr = new XMLHttpRequest();
 
             let commandId = '{{ $command->getModel()->id }}';
-            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/${uuidForRunInRealTime}/sigkill`, true);
+            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/sigkill`, true);
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');

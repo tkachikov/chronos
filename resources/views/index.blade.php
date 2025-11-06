@@ -1,15 +1,5 @@
 @extends('chronos::layout', ['title' => 'test'])
 @section('content')
-    <div class="d-flex flex-row mb-3">
-        <a class="btn btn-link text-decoration-none" href="/">
-            <h1 class="h1 m-0">{{ config('app.name') }}</h1>
-        </a>
-        <span class="h4 m-0 py-3 text-muted">/</span>
-        <a class="btn btn-link text-decoration-none" href="{{ route('chronos.main') }}">
-            <h1 class="h1 m-0">Commands</h1>
-        </a>
-    </div>
-
     @include('chronos::filters', ['times' => $times])
 
     <div class="row w-100 mx-auto">
