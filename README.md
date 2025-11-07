@@ -20,19 +20,6 @@
 
 This package for setting commands in schedule.
 
-## Upgrade
-### From 1.3.0 to 1.3.1
-Run command:
-```
-    php artisan chronos:update-time-params
-```
-
-### From 1.3.9 to 1.4
-Run command:
-```
-    php artisan chronos:update-args
-```
-
 ## Installation
 
 Require this package with composer using the following command
@@ -98,7 +85,7 @@ Visit route `/chronos`, example: [localhost:8000/chronos](http://localhost:8000/
 Open `chronos:test` command:
 ![Open test](images/open_test.png)
 
-Run `chronos:test` command from queue:
+Run `chronos:test` command from queue and reload page:
 ![Run test](images/run_test.png)
 
 Run `chronos:test` command in real time. Out messages pushing in custom terminal:
@@ -106,19 +93,7 @@ Run `chronos:test` command in real time. Out messages pushing in custom terminal
 
 ### Run attributes
 
-`Deprecated attributes`<br>
-If you need off run command from Chronos dashboard (`notRunInManual`) or schedules (`notRunInSchedule`) set attributes:<br>
-For example all off:
-```php
-// ...
-#[notRunInManual]
-#[notRunInSchedule]
-class TestCommand extends Command
-{
-    // ...
-}
-```
-Starts with version 1.4.7 available attribute is `ChronosCommand`. Example:
+If you need off run command from Chronos dashboard (`notRunInManual`) or schedules (`notRunInSchedule`) set in ChronosCommand attribute:
 ```php
 // ...
 use Tkachikov\Chronos\Attributes\ChronosCommand;
