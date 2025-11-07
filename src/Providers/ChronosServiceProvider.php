@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
@@ -30,6 +31,7 @@ use Tkachikov\Chronos\Repositories\CommandRunRepository;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 use Tkachikov\Chronos\Repositories\TimeRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
+use Tkachikov\Chronos\Services\ScheduleService;
 
 class ChronosServiceProvider extends ServiceProvider
 {
@@ -54,6 +56,7 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadPublishing();
         $this->loadMigrations();
         $this->loadTranslations();
+        $this->loadSchedule();
     }
 
     public function loadCommands(): void
@@ -120,5 +123,21 @@ class ChronosServiceProvider extends ServiceProvider
     public function loadTranslations(): void
     {
         $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', 'chronos');
+    }
+
+    public function loadSchedule(): void
+    {
+        $this
+            ->app
+            ->booted(function () {
+                $scheduler = $this
+                    ->app
+                    ->make(Schedule::class);
+
+                $this
+                    ->app
+                    ->make(ScheduleService::class)
+                    ->schedule($scheduler);
+            });
     }
 }

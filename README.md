@@ -45,23 +45,6 @@ Run Chronos command for install:
 php artisan chronos:install --migrate
 ```
 
-Added Chronos scheduler in `app/Console/Kernel.php`:
-```php
-// ...
-use Tkachikov\Chronos\Services\ScheduleService;
-
-// ...
-class Kernel extends ConsoleKernel
-{
-    // ...
-    protected function schedule(Schedule $schedule): void
-    {
-        app(ScheduleService::class)->schedule($schedule);
-    }
-    // ...
-}
-```
-
 ## Authorization
 
 In defaults pages open for all users and also without auth middleware.
