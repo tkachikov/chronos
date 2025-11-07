@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
@@ -16,10 +17,7 @@ use Tkachikov\Chronos\Console\Commands\ChronosRunBackgroundCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosFreeLogsCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosIndexUpdateCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosUpdateArgsCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosUpdateTimeParamsCommand;
 use Tkachikov\Chronos\Managers\CommandRunManager;
 use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
 use Tkachikov\Chronos\Repositories\ArtisanRepository;
@@ -30,6 +28,7 @@ use Tkachikov\Chronos\Repositories\CommandRunRepository;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 use Tkachikov\Chronos\Repositories\TimeRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
+use Tkachikov\Chronos\Services\ScheduleService;
 
 class ChronosServiceProvider extends ServiceProvider
 {
@@ -54,6 +53,8 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadPublishing();
         $this->loadMigrations();
         $this->loadTranslations();
+        $this->loadServiceProvider();
+        $this->loadSchedule();
     }
 
     public function loadCommands(): void
@@ -61,10 +62,7 @@ class ChronosServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ChronosInstallCommand::class,
-                ChronosUpdateArgsCommand::class,
-                ChronosIndexUpdateCommand::class,
                 ChronosRunBackgroundCommand::class,
-                ChronosUpdateTimeParamsCommand::class,
             ]);
         }
         $this->commands([
@@ -120,5 +118,38 @@ class ChronosServiceProvider extends ServiceProvider
     public function loadTranslations(): void
     {
         $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', 'chronos');
+    }
+
+    public function loadServiceProvider(): void
+    {
+        $this
+            ->app
+            ->booted(function () {
+                if (file_exists(app_path('Providers/ChronosServiceProvider.php'))) {
+                    $this
+                        ->app
+                        ->register('App\\Providers\\ChronosServiceProvider');
+                } else {
+                    $this
+                        ->app
+                        ->register(ChronosApplicationServiceProvider::class);
+                }
+            });
+    }
+
+    public function loadSchedule(): void
+    {
+        $this
+            ->app
+            ->booted(function () {
+                $scheduler = $this
+                    ->app
+                    ->make(Schedule::class);
+
+                $this
+                    ->app
+                    ->make(ScheduleService::class)
+                    ->schedule($scheduler);
+            });
     }
 }
