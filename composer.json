@@ -17,7 +17,7 @@
         }
     ],
     "require": {
-        "php": "^8.4",
+        "php": "^8.2",
         "tkachikov/memory": "^1.2",
         "tkachikov/laravel-withtrashed": "^1.0"
     },
