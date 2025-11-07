@@ -1,4 +1,6 @@
-@use(Tkachikov\Chronos\Enums\TimeHelp)
+@php
+    use Tkachikov\Chronos\Enums\TimeHelp;
+@endphp
 
 <div class="card shadow mb-5">
     <div class="card-header">
