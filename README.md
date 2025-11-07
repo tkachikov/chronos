@@ -42,7 +42,7 @@ composer require tkachikov/chronos
 
 Run Chronos command for install:
 ```shell
-php artisan chronos:install --migrate
+php artisan chronos:install
 ```
 
 ## Authorization

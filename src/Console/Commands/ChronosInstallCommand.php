@@ -13,7 +13,7 @@ use Tkachikov\Chronos\Attributes\ChronosCommand;
 )]
 final class ChronosInstallCommand extends Command
 {
-    protected $signature = 'chronos:install {--migrate}';
+    protected $signature = 'chronos:install';
 
     protected $description = 'Install all Chronos resources';
 
@@ -26,12 +26,10 @@ final class ChronosInstallCommand extends Command
         $this->registerServiceProvider();
         $this->info("\tRegistered service provider");
 
-        if ($this->option('migrate')) {
-            $this->call('migrate', [
-                '--path' => 'vendor/tkachikov/chronos/database/migrations',
-                '--force' => true,
-            ]);
-        }
+        $this->call('migrate', [
+            '--path' => 'vendor/tkachikov/chronos/database/migrations',
+            '--force' => true,
+        ]);
 
         return self::SUCCESS;
     }
