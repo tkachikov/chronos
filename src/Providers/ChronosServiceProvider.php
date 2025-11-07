@@ -17,10 +17,7 @@ use Tkachikov\Chronos\Console\Commands\ChronosRunBackgroundCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosFreeLogsCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosIndexUpdateCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosUpdateArgsCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosUpdateTimeParamsCommand;
 use Tkachikov\Chronos\Managers\CommandRunManager;
 use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
 use Tkachikov\Chronos\Repositories\ArtisanRepository;
@@ -65,10 +62,7 @@ class ChronosServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ChronosInstallCommand::class,
-                ChronosUpdateArgsCommand::class,
-                ChronosIndexUpdateCommand::class,
                 ChronosRunBackgroundCommand::class,
-                ChronosUpdateTimeParamsCommand::class,
             ]);
         }
         $this->commands([
