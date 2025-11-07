@@ -13,6 +13,13 @@ class CommandRun extends Model
 {
     protected $guarded = [];
 
+    /**
+     * @description For support version < 11
+     */
+    protected $casts = [
+        'args' => 'array',
+    ];
+
     public function logs(): HasMany
     {
         return $this->hasMany(CommandLog::class);
