@@ -56,6 +56,7 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadPublishing();
         $this->loadMigrations();
         $this->loadTranslations();
+        $this->loadServiceProvider();
         $this->loadSchedule();
     }
 
@@ -123,6 +124,23 @@ class ChronosServiceProvider extends ServiceProvider
     public function loadTranslations(): void
     {
         $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', 'chronos');
+    }
+
+    public function loadServiceProvider(): void
+    {
+        $this
+            ->app
+            ->booted(function () {
+                if (file_exists(app_path('Providers/ChronosServiceProvider.php'))) {
+                    $this
+                        ->app
+                        ->register('App\\Providers\\ChronosServiceProvider');
+                } else {
+                    $this
+                        ->app
+                        ->register(ChronosApplicationServiceProvider::class);
+                }
+            });
     }
 
     public function loadSchedule(): void
