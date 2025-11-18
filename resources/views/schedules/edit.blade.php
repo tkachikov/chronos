@@ -85,22 +85,22 @@
                                 <div class="row w-100 mx-auto px-0" id="time_params_for_{{ $method }}">
                                     @foreach($time->params as $key => $param)
                                         <div class="col">
-                                            <label for="time_params[{{ $key }}]">
+                                            <label for="time_params[{{ $method }}][{{ $key }}]">
                                                 {{ $param->title }}
                                             </label>
                                             @if($param->help === TimeHelp::Time)
                                                 <input
                                                         type="time"
-                                                        id="time_params[{{ $key }}]"
-                                                        name="time_params[{{ $key }}]"
+                                                        id="time_params[{{ $method }}][{{ $key }}]"
+                                                        name="time_params[{{ $method }}][{{ $key }}]"
                                                         class="form-control"
                                                         form="updateForm"
                                                         value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
                                                 >
                                             @elseif($param->help instanceof TimeHelp)
                                                 <select
-                                                        id="time_params[{{ $key }}]"
-                                                        name="time_params[{{ $key }}]"
+                                                        id="time_params[{{ $method }}][{{ $key }}]"
+                                                        name="time_params[{{ $method }}][{{ $key }}]"
                                                         class="form-control"
                                                         form="updateForm"
                                                 >
@@ -116,8 +116,8 @@
                                             @else
                                                 <input
                                                         type="text"
-                                                        id="time_params[{{ $key }}]"
-                                                        name="time_params[{{ $key }}]"
+                                                        id="time_params[{{ $method }}][{{ $key }}]"
+                                                        name="time_params[{{ $method }}][{{ $key }}]"
                                                         class="form-control"
                                                         form="updateForm"
                                                         value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"

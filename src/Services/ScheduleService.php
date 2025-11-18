@@ -86,11 +86,13 @@ class ScheduleService
         if (!$time->params) {
             $input['time_params'] = null;
         } else {
-            $input['time_params'] = array_slice(
-                $input['time_params'],
-                0,
-                count($time->params),
-            );
+            $params = $input['time_params'];
+            $input['time_params'] = [];
+
+            foreach ($time->params as $key => $param) {
+                $input['time_params'][$key] = $params[$key]
+                    ?? $param->default;
+            }
         }
 
         return $this
