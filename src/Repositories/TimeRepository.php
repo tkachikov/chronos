@@ -105,6 +105,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        default: 0,
                         help: TimeHelp::Minutes,
                     ),
                 ],
@@ -115,6 +116,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        default: 0,
                         help: TimeHelp::Minutes,
                     ),
                 ],
@@ -126,6 +128,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        default: 0,
                         help: TimeHelp::Minutes,
                     ),
                 ],
@@ -137,6 +140,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        default: 0,
                         help: TimeHelp::Minutes,
                     ),
                 ],
@@ -148,6 +152,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                 params: [
                     new ParamDecorator(
                         title: 'minutes',
+                        default: 0,
                         help: TimeHelp::Minutes,
                     ),
                 ],
