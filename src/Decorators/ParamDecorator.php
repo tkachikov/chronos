@@ -9,8 +9,8 @@ use Tkachikov\Chronos\Enums\TimeHelp;
 final readonly class ParamDecorator
 {
     public function __construct(
-        public string    $title,
-        public ?string   $default = null,
+        public string $title,
+        public mixed $default = null,
         public ?TimeHelp $help = null,
     ) {}
 }
