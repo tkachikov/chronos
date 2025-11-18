@@ -22,7 +22,7 @@ class ScheduleSaveRequest extends FormRequest
             $args[$key] = $value === 'on' ?: $value;
         }
         $this->merge(['args' => $args]);
-        $this->merge(['time_params' => $this->input('time_params')[$this->input('time_method')]]);
+        $this->merge(['time_params' => $this->input('time_params')[$this->input('time_method')] ?? null]);
     }
 
     public function rules(): array
