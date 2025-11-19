@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos\Tests\Unit;
+namespace Tkachikov\Chronos\Tests\Unit\Decorators;
 
 use Illuminate\Console\Command;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
-use Tkachikov\Chronos\Models\Command as CommandModel;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
+use Tkachikov\Chronos\Models\Command as CommandModel;
 
 final class CommandDecoratorTest extends TestCase
 {

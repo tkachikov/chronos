@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos\Tests\Unit;
+namespace Tkachikov\Chronos\Tests\Unit\Decorators;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;

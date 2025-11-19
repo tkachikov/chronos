@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos\Tests\Unit;
+namespace Tkachikov\Chronos\Tests\Unit\Decorators;
 
 use Illuminate\Console\Command;
 use PHPUnit\Framework\TestCase;
