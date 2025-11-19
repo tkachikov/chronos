@@ -23,7 +23,8 @@
     },
     "require-dev": {
         "laravel/framework": "^12.10",
-        "phpunit/phpunit": "^12.1"
+        "phpunit/phpunit": "^12.1",
+        "orchestra/testbench": "^10.2"
     },
     "extra": {
         "laravel": {
