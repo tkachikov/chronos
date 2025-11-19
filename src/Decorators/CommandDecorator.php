@@ -122,11 +122,11 @@ class CommandDecorator
      */
     public function getSignature(): string
     {
-        $class = $this->getClassName();
-        $object = new $class;
-        $reflection = new ReflectionObject($object);
+        $reflection = new ReflectionObject($this->command);
 
-        return $reflection->getProperty('signature')->getValue($object);
+        return $reflection
+            ->getProperty('signature')
+            ->getValue($this->command);
     }
 
     public function getDirectory(): string
