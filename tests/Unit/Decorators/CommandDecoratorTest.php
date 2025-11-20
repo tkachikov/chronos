@@ -127,7 +127,7 @@ final class CommandDecoratorTest extends TestCase
         string $signature,
     ): void {
         $command = new class extends Command {
-            protected string $signature;
+            protected $signature;
 
             public function setSignature(string $signature): void
             {

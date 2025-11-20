@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Feature;
+namespace Tkachikov\Chronos\Tests\Feature;
 
 use Illuminate\Support\Facades\Artisan;
-use Orchestra\Testbench\TestCase;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Managers\CommandManager;
 use Tkachikov\Chronos\Models\Command;
-use Tkachikov\Chronos\Providers\ChronosServiceProvider;
 
 final class CommandManagerTest extends TestCase
 {
@@ -48,36 +46,5 @@ final class CommandManagerTest extends TestCase
         $this->assertNotEquals(0, $manager->getSystems()->count());
         $this->assertNotEquals(0, $manager->getChronos()->count());
         $this->assertEquals($countCommands, Command::count());
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            ChronosServiceProvider::class,
-        ];
-    }
-
-    protected function getEnvironmentSetUp($app): void
-    {
-        $app['config']->set('database.default', 'testing');
-        $app['config']->set('database.connections.testing', [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-        ]);
-    }
-
-    protected function defineDatabaseMigrations(): void
-    {
-        $this->loadLaravelMigrations();
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this
-            ->artisan('migrate')
-            ->run();
     }
 }
