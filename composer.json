@@ -32,5 +32,8 @@
                 "Tkachikov\\Chronos\\Providers\\ChronosServiceProvider"
             ]
         }
-    }
+    },
+  "scripts": {
+    "test": "vendor/bin/phpunit"
+  }
 }

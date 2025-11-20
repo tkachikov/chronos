@@ -80,8 +80,11 @@ class TestCase extends \Orchestra\Testbench\TestCase
             }
 
             if ($body) {
+                $bodySearch = version_compare(app()->version(), '10.0', '>=')
+                    ? '//'
+                    : 'return Command::SUCCESS;';
                 $content = str_replace(
-                    '//',
+                    $bodySearch,
                     $body,
                     $content,
                 );

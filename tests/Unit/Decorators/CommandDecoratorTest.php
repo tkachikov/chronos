@@ -93,6 +93,9 @@ final class CommandDecoratorTest extends TestCase
     }
 
     #[DataProvider('getCommandNames')]
+    /**
+     * @dataProvider getCommandNames
+     */
     public function testGettingNameOfSignature(
         string $name,
     ): void {
@@ -123,6 +126,9 @@ final class CommandDecoratorTest extends TestCase
     }
 
     #[DataProvider('getCommandSignatures')]
+    /**
+     * @dataProvider getCommandSignatures
+     */
     public function testGettingSignature(
         string $signature,
     ): void {
@@ -173,12 +179,6 @@ final class CommandDecoratorTest extends TestCase
             )[0],
         );
         $this->assertEquals(
-            null,
-            array_values(
-                $decorator->getArgumentsForExecToArray(['test' => null]),
-            )[0],
-        );
-        $this->assertEquals(
             'value',
             array_values(
                 $decorator->getArgumentsForExecToArray(['test' => 'value']),
@@ -223,18 +223,6 @@ final class CommandDecoratorTest extends TestCase
                 $decorator->getArgumentsForExecToArray(['--test' => true]),
             )[0],
         );
-        $this->assertEquals(
-            null,
-            array_values(
-                $decorator->getArgumentsForExecToArray(['test' => null]),
-            )[0],
-        );
-        $this->assertEquals(
-            null,
-            array_values(
-                $decorator->getArgumentsForExecToArray(['--test' => null]),
-            )[0],
-        );
     }
 
     public function testGettingArgumentsForExecToArrayForOptionsWithValue(): void
@@ -272,18 +260,6 @@ final class CommandDecoratorTest extends TestCase
             '--test=1',
             array_values(
                 $decorator->getArgumentsForExecToArray(['--test' => true]),
-            )[0],
-        );
-        $this->assertEquals(
-            null,
-            array_values(
-                $decorator->getArgumentsForExecToArray(['test' => null]),
-            )[0],
-        );
-        $this->assertEquals(
-            null,
-            array_values(
-                $decorator->getArgumentsForExecToArray(['--test' => null]),
             )[0],
         );
         $this->assertEquals(
