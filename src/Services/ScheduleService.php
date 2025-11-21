@@ -74,7 +74,7 @@ class ScheduleService
         }
     }
 
-    public function saveSchedule(array $input): Schedule
+    public function saveSchedule(array $input): void
     {
         $input['time_params'] ??= null;
 
@@ -95,7 +95,7 @@ class ScheduleService
             }
         }
 
-        return $this
+        $this
             ->scheduleRepository
             ->save($input);
     }

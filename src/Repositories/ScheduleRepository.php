@@ -23,7 +23,7 @@ class ScheduleRepository
             : collect();
     }
 
-    public function save(array $params): Schedule
+    public function save(array $params): void
     {
         if ($params['args']) {
             $newArgs = [];
@@ -45,9 +45,7 @@ class ScheduleRepository
             $schedule = Schedule::findOrFail($id);
             $schedule->update($data);
         } else {
-            $schedule = Schedule::create($data);
+            Schedule::create($data);
         }
-
-        return $schedule;
     }
 }
