@@ -16,7 +16,7 @@ class RunnerService
     /** @var resource $process */
     private $process;
 
-    private readonly CommandDecorator $decorator;
+    private CommandDecorator $decorator;
 
     private array $pipes = [];
 
