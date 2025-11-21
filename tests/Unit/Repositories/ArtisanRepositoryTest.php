@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Tests\Unit\Repositories;
 
 use Orchestra\Testbench\TestCase;
+use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Tkachikov\Chronos\Providers\ChronosServiceProvider;
 use Tkachikov\Chronos\Repositories\ArtisanRepository;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
-use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 final class ArtisanRepositoryTest extends TestCase
 {

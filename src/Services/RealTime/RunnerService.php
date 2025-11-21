@@ -24,7 +24,8 @@ class RunnerService
 
     public function __construct(
         private readonly CommandService $commandService,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws Throwable

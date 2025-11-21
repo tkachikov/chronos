@@ -17,7 +17,8 @@ final readonly class CommandRunManager implements CommandRunManagerInterface
 
     public function __construct(
         private CommandRunRepositoryInterface $commandRunRepository,
-    ) {}
+    ) {
+    }
 
     public function getLastRunForEachCommand(): Collection
     {

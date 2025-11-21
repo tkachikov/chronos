@@ -14,7 +14,8 @@ final readonly class StateService
     public function __construct(
         public RunDto $dto,
         private CacheService $cache,
-    ) {}
+    ) {
+    }
 
     public static function make(
         int $commandId,

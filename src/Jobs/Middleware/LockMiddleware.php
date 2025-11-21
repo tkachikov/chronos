@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Jobs\Middleware;
 
-use Throwable;
 use Illuminate\Support\Facades\Cache;
 use Psr\SimpleCache\InvalidArgumentException;
+use Throwable;
 
 class LockMiddleware
 {
@@ -38,8 +38,8 @@ class LockMiddleware
     public function initKeyLock($job): void
     {
         $prefix = method_exists($job, 'uniqueId')
-            ? '-'.$job->uniqueId()
+            ? '-' . $job->uniqueId()
             : '';
-        $this->keyLock = 'lock-jobs-'.$job::class.$prefix;
+        $this->keyLock = 'lock-jobs-' . $job::class . $prefix;
     }
 }

@@ -21,7 +21,8 @@ class CommandService
     public function __construct(
         private readonly CommandManager $manager,
         private readonly CommandRunManagerInterface $commandRunManager,
-    ) {}
+    ) {
+    }
 
     public function get(
         SortDto|string|null $sort = null,
@@ -59,21 +60,18 @@ class CommandService
             })
             ->when(
                 value: in_array($sort->column, CommandMetric::$sortKeys, true),
-
-                callback: fn(Collection $commands): Collection => $commands
+                callback: fn (Collection $commands): Collection => $commands
                     ->sortBy(
-                        callback: fn(CommandDecorator $decorator) => $decorator
+                        callback: fn (CommandDecorator $decorator) => $decorator
                             ->getModel()
                             ->metrics
                             ->{$sort->column}
                             ?? ($sort->direction === 'asc' ? INF : -INF),
-
                         descending: $sort->direction === 'desc',
                     ),
-
-                default: fn(Collection $commands): Collection => $commands
+                default: fn (Collection $commands): Collection => $commands
                     ->sortBy(
-                        callback: fn(CommandDecorator $decorator) =>
+                        callback: fn (CommandDecorator $decorator) =>
                             $decorator->getGroupName()
                             ?? $decorator->getDirectory(),
                     ),
@@ -123,10 +121,10 @@ class CommandService
                                 SchedulersFilterEnum::HAS_ONE => $schedules->count() === 1,
                                 SchedulersFilterEnum::HAS_MANY => $schedules->count() > 1,
                                 SchedulersFilterEnum::SOME_OFF => $schedules
-                                    ->filter(fn(Schedule $schedule) => !$schedule->run)
+                                    ->filter(fn (Schedule $schedule) => !$schedule->run)
                                     ->count() > 0,
                                 SchedulersFilterEnum::ALL_OFF => $schedules
-                                    ->filter(fn(Schedule $schedule) => !$schedule->run)
+                                    ->filter(fn (Schedule $schedule) => !$schedule->run)
                                     ->count() === $schedules->count() && $schedules->count() > 0,
                                 default => true,
                             };

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Models;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
+use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
 
 class Schedule extends Model
 {

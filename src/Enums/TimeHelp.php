@@ -51,7 +51,7 @@ enum TimeHelp: string
         $months = range(1, 12);
 
         $names = array_map(
-            fn($v) => now()
+            fn ($v) => now()
                 ->startOfYear()
                 ->addMonths($v - 1)
                 ->format('F'),
@@ -66,7 +66,7 @@ enum TimeHelp: string
         $daysOfWeek = range(1, 7);
 
         $names = array_map(
-            fn($v) => now()
+            fn ($v) => now()
                 ->startOfWeek()
                 ->addDays($v - 1)
                 ->format('l'),
@@ -81,7 +81,7 @@ enum TimeHelp: string
         $daysOfMonth = range(1, 31);
 
         $names = array_map(
-            fn($v) => now()
+            fn ($v) => now()
                 ->startOfWeek()
                 ->addDays($v - 1)
                 ->format('jS'),

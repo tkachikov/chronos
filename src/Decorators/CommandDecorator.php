@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Decorators;
 
 use Exception;
-use ReflectionObject;
 use ReflectionException;
+use ReflectionObject;
+use Symfony\Component\Console\Command\Command;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Models\Command as CommandModel;
-use Symfony\Component\Console\Command\Command;
 
 class CommandDecorator
 {

@@ -25,7 +25,8 @@
         "laravel/framework": "^12.10",
         "orchestra/testbench": "^10.2",
         "infection/infection": "^0.31.9",
-        "phpunit/phpunit": "^11.0"
+        "phpunit/phpunit": "^11.0",
+        "friendsofphp/php-cs-fixer": "^3.90"
     },
     "extra": {
         "laravel": {

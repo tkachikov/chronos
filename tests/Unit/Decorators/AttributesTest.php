@@ -41,7 +41,7 @@ final class AttributesTest extends TestCase
 
     public function testRunInManualInDefault(): void
     {
-        $command = new class extends Command {};
+        $command = new class () extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
 
@@ -71,7 +71,7 @@ final class AttributesTest extends TestCase
 
     public function testRunInScheduleInDefault(): void
     {
-        $command = new class extends Command {};
+        $command = new class () extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
 
@@ -101,7 +101,7 @@ final class AttributesTest extends TestCase
 
     public function testRunAttributesInDefault(): void
     {
-        $command = new class extends Command {};
+        $command = new class () extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
 
@@ -114,10 +114,7 @@ final class AttributesTest extends TestCase
     public function testRunAttributesEnabled(): void
     {
         $command = new
-            #[ChronosCommand(
-                notRunInManual: false,
-                notRunInSchedule: false,
-            )]
+            #[ChronosCommand(notRunInManual: false, notRunInSchedule: false, )]
             class extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
@@ -131,10 +128,7 @@ final class AttributesTest extends TestCase
     public function testRunAttributesDisabled(): void
     {
         $command = new
-            #[ChronosCommand(
-                notRunInManual: true,
-                notRunInSchedule: true,
-            )]
+            #[ChronosCommand(notRunInManual: true, notRunInSchedule: true, )]
             class extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
@@ -148,10 +142,7 @@ final class AttributesTest extends TestCase
     public function testRunAttributesManualIsDisabled(): void
     {
         $command = new
-            #[ChronosCommand(
-                notRunInManual: true,
-                notRunInSchedule: false,
-            )]
+            #[ChronosCommand(notRunInManual: true, notRunInSchedule: false, )]
             class extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
@@ -165,10 +156,7 @@ final class AttributesTest extends TestCase
     public function testRunAttributesScheduleIsDisabled(): void
     {
         $command = new
-            #[ChronosCommand(
-                notRunInManual: false,
-                notRunInSchedule: true,
-            )]
+            #[ChronosCommand(notRunInManual: false, notRunInSchedule: true, )]
             class extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
@@ -182,10 +170,7 @@ final class AttributesTest extends TestCase
     public function testNotRunInManualWithCustomIsEnabled(): void
     {
         $command = new
-            #[ChronosCommand(
-                notRunInManual: true,
-                notRunInSchedule: false,
-            )]
+            #[ChronosCommand(notRunInManual: true, notRunInSchedule: false, )]
             class extends Command {
                 public function notRun(): bool
                 {
@@ -202,10 +187,7 @@ final class AttributesTest extends TestCase
     public function testNotRunInManualWithCustomIsDisabled(): void
     {
         $command = new
-            #[ChronosCommand(
-                notRunInManual: true,
-                notRunInSchedule: false,
-            )]
+            #[ChronosCommand(notRunInManual: true, notRunInSchedule: false, )]
             class extends Command {
                 public function notRun(): bool
                 {
@@ -222,10 +204,7 @@ final class AttributesTest extends TestCase
     public function testNotRunInScheduleWithCustomIsEnabled(): void
     {
         $command = new
-            #[ChronosCommand(
-                notRunInManual: false,
-                notRunInSchedule: true,
-            )]
+            #[ChronosCommand(notRunInManual: false, notRunInSchedule: true, )]
             class extends Command {
                 public function notRun(): bool
                 {
@@ -242,10 +221,7 @@ final class AttributesTest extends TestCase
     public function testNotRunInScheduleWithCustomIsDisabled(): void
     {
         $command = new
-            #[ChronosCommand(
-                notRunInManual: false,
-                notRunInSchedule: true,
-            )]
+            #[ChronosCommand(notRunInManual: false, notRunInSchedule: true, )]
             class extends Command {
                 public function notRun(): bool
                 {
@@ -263,10 +239,7 @@ final class AttributesTest extends TestCase
     {
 
         $command = new
-            #[ChronosCommand(
-                notRunInManual: true,
-                notRunInSchedule: true,
-            )]
+            #[ChronosCommand(notRunInManual: true, notRunInSchedule: true, )]
             class extends Command {
                 public function notRun(): bool
                 {
@@ -287,10 +260,7 @@ final class AttributesTest extends TestCase
     {
 
         $command = new
-            #[ChronosCommand(
-                notRunInManual: true,
-                notRunInSchedule: true,
-            )]
+            #[ChronosCommand(notRunInManual: true, notRunInSchedule: true, )]
             class extends Command {
                 public function notRun(): bool
                 {

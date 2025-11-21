@@ -6,8 +6,8 @@ namespace Tkachikov\Chronos\Repositories;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Models\Schedule;
 
 class ScheduleRepository
 {

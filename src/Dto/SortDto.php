@@ -9,5 +9,6 @@ final readonly class SortDto
     public function __construct(
         public ?string $column = null,
         public ?string $direction = null,
-    ) {}
+    ) {
+    }
 }

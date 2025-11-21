@@ -37,7 +37,8 @@ class ChronosController extends Controller
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
         private readonly TimeRepositoryInterface $timeRepository,
-    ) {}
+    ) {
+    }
 
     public function index(
         IndexRequest $request,

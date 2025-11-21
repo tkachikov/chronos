@@ -20,5 +20,6 @@ final class RunDto
         public ?int $pid = null,
         public ?string $answer = null,
         public AnswerState $answerState = AnswerState::NotAwaiting,
-    ) {}
+    ) {
+    }
 }

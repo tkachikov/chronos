@@ -6,8 +6,6 @@ namespace Tkachikov\Chronos\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\RedirectResponse;
 use Tkachikov\Chronos\ChronosAuthentication;
 
 class Authorize

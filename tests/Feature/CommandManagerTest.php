@@ -37,7 +37,7 @@ final class CommandManagerTest extends TestCase
 
         foreach (Artisan::all() as $command) {
             $this->assertDatabaseHas(
-                (new Command)->getTable(),
+                (new Command())->getTable(),
                 ['class' => $command::class],
             );
         }

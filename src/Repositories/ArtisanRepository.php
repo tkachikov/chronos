@@ -15,6 +15,6 @@ final readonly class ArtisanRepository implements ArtisanRepositoryInterface
     public function get(): Collection
     {
         return $this->commands ??= collect(Artisan::all())
-            ->keyBy(fn(Command $command) => $command::class);
+            ->keyBy(fn (Command $command) => $command::class);
     }
 }

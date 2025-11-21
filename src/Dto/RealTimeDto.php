@@ -12,5 +12,6 @@ final readonly class RealTimeDto
         public int $commandId,
         public array $args,
         public ?Model $user = null,
-    ) {}
+    ) {
+    }
 }
