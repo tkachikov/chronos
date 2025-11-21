@@ -72,6 +72,9 @@ jobs:
       - name: Run PHP-CS-fixer check
         run: composer fix:check
 
+      - name: Run Psalm
+        run: composer psalm
+
       - name: Run PHPUnit
         run: composer test
 

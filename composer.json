@@ -26,7 +26,8 @@
         "orchestra/testbench": "^10.2",
         "infection/infection": "^0.31.9",
         "phpunit/phpunit": "^11.0",
-        "friendsofphp/php-cs-fixer": "^3.90"
+        "friendsofphp/php-cs-fixer": "^3.90",
+        "vimeo/psalm": "^6.13"
     },
     "extra": {
         "laravel": {
@@ -38,6 +39,7 @@
     "scripts": {
       "fix": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php",
       "fix:check": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff",
+      "psalm": "vendor/bin/psalm",
       "test": "vendor/bin/phpunit",
       "mutation": "vendor/bin/infection --min-msi=70 --min-covered-msi=80"
     },
