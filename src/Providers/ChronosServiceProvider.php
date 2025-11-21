@@ -40,11 +40,6 @@ class ChronosServiceProvider extends ServiceProvider
         CommandRunManagerInterface::class => CommandRunManager::class,
     ];
 
-    public function register(): void
-    {
-        //
-    }
-
     public function boot(): void
     {
         $this->loadViews();
