@@ -70,13 +70,6 @@ final readonly class StateService
             ->answerState === AnswerState::Received;
     }
 
-    public function isSchedule(): bool
-    {
-        return $this
-            ->dto
-            ->schedule;
-    }
-
     public function getLogs(): array
     {
         return $this
