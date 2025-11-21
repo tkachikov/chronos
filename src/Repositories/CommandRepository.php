@@ -11,17 +11,20 @@ final readonly class CommandRepository implements CommandRepositoryInterface
 {
     private Collection $commands;
 
+    #[\Override]
     public function get(): Collection
     {
         return $this->commands ??= Command::get()->keyBy('class');
     }
 
+    #[\Override]
     public function getOrCreateByClass(string $class): Command
     {
         return $this->getByClass($class)
             ?? $this->createByClass($class);
     }
 
+    #[\Override]
     public function getByClass(string $class): ?Command
     {
         return $this
@@ -29,6 +32,7 @@ final readonly class CommandRepository implements CommandRepositoryInterface
             ->get($class);
     }
 
+    #[\Override]
     public function createByClass(string $class): Command
     {
         $command = Command::firstOrCreate(['class' => $class]);

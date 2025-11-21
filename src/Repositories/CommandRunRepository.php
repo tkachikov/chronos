@@ -10,6 +10,7 @@ use Tkachikov\Chronos\Models\CommandRun;
 
 final readonly class CommandRunRepository implements CommandRunRepositoryInterface
 {
+    #[\Override]
     public function getLastRunForEachCommand(): Collection
     {
         $subQuery = CommandRun::query()
