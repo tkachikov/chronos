@@ -16,6 +16,7 @@
   <a href="https://github.com/tkachikov/chronos/stargazers"><img src="https://img.shields.io/github/stars/tkachikov/chronos.svg?style=social" alt="GitHub stars"></a>
   <a href="https://github.com/tkachikov/chronos/issues"><img src="https://img.shields.io/github/issues/tkachikov/chronos.svg" alt="GitHub issues"></a>
   <a href="https://github.com/tkachikov/chronos/commits/main"><img src="https://img.shields.io/github/last-commit/tkachikov/chronos.svg" alt="GitHub last commit"></a>
+  <a href="https://github.com/tkachikov/chronos/actions/workflows/tests.yml"><img src="https://github.com/tkachikov/chronos/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
 </p>
 
 This package for setting commands in schedule.
