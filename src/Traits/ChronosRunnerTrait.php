@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Traits;
 
-use JetBrains\PhpStorm\NoReturn;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
@@ -104,8 +103,7 @@ trait ChronosRunnerTrait
         }
     }
 
-    #[NoReturn]
-    public function dd(mixed ...$vars): void
+    public function dd(mixed ...$vars): never
     {
         $this->dump(...$vars);
         $this->appendLog(TypeMessageEnum::INFO, 'Finished command');
@@ -134,7 +132,6 @@ trait ChronosRunnerTrait
 
         $command = $this->getModel();
 
-        /** @var ?StateService $state */
         $state = rescue(
             fn () => StateService::make($command->id),
             null,
@@ -146,7 +143,7 @@ trait ChronosRunnerTrait
         $this->run->command()->associate($command);
         $this->run->state = self::$waiting;
 
-        if ($state) {
+        if ($state instanceof StateService) {
             $this->run->user()->associate($state->getUser());
             $this->run->pid = $state->getPid();
             $this->run->args = $state->getArgs();
