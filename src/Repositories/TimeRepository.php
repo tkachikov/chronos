@@ -11,6 +11,7 @@ use Tkachikov\Chronos\Models\Schedule;
 
 final readonly class TimeRepository implements TimeRepositoryInterface
 {
+    #[\Override]
     public function get(): array
     {
         $times = [
