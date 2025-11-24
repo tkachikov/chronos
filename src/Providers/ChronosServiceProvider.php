@@ -50,6 +50,13 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadTranslations();
         $this->loadServiceProvider();
         $this->loadSchedule();
+
+        if (! app()->environment('testing')) {
+            $this
+                ->app
+                ->make(CommandRepositoryInterface::class)
+                ->load();
+        }
     }
 
     public function loadCommands(): void

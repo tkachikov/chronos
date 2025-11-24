@@ -6,11 +6,17 @@ namespace Tkachikov\Chronos\Tests\Feature;
 
 use Tkachikov\Chronos\Managers\CommandManager;
 use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 
 final class CreateCommandTest extends TestCase
 {
     public function testEmptyAppCommands(): void
     {
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
         $manager = $this
             ->app
             ->make(CommandManager::class);
@@ -20,6 +26,11 @@ final class CreateCommandTest extends TestCase
 
     public function testNotEmptyAppCommands(): void
     {
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
         $this->makeCommand();
 
         $manager = $this->app->make(CommandManager::class);

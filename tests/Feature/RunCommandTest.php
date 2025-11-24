@@ -15,6 +15,7 @@ use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Providers\ChronosServiceProvider;
+use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 use Tkachikov\Chronos\Tests\Feature\TestCase;
 
 #[RunTestsInSeparateProcesses]
@@ -284,6 +285,11 @@ final class RunCommandTest extends TestCase
 
     public function testRun(): void
     {
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
         $this->makeCommand();
 
         $manager = $this
@@ -310,6 +316,11 @@ final class RunCommandTest extends TestCase
 
     public function testRunWithChronosTrait(): void
     {
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
         $this->makeCommand(withChronosTrait: true);
 
         $manager = $this
@@ -338,6 +349,11 @@ final class RunCommandTest extends TestCase
 
     public function testLogs(): void
     {
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
         $this->makeCommand(
             command: 'app:test {--uuid=}',
             withChronosTrait: true,
@@ -384,6 +400,11 @@ final class RunCommandTest extends TestCase
         ?array $params,
         string $time,
     ): void {
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
         if (version_compare($this->app->version(), $versionStart, '<')) {
             $this->markTestSkipped();
         }

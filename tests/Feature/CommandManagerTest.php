@@ -8,11 +8,17 @@ use Illuminate\Support\Facades\Artisan;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Managers\CommandManager;
 use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 
 final class CommandManagerTest extends TestCase
 {
     public function testGettingCommandsFromStorage(): void
     {
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
         $exists = $this
             ->app
             ->make(DatabaseHelper::class)

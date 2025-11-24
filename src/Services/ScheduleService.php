@@ -13,7 +13,6 @@ use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandMetric;
 use Tkachikov\Chronos\Models\CommandRun;
-use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Repositories\ScheduleRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 

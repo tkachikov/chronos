@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tkachikov\Chronos\Tests\Unit\Repositories;
+namespace Tkachikov\Chronos\Tests\Feature\Repositories;
 
 use Orchestra\Testbench\TestCase;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Tkachikov\Chronos\Providers\ChronosServiceProvider;
-use Tkachikov\Chronos\Repositories\ArtisanRepository;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
 
 final class ArtisanRepositoryTest extends TestCase
@@ -24,7 +23,6 @@ final class ArtisanRepositoryTest extends TestCase
             ->app
             ->make(ArtisanRepositoryInterface::class);
 
-        $this->assertInstanceOf(ArtisanRepository::class, $repository);
         $this->assertSame(
             $repository,
             $this

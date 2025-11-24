@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Repositories;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Models\Command;
 
-final readonly class CommandRepository implements CommandRepositoryInterface
+final class CommandRepository implements CommandRepositoryInterface
 {
     private Collection $commands;
+
+    public function load(): void
+    {
+        $this->commands = Command::query()
+            ->get()
+            ->keyBy('class');
+    }
 
     #[\Override]
     public function get(): Collection
     {
-        return $this->commands ??= Command::get()->keyBy('class');
+        return $this->commands;
     }
 
     #[\Override]
@@ -24,16 +31,14 @@ final readonly class CommandRepository implements CommandRepositoryInterface
             ?? $this->createByClass($class);
     }
 
-    #[\Override]
-    public function getByClass(string $class): ?Command
+    private function getByClass(string $class): ?Command
     {
         return $this
             ->get()
             ->get($class);
     }
 
-    #[\Override]
-    public function createByClass(string $class): Command
+    private function createByClass(string $class): Command
     {
         $command = Command::firstOrCreate(['class' => $class]);
 
