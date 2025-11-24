@@ -42,7 +42,7 @@ final readonly class StateService
             ->args;
     }
 
-    public function getAnswer(): string
+    public function getAnswer(): ?string
     {
         return $this
             ->dto

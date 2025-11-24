@@ -56,7 +56,7 @@ final readonly class CommandManager
     /**
      * @param class-string $class
      */
-    public function getByClass(string $class): CommandDecorator
+    public function getByClass(string $class): ?CommandDecorator
     {
         return $this
             ->get()
