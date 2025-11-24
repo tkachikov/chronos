@@ -12,7 +12,7 @@ interface CommandRepositoryInterface
     public function load(): void;
 
     /**
-     * @return Collection<int, Command>
+     * @return Collection<string, Command>
      */
     public function get(): Collection;
 
