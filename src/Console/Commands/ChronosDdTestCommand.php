@@ -20,8 +20,7 @@ final class ChronosDdTestCommand extends Command
 
     protected $description = 'Test dd';
 
-    #[NoReturn]
-    public function handle(): void
+    public function handle(): never
     {
         $this->dd(
             (object) [

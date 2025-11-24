@@ -55,6 +55,7 @@ class CommandRun extends Model
         return $this->morphTo('user');
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [
