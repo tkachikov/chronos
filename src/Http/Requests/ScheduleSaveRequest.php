@@ -8,23 +8,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\Schedule;
 
-class ScheduleSaveRequest extends FormRequest
+final class ScheduleSaveRequest extends FormRequest
 {
-    public function prepareForValidation(): void
-    {
-        $this->merge([
-            'run' => $this->boolean('run'),
-            'without_overlapping' => $this->boolean('without_overlapping'),
-            'run_in_background' => $this->boolean('run_in_background'),
-        ]);
-        $args = [];
-        foreach ($this->collect('args') as $key => $value) {
-            $args[$key] = $value === 'on' ?: $value;
-        }
-        $this->merge(['args' => $args]);
-        $this->merge(['time_params' => $this->input('time_params')[$this->input('time_method')] ?? null]);
-    }
-
     public function rules(): array
     {
         return [
@@ -39,4 +24,21 @@ class ScheduleSaveRequest extends FormRequest
             'args' => ['nullable'],
         ];
     }
+
+    #[\Override]
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'run' => $this->boolean('run'),
+            'without_overlapping' => $this->boolean('without_overlapping'),
+            'run_in_background' => $this->boolean('run_in_background'),
+        ]);
+        $args = [];
+        foreach ($this->collect('args') as $key => $value) {
+            $args[$key] = $value === 'on' ?: $value;
+        }
+        $this->merge(['args' => $args]);
+        $this->merge(['time_params' => $this->input('time_params')[$this->input('time_method')] ?? null]);
+    }
+
 }

@@ -6,9 +6,17 @@ namespace Tkachikov\Chronos\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ScheduleRunRequest extends FormRequest
+final class ScheduleRunRequest extends FormRequest
 {
-    public function prepareForValidation(): void
+    public function rules(): array
+    {
+        return [
+            'args' => ['nullable'],
+        ];
+    }
+
+    #[\Override]
+    protected function prepareForValidation(): void
     {
         $args = [];
         foreach ($this->collect('args') as $key => $value) {
@@ -18,12 +26,5 @@ class ScheduleRunRequest extends FormRequest
             $args[$key] = $value === 'on' ?: $value;
         }
         $this->merge(['args' => $args]);
-    }
-
-    public function rules(): array
-    {
-        return [
-            'args' => ['nullable'],
-        ];
     }
 }
