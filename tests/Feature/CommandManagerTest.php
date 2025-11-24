@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Tests\Feature;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\Artisan;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Managers\CommandManager;
 use Tkachikov\Chronos\Models\Command;
-use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 
 final class CommandManagerTest extends TestCase
 {
+    /**
+     * @throws BindingResolutionException
+     */
     public function testGettingCommandsFromStorage(): void
     {
-        $this
-            ->app
-            ->make(CommandRepositoryInterface::class)
-            ->load();
-
         $exists = $this
             ->app
             ->make(DatabaseHelper::class)
@@ -35,7 +33,7 @@ final class CommandManagerTest extends TestCase
 
         $countCommands = Command::count();
 
-        $this->assertNotEquals(0, count($decorators));
+        $this->assertNotCount(0, $decorators);
 
         foreach ($decorators as $decorator) {
             $this->assertInstanceOf(Command::class, $decorator->getModel());

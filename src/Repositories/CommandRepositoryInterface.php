@@ -9,6 +9,8 @@ use Tkachikov\Chronos\Models\Command;
 
 interface CommandRepositoryInterface
 {
+    public function load(): void;
+
     /**
      * @return Collection<int, Command>
      */

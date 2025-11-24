@@ -4,18 +4,31 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Tests\Feature;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Tkachikov\Chronos\Managers\CommandManager;
 use Tkachikov\Chronos\Models\Command;
-use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
+use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
 
 final class CreateCommandTest extends TestCase
 {
+    /**
+     * @throws BindingResolutionException
+     */
     public function testEmptyAppCommands(): void
     {
-        $this
+        $manager = $this
             ->app
-            ->make(CommandRepositoryInterface::class)
-            ->load();
+            ->make(CommandManager::class);
+
+        $this->assertCount(0, $manager->getApps());
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testEmptyAppCommandsAfterCreated(): void
+    {
+        $this->makeCommand();
 
         $manager = $this
             ->app
@@ -24,16 +37,21 @@ final class CreateCommandTest extends TestCase
         $this->assertCount(0, $manager->getApps());
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testNotEmptyAppCommands(): void
     {
-        $this
-            ->app
-            ->make(CommandRepositoryInterface::class)
-            ->load();
-
         $this->makeCommand();
 
-        $manager = $this->app->make(CommandManager::class);
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
+
+        $manager = $this
+            ->app
+            ->make(CommandManager::class);
 
         $this->assertCount(1, $manager->getApps());
         $this->assertDatabaseHas(

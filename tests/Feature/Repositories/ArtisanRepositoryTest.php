@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Tests\Feature\Repositories;
 
 use Error;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use ReflectionException;
 use ReflectionProperty;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
@@ -12,7 +14,10 @@ use Tkachikov\Chronos\Tests\Feature\TestCase;
 
 final class ArtisanRepositoryTest extends TestCase
 {
-    public function testInit(): void
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testInitialize(): void
     {
         $this->assertTrue(
             $this
@@ -30,21 +35,40 @@ final class ArtisanRepositoryTest extends TestCase
                 ->app
                 ->make(ArtisanRepositoryInterface::class),
         );
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws BindingResolutionException
+     */
+    public function testInitializeProperty(): void
+    {
+        $this
+            ->app
+            ->forgetInstance(ArtisanRepositoryInterface::class);
+
+        $repository = $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class);
 
         $reflection = new ReflectionProperty($repository, 'commands');
 
         $this->assertFalse($reflection->isInitialized($repository));
 
-        $this
-            ->app
-            ->make(ArtisanRepositoryInterface::class)
-            ->load();
+        $repository->load();
 
         $this->assertTrue($reflection->isInitialized($repository));
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testGettingEmptyCommands(): void
     {
+        $this
+            ->app
+            ->forgetInstance(ArtisanRepositoryInterface::class);
+
         $repository = $this
             ->app
             ->make(ArtisanRepositoryInterface::class);
@@ -54,6 +78,9 @@ final class ArtisanRepositoryTest extends TestCase
         $repository->get();
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testGettingCommands(): void
     {
         $repository = $this
@@ -64,7 +91,7 @@ final class ArtisanRepositoryTest extends TestCase
 
         $commands = $repository->get();
 
-        $this->assertNotEquals(0, count($commands));
+        $this->assertNotCount(0, $commands);
 
         foreach ($commands as $key => $command) {
             $this->assertInstanceOf($key, $command);

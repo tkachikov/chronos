@@ -49,19 +49,12 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadMigrations();
         $this->loadTranslations();
         $this->loadServiceProvider();
-        $this->loadSchedule();
 
-        if (! app()->environment('testing')) {
-            $this
-                ->app
-                ->make(ArtisanRepositoryInterface::class)
-                ->load();
-
-            $this
-                ->app
-                ->make(CommandRepositoryInterface::class)
-                ->load();
+        if (! $this->app->environment('testing')) {
+            $this->loadSingletons();
         }
+
+        $this->loadSchedule();
     }
 
     public function loadCommands(): void
@@ -158,5 +151,23 @@ class ChronosServiceProvider extends ServiceProvider
                     ->make(ScheduleService::class)
                     ->schedule($scheduler);
             });
+    }
+
+    public function loadSingletons(): void
+    {
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
+
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
+        $this
+            ->app
+            ->make(CommandRunManagerInterface::class)
+            ->load();
     }
 }

@@ -11,6 +11,7 @@ final class CommandRepository implements CommandRepositoryInterface
 {
     private Collection $commands;
 
+    #[\Override]
     public function load(): void
     {
         $this->commands = Command::query()

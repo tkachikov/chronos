@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Feature;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -15,6 +16,7 @@ use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Providers\ChronosServiceProvider;
+use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
 use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 use Tkachikov\Chronos\Tests\Feature\TestCase;
 
@@ -283,6 +285,9 @@ final class RunCommandTest extends TestCase
         ];
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testRun(): void
     {
         $this
@@ -291,6 +296,11 @@ final class RunCommandTest extends TestCase
             ->load();
 
         $this->makeCommand();
+
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
 
         $manager = $this
             ->app
@@ -314,14 +324,17 @@ final class RunCommandTest extends TestCase
         );
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testRunWithChronosTrait(): void
     {
+        $this->makeCommand(withChronosTrait: true);
+
         $this
             ->app
-            ->make(CommandRepositoryInterface::class)
+            ->make(ArtisanRepositoryInterface::class)
             ->load();
-
-        $this->makeCommand(withChronosTrait: true);
 
         $manager = $this
             ->app
@@ -347,18 +360,21 @@ final class RunCommandTest extends TestCase
         $this->assertEquals(Command::SUCCESS, $run->status);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testLogs(): void
     {
-        $this
-            ->app
-            ->make(CommandRepositoryInterface::class)
-            ->load();
-
         $this->makeCommand(
             command: 'app:test {--uuid=}',
             withChronosTrait: true,
             body: "\$this->info(\$this->option('uuid'));",
         );
+
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
 
         $manager = $this
             ->app
@@ -400,11 +416,6 @@ final class RunCommandTest extends TestCase
         ?array $params,
         string $time,
     ): void {
-        $this
-            ->app
-            ->make(CommandRepositoryInterface::class)
-            ->load();
-
         if (version_compare($this->app->version(), $versionStart, '<')) {
             $this->markTestSkipped();
         }
@@ -414,6 +425,11 @@ final class RunCommandTest extends TestCase
             withChronosTrait: true,
             body: "\$this->info(\$this->option('uuid'));",
         );
+
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
 
         $manager = $this
             ->app

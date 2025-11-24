@@ -39,6 +39,11 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $this
             ->artisan('migrate')
             ->run();
+
+        $this
+            ->app
+            ->getProvider(ChronosServiceProvider::class)
+            ->loadSingletons();
     }
 
     protected function tearDown(): void

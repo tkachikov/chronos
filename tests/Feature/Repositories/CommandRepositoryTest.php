@@ -14,10 +14,9 @@ use Tkachikov\Chronos\Tests\Feature\TestCase;
 final class CommandRepositoryTest extends TestCase
 {
     /**
-     * @throws ReflectionException
      * @throws BindingResolutionException
      */
-    public function testInit(): void
+    public function testInitialize(): void
     {
         $this->assertTrue(
             $this
@@ -35,19 +34,34 @@ final class CommandRepositoryTest extends TestCase
                 ->app
                 ->make(CommandRepositoryInterface::class),
         );
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws BindingResolutionException
+     */
+    public function testInitializeProperty(): void
+    {
+        $this
+            ->app
+            ->forgetInstance(CommandRepositoryInterface::class);
+
+        $repository = $this
+            ->app
+            ->make(CommandRepositoryInterface::class);
 
         $reflection = new ReflectionProperty($repository, 'commands');
 
         $this->assertFalse($reflection->isInitialized($repository));
 
-        $this
-            ->app
-            ->make(CommandRepositoryInterface::class)
-            ->load();
+        $repository->load();
 
         $this->assertTrue($reflection->isInitialized($repository));
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testGettingEmptyCommands(): void
     {
         $repository = $this
@@ -59,6 +73,9 @@ final class CommandRepositoryTest extends TestCase
         $this->assertCount(0, $repository->get());
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testCreatingCommand(): void
     {
         $repository = $this
@@ -77,6 +94,9 @@ final class CommandRepositoryTest extends TestCase
         $this->assertSame($command, $commands->first());
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testGettingCommandAfterCreate(): void
     {
         $repository = $this
@@ -104,6 +124,9 @@ final class CommandRepositoryTest extends TestCase
         $this->assertFalse($command->wasRecentlyCreated);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function testCreatesAnyCommands(): void
     {
         $repository = $this

@@ -12,6 +12,7 @@ final class ArtisanRepository implements ArtisanRepositoryInterface
 {
     private Collection $commands;
 
+    #[\Override]
     public function load(): void
     {
         $this->commands = collect(Artisan::all())
