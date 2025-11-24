@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Command extends Model
+/**
+ * @property-read class-string|null $class
+ */
+final class Command extends Model
 {
-    protected $fillable = [
-        'class',
-    ];
+    protected $guarded = [];
 
     public function schedules(): HasMany
     {
