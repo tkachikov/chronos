@@ -54,6 +54,11 @@ class ChronosServiceProvider extends ServiceProvider
         if (! app()->environment('testing')) {
             $this
                 ->app
+                ->make(ArtisanRepositoryInterface::class)
+                ->load();
+
+            $this
+                ->app
                 ->make(CommandRepositoryInterface::class)
                 ->load();
         }

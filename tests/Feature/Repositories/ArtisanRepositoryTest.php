@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Tests\Feature\Repositories;
 
-use Orchestra\Testbench\TestCase;
+use Error;
+use ReflectionProperty;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
-use Tkachikov\Chronos\Providers\ChronosServiceProvider;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
+use Tkachikov\Chronos\Tests\Feature\TestCase;
 
 final class ArtisanRepositoryTest extends TestCase
 {
-    public function testGettingList(): void
+    public function testInit(): void
     {
         $this->assertTrue(
             $this
@@ -30,6 +31,37 @@ final class ArtisanRepositoryTest extends TestCase
                 ->make(ArtisanRepositoryInterface::class),
         );
 
+        $reflection = new ReflectionProperty($repository, 'commands');
+
+        $this->assertFalse($reflection->isInitialized($repository));
+
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
+
+        $this->assertTrue($reflection->isInitialized($repository));
+    }
+
+    public function testGettingEmptyCommands(): void
+    {
+        $repository = $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class);
+
+        $this->expectException(Error::class);
+
+        $repository->get();
+    }
+
+    public function testGettingCommands(): void
+    {
+        $repository = $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class);
+
+        $repository->load();
+
         $commands = $repository->get();
 
         $this->assertNotEquals(0, count($commands));
@@ -38,12 +70,5 @@ final class ArtisanRepositoryTest extends TestCase
             $this->assertInstanceOf($key, $command);
             $this->assertTrue($command instanceof SymfonyCommand);
         }
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            ChronosServiceProvider::class,
-        ];
     }
 }
