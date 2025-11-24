@@ -6,6 +6,7 @@ namespace Tkachikov\Chronos\Http\Controllers;
 
 use Exception;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -140,10 +141,12 @@ class ChronosController extends Controller
         InitializeAction $action,
     ) {
         try {
+            /** @var Model|null $user */
+            $user = Auth::user();
             $dto = new RealTimeDto(
                 commandId: $command->id,
                 args: $request->input('args', []),
-                user: Auth::user(),
+                user: $user,
             );
 
             $action->execute($dto);
