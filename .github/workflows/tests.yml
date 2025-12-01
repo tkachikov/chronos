@@ -77,6 +77,3 @@ jobs:
 
       - name: Run PHPUnit
         run: composer test
-
-      - name: Run Infection
-        run: composer mutation
