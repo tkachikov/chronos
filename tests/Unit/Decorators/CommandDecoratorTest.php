@@ -43,7 +43,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testDecorateCallableMethods(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             public function test(): string
             {
                 return 'ok';
@@ -76,7 +76,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testGetCommandModel(): void
     {
-        $command = new class extends Command {};
+        $command = new class () extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
 
@@ -85,7 +85,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testGettingNullableNameOfSignature(): void
     {
-        $command = new class extends Command {};
+        $command = new class () extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
 
@@ -99,7 +99,7 @@ final class CommandDecoratorTest extends TestCase
     public function testGettingNameOfSignature(
         string $name,
     ): void {
-        $command = new class($name) extends Command {
+        $command = new class ($name) extends Command {
             public function __construct(string $name)
             {
                 $this->signature = $name;
@@ -114,7 +114,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testGettingCommandName(): void
     {
-        $command = new class extends Command {};
+        $command = new class () extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
 
@@ -132,7 +132,7 @@ final class CommandDecoratorTest extends TestCase
     public function testGettingSignature(
         string $signature,
     ): void {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature;
 
             public function setSignature(string $signature): void
@@ -149,7 +149,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testGettingClassName(): void
     {
-        $command = new class extends Command {};
+        $command = new class () extends Command {};
         $model = new CommandModel();
         $decorator = new CommandDecorator($command, $model);
 
@@ -158,7 +158,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testGettingArgumentsForExecToArrayForArguments(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {test=defaultValue}';
         };
         $model = new CommandModel();
@@ -188,7 +188,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testGettingArgumentsForExecToArrayForOptions(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {--test}';
         };
         $model = new CommandModel();
@@ -227,7 +227,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testGettingArgumentsForExecToArrayForOptionsWithValue(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {--test=defaultValue}';
         };
         $model = new CommandModel();
@@ -278,7 +278,7 @@ final class CommandDecoratorTest extends TestCase
 
     public function testGettingArgumentsForExec(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {userId} {--notification}';
         };
         $model = new CommandModel();

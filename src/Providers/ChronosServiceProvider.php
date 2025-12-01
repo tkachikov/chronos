@@ -10,13 +10,13 @@ use Illuminate\Support\ServiceProvider;
 use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosDdTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosDumpTestCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosFreeLogsCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosMalformedTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosOnlyArgumentsTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosOnlyOptionsTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosRunBackgroundCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
-use Tkachikov\Chronos\Console\Commands\ChronosFreeLogsCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
 use Tkachikov\Chronos\Managers\CommandRunManager;
 use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
@@ -40,11 +40,6 @@ class ChronosServiceProvider extends ServiceProvider
         CommandRunManagerInterface::class => CommandRunManager::class,
     ];
 
-    public function register(): void
-    {
-        //
-    }
-
     public function boot(): void
     {
         $this->loadViews();
@@ -54,6 +49,11 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadMigrations();
         $this->loadTranslations();
         $this->loadServiceProvider();
+
+        if (! $this->app->environment('testing')) {
+            $this->loadSingletons();
+        }
+
         $this->loadSchedule();
     }
 
@@ -151,5 +151,23 @@ class ChronosServiceProvider extends ServiceProvider
                     ->make(ScheduleService::class)
                     ->schedule($scheduler);
             });
+    }
+
+    public function loadSingletons(): void
+    {
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
+
+        $this
+            ->app
+            ->make(CommandRepositoryInterface::class)
+            ->load();
+
+        $this
+            ->app
+            ->make(CommandRunManagerInterface::class)
+            ->load();
     }
 }

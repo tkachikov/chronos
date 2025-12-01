@@ -15,7 +15,6 @@ final readonly class RealTimeConverter
     ): RunDto {
         return new RunDto(
             commandId: $dto->commandId,
-            schedule: false,
             user: $dto->user,
             args: $dto->args,
             signals: Signals::getSignalsState(),

@@ -9,7 +9,7 @@ use Tkachikov\Chronos\Decorators\TimeDecorator;
 interface TimeRepositoryInterface
 {
     /**
-     * @return array<int, TimeDecorator>
+     * @return array<string, TimeDecorator>
      */
     public function get(): array;
 }

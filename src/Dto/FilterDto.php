@@ -16,5 +16,6 @@ final readonly class FilterDto
         public ?string $scheduleMethod = null,
         public ?SchedulersFilterEnum $schedulers = null,
         public ?LastRunStateFilterEnum $lastRunState = null
-    ) {}
+    ) {
+    }
 }

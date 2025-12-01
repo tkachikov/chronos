@@ -14,7 +14,8 @@ final readonly class InitializeAction
     public function __construct(
         private InitializeCacheAction $initializeCacheAction,
         private RealTimeConverter $converter,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws Exception
@@ -31,7 +32,7 @@ final readonly class InitializeAction
             ->execute($runDto);
 
         \exec(sprintf(
-            "php %s %s %d > /dev/null 2>&1 &",
+            'php %s %s %d > /dev/null 2>&1 &',
             base_path('artisan'),
             'chronos:run-background',
             $dto->commandId,

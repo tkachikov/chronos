@@ -6,8 +6,8 @@ namespace Tkachikov\Chronos\Repositories;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Models\Schedule;
 
 class ScheduleRepository
 {
@@ -23,7 +23,7 @@ class ScheduleRepository
             : collect();
     }
 
-    public function save(array $params): Schedule
+    public function save(array $params): void
     {
         if ($params['args']) {
             $newArgs = [];
@@ -45,9 +45,7 @@ class ScheduleRepository
             $schedule = Schedule::findOrFail($id);
             $schedule->update($data);
         } else {
-            $schedule = Schedule::create($data);
+            Schedule::create($data);
         }
-
-        return $schedule;
     }
 }

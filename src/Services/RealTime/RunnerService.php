@@ -16,7 +16,7 @@ class RunnerService
     /** @var resource $process */
     private $process;
 
-    private readonly CommandDecorator $decorator;
+    private CommandDecorator $decorator;
 
     private array $pipes = [];
 
@@ -24,7 +24,8 @@ class RunnerService
 
     public function __construct(
         private readonly CommandService $commandService,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws Throwable
@@ -140,8 +141,6 @@ class RunnerService
                 $in = '';
             }
 
-            // $this->checkAnswerState($in);
-            // $this->checkAwaiting($in);
             $this->sendAnswerIfNeeded();
 
             $status = proc_get_status($this->process);
@@ -166,26 +165,6 @@ class RunnerService
         $this
             ->state
             ->finished();
-    }
-
-    public function checkAnswerState(
-        string $in,
-    ): void {
-        $read = [STDIN];
-        $write = null;
-        $error = null;
-
-        $changes = stream_select(
-            $read,
-            $write,
-            $error,
-            0,
-        );
-
-        if ($changes > 0) {
-            $this->checkAwaiting($in);
-            $this->sendAnswerIfNeeded();
-        }
     }
 
     private function checkAwaiting(

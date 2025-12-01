@@ -4,28 +4,29 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Models;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
+use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
 
-class Schedule extends Model
+/**
+ * @property-read int|null $command_id
+ * @property-read array|null $args
+ * @property-read string|null $time_method
+ * @property-read array|null $time_params
+ * @property-read bool|null $without_overlapping
+ * @property-read string|null $without_overlapping_time
+ * @property-read bool|null $run_in_background
+ * @property-read bool|null $run
+ * @property-read int|null $user_id
+ */
+final class Schedule extends Model
 {
     use WithTrashedTrait;
 
-    protected $fillable = [
-        'command_id',
-        'args',
-        'time_method',
-        'time_params',
-        'without_overlapping',
-        'without_overlapping_time',
-        'run_in_background',
-        'run',
-        'user_id',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'args' => 'array',

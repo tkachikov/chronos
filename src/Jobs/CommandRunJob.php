@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Jobs;
 
-use Throwable;
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Artisan;
+use Throwable;
+use Tkachikov\Chronos\Jobs\Middleware\LockMiddleware;
 use Tkachikov\Chronos\Services\CommandService;
 use Tkachikov\Chronos\Services\ScheduleService;
-use Tkachikov\Chronos\Jobs\Middleware\LockMiddleware;
 
 class CommandRunJob implements ShouldQueue, ShouldBeUnique
 {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Console\Commands;
 
 use Illuminate\Console\Command;
-use JetBrains\PhpStorm\NoReturn;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
 use Tkachikov\Chronos\Traits\ChronosRunnerTrait;
 
@@ -20,8 +19,7 @@ final class ChronosDdTestCommand extends Command
 
     protected $description = 'Test dd';
 
-    #[NoReturn]
-    public function handle(): void
+    public function handle(): never
     {
         $this->dd(
             (object) [

@@ -11,6 +11,7 @@ use Tkachikov\Chronos\Models\Schedule;
 
 final readonly class TimeRepository implements TimeRepositoryInterface
 {
+    #[\Override]
     public function get(): array
     {
         $times = [
@@ -208,7 +209,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                     ),
                 ],
                 title: 'Twice a day at',
-                getDescriptionCallable: fn(Schedule $schedule) => sprintf(
+                getDescriptionCallable: fn (Schedule $schedule) => sprintf(
                     'Every day at %s:%s and %s:%s',
                     $schedule->time_params[0],
                     $schedule->time_params[2],
@@ -368,7 +369,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
                         ->format('jS'),
                     now()
                         ->startOfYear()
-                        ->addMonths( $schedule->time_params[0] - 1)
+                        ->addMonths($schedule->time_params[0] - 1)
                         ->translatedFormat('F'),
                     $schedule->time_params[2],
                 ),
@@ -377,7 +378,7 @@ final readonly class TimeRepository implements TimeRepositoryInterface
 
         return array_combine(
             array_map(
-                fn(TimeDecorator $time) => $time->method,
+                fn (TimeDecorator $time) => $time->method,
                 $times,
             ),
             $times,

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Managers;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 
-final readonly class CommandRunManager implements CommandRunManagerInterface
+final class CommandRunManager implements CommandRunManagerInterface
 {
     /**
      * @var Collection<int, CommandRun> $lastRunForEachCommand
@@ -16,14 +16,22 @@ final readonly class CommandRunManager implements CommandRunManagerInterface
     private Collection $lastRunForEachCommand;
 
     public function __construct(
-        private CommandRunRepositoryInterface $commandRunRepository,
-    ) {}
+        private readonly CommandRunRepositoryInterface $commandRunRepository,
+    ) {
+    }
 
-    public function getLastRunForEachCommand(): Collection
+    #[\Override]
+    public function load(): void
     {
-        return $this->lastRunForEachCommand ??= $this
+        $this->lastRunForEachCommand = $this
             ->commandRunRepository
             ->getLastRunForEachCommand()
             ->keyBy('command_id');
+    }
+
+    #[\Override]
+    public function getLastRunForEachCommand(): Collection
+    {
+        return $this->lastRunForEachCommand;
     }
 }

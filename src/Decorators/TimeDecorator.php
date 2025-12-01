@@ -17,7 +17,8 @@ final readonly class TimeDecorator
         public ?string $title = null,
         public ?string $description = null,
         public ?\Closure $getDescriptionCallable = null,
-    ) {}
+    ) {
+    }
 
     public function getTitle(): string
     {

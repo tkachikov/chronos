@@ -7,13 +7,14 @@ namespace Tkachikov\Chronos\Models;
 use Illuminate\Database\Eloquent\Model;
 use Tkachikov\Chronos\Enums\TypeMessageEnum;
 
-class CommandLog extends Model
+/**
+ * @property-read int|null $command_run_id
+ * @property-read TypeMessageEnum|null $type
+ * @property-read string|null $message
+ */
+final class CommandLog extends Model
 {
-    protected $fillable = [
-        'command_run_id',
-        'type',
-        'message',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'type' => TypeMessageEnum::class,

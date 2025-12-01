@@ -1,9 +1,9 @@
 name: Tests
 
 on:
-  push:
-    branches: [ "*" ]
   pull_request:
+    branches:
+      - dev
 
 jobs:
   test:
@@ -57,8 +57,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, xml, pcntl, sqlite3
-          coverage: none
+          extensions: mbstring, xml, pcntl, sqlite3, xdebug
+          coverage: xdebug
 
       - name: Require Laravel & Testbench versions
         run: |
@@ -69,5 +69,11 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
 
+      - name: Run PHP-CS-fixer check
+        run: composer fix:check
+
+      - name: Run Psalm
+        run: composer psalm
+
       - name: Run PHPUnit
-        run: vendor/bin/phpunit --testdox
+        run: composer test

@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Helpers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Expression;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tkachikov\Chronos\Enums\DatabaseEnum;
-use Illuminate\Database\Query\Grammars\Grammar;
 
 class DatabaseHelper
 {
@@ -40,7 +39,7 @@ class DatabaseHelper
     public function getObject(Model|string $model): Model
     {
         return is_string($model)
-            ? new $model
+            ? new $model()
             : $model;
     }
 

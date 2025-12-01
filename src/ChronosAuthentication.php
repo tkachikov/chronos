@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tkachikov\Chronos;
@@ -18,7 +19,7 @@ class ChronosAuthentication
     {
         static::$auth = $callable;
 
-        return new static;
+        return new static();
     }
 
     /**

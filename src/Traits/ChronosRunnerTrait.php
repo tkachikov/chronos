@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Traits;
 
-use JetBrains\PhpStorm\NoReturn;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 use Throwable;
-use Tkachikov\Chronos\Services\RealTime\StateService;
-use Tkachikov\Memory\Memory as MemoryHelper;
-use Tkachikov\Chronos\Models\CommandLog;
-use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Enums\TypeMessageEnum;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Tkachikov\Chronos\Models\Command as CommandModel;
+use Tkachikov\Chronos\Models\CommandLog;
+use Tkachikov\Chronos\Models\CommandRun;
+use Tkachikov\Chronos\Services\RealTime\StateService;
+use Tkachikov\Memory\Memory as MemoryHelper;
 
 trait ChronosRunnerTrait
 {
@@ -44,7 +43,7 @@ trait ChronosRunnerTrait
         $this->createRun();
         $this->appendLog(TypeMessageEnum::INFO, 'Running command');
 
-        $this->trap(SIGTERM, fn($s) => $this->info('Signal received: ' . $s));
+        $this->trap(SIGTERM, fn ($s) => $this->info('Signal received: ' . $s));
 
         try {
             $state = parent::run($input, $output);
@@ -104,8 +103,7 @@ trait ChronosRunnerTrait
         }
     }
 
-    #[NoReturn]
-    public function dd(mixed ...$vars): void
+    public function dd(mixed ...$vars): never
     {
         $this->dump(...$vars);
         $this->appendLog(TypeMessageEnum::INFO, 'Finished command');
@@ -134,9 +132,8 @@ trait ChronosRunnerTrait
 
         $command = $this->getModel();
 
-        /** @var ?StateService $state */
         $state = rescue(
-            fn() => StateService::make($command->id),
+            fn () => StateService::make($command->id),
             null,
             false,
         );
@@ -146,7 +143,7 @@ trait ChronosRunnerTrait
         $this->run->command()->associate($command);
         $this->run->state = self::$waiting;
 
-        if ($state) {
+        if ($state instanceof StateService) {
             $this->run->user()->associate($state->getUser());
             $this->run->pid = $state->getPid();
             $this->run->args = $state->getArgs();

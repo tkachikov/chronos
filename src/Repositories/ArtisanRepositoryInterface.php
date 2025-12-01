@@ -9,6 +9,8 @@ use Symfony\Component\Console\Command\Command;
 
 interface ArtisanRepositoryInterface
 {
+    public function load(): void;
+
     /**
      * @return Collection<class-string, Command>
      */

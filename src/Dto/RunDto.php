@@ -11,7 +11,6 @@ final class RunDto
 {
     public function __construct(
         public int $commandId,
-        public bool $schedule,
         public ?Model $user = null,
         public array $args = [],
         public array $logs = [],
@@ -20,5 +19,6 @@ final class RunDto
         public ?int $pid = null,
         public ?string $answer = null,
         public AnswerState $answerState = AnswerState::NotAwaiting,
-    ) {}
+    ) {
+    }
 }
