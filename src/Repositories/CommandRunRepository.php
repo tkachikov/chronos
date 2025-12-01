@@ -20,9 +20,12 @@ final readonly class CommandRunRepository implements CommandRunRepositoryInterfa
             ])
             ->groupByRaw('2');
 
-        return CommandRun::query()
+        /** @var Collection<int, CommandRun> $commandRuns */
+        $commandRuns = CommandRun::query()
             ->select('command_runs.*')
             ->joinSub($subQuery, 'sub', 'sub.id', 'command_runs.id')
             ->get();
+
+        return $commandRuns;
     }
 }

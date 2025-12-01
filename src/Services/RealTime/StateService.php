@@ -20,6 +20,7 @@ final readonly class StateService
     public static function make(
         int $commandId,
     ): self {
+        /** @var CacheService $cache */
         $cache = app(CacheService::class);
         $dto = $cache->get($commandId);
 

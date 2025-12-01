@@ -16,6 +16,9 @@ final class IndexRequest extends FormRequest
 {
     public function rules(): array
     {
+        /** @var TimeRepositoryInterface $timeRepository */
+        $timeRepository = app(TimeRepositoryInterface::class);
+
         return [
             'search' => [
                 'nullable',
@@ -28,7 +31,7 @@ final class IndexRequest extends FormRequest
             ],
             'scheduleMethod' => [
                 'nullable',
-                Rule::in(array_keys(app(TimeRepositoryInterface::class)->get())),
+                Rule::in(array_keys($timeRepository->get())),
             ],
             'schedulers' => [
                 'nullable',
