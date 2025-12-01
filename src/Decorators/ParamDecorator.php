@@ -12,5 +12,6 @@ final readonly class ParamDecorator
         public string $title,
         public mixed $default = null,
         public ?TimeHelp $help = null,
-    ) {}
+    ) {
+    }
 }

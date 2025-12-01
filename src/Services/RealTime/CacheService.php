@@ -11,7 +11,8 @@ final readonly class CacheService
 {
     public function __construct(
         private CacheManager $driver,
-    ) {}
+    ) {
+    }
 
     public function has(
         int $commandId,

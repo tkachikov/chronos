@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services;
 
 use Exception;
-use Throwable;
-use Illuminate\Support\Facades\DB;
-use Tkachikov\Chronos\Models\Command;
-use Tkachikov\Chronos\Models\Schedule;
-use Tkachikov\Chronos\Models\CommandLog;
-use Tkachikov\Chronos\Models\CommandRun;
-use Tkachikov\Chronos\Models\CommandMetric;
-use Tkachikov\Chronos\Helpers\DatabaseHelper;
-use Tkachikov\Chronos\Repositories\ScheduleRepository;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
+use Illuminate\Support\Facades\DB;
+use Throwable;
+use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Models\CommandLog;
+use Tkachikov\Chronos\Models\CommandMetric;
+use Tkachikov\Chronos\Models\CommandRun;
+use Tkachikov\Chronos\Repositories\ScheduleRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 
 class ScheduleService
@@ -74,7 +73,7 @@ class ScheduleService
         }
     }
 
-    public function saveSchedule(array $input): Schedule
+    public function saveSchedule(array $input): void
     {
         $input['time_params'] ??= null;
 
@@ -95,7 +94,7 @@ class ScheduleService
             }
         }
 
-        return $this
+        $this
             ->scheduleRepository
             ->save($input);
     }
@@ -153,7 +152,7 @@ class ScheduleService
             $row = ['command_id' => $commandId, 'created_at' => $now, 'updated_at' => $now];
             foreach (['time', 'memory'] as $type) {
                 foreach (['avg', 'min', 'max'] as $key) {
-                    $index = $type.'_'.$key;
+                    $index = $type . '_' . $key;
                     $value = (float) $values[$index];
                     $oldValue = (float) ($metrics[$index] ?? 0);
                     $row[$index] = match ($key) {

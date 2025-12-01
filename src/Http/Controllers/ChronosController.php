@@ -6,10 +6,12 @@ namespace Tkachikov\Chronos\Http\Controllers;
 
 use Exception;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\Factory;
 use Throwable;
 use Tkachikov\Chronos\Actions\RealTime\GetStateAndFinishRunAction;
 use Tkachikov\Chronos\Actions\RealTime\InitializeAction;
@@ -37,13 +39,14 @@ class ChronosController extends Controller
         private readonly CommandService $commandService,
         private readonly ScheduleService $scheduleService,
         private readonly TimeRepositoryInterface $timeRepository,
-    ) {}
+    ) {
+    }
 
     public function index(
         IndexRequest $request,
         SortConverter $sortConverter,
         FilterConverter $filterConverter,
-    ): View {
+    ): View|Factory {
         $sortDto = $sortConverter->convert($request);
         $filterDto = $filterConverter->convert($request);
 
@@ -70,7 +73,7 @@ class ChronosController extends Controller
     public function edit(
         Request $request,
         Command $command,
-    ): View {
+    ): View|Factory {
         $decorator = $this->commandService->getByClass($command->class);
         $schedule = $request->has('schedule')
             ? Schedule::findOrFail($request->integer('schedule'))
@@ -139,10 +142,12 @@ class ChronosController extends Controller
         InitializeAction $action,
     ) {
         try {
+            /** @var Model|null $user */
+            $user = Auth::user();
             $dto = new RealTimeDto(
                 commandId: $command->id,
                 args: $request->input('args', []),
-                user: Auth::user(),
+                user: $user,
             );
 
             $action->execute($dto);

@@ -13,5 +13,6 @@ class ChronosCommand
         public bool $notRunInManual = false,
         public bool $notRunInSchedule = false,
         public ?string $group = null,
-    ) {}
+    ) {
+    }
 }

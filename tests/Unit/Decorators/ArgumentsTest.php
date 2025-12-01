@@ -13,7 +13,7 @@ final class ArgumentsTest extends TestCase
 {
     public function testGettingRequiredArgument(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {argument}';
         };
         $model = new CommandModel();
@@ -38,7 +38,7 @@ final class ArgumentsTest extends TestCase
 
     public function testGettingOptionalArgument(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {argument?}';
         };
         $model = new CommandModel();
@@ -53,7 +53,7 @@ final class ArgumentsTest extends TestCase
 
     public function testGettingArrayArgument(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {argument*}';
         };
         $model = new CommandModel();
@@ -68,7 +68,7 @@ final class ArgumentsTest extends TestCase
 
     public function testGettingDefaultArgument(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {argument=test}';
         };
         $model = new CommandModel();
@@ -83,7 +83,7 @@ final class ArgumentsTest extends TestCase
 
     public function testGettingAnyArguments(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {argument-one} {argument-two} {argument-three}';
         };
         $model = new CommandModel();
@@ -98,7 +98,7 @@ final class ArgumentsTest extends TestCase
 
     public function testGettingDescription(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {argument : Test argument}';
         };
         $model = new CommandModel();

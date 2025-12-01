@@ -13,7 +13,7 @@ final class OptionsTest extends TestCase
 {
     public function testGettingRequiredOption(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {--option}';
         };
         $model = new CommandModel();
@@ -38,7 +38,7 @@ final class OptionsTest extends TestCase
 
     public function testGettingOptionDescription(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {--option : Test option}';
         };
         $model = new CommandModel();
@@ -53,7 +53,7 @@ final class OptionsTest extends TestCase
 
     public function testGettingOptionWithNullableValue(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {--option=}';
         };
         $model = new CommandModel();
@@ -68,7 +68,7 @@ final class OptionsTest extends TestCase
 
     public function testGettingOptionWithValue(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {--option=test}';
         };
         $model = new CommandModel();
@@ -83,7 +83,7 @@ final class OptionsTest extends TestCase
 
     public function testGettingAnyArguments(): void
     {
-        $command = new class extends Command {
+        $command = new class () extends Command {
             protected $signature = 'app:test {--option-one} {--option-two=} {--option-three=test}';
         };
         $model = new CommandModel();

@@ -12,7 +12,8 @@ final readonly class InitializeCacheAction
 {
     public function __construct(
         private CacheService $cache,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws Exception

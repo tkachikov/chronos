@@ -15,7 +15,8 @@ final readonly class CommandManager
     public function __construct(
         private ArtisanRepositoryInterface $artisanRepository,
         private CommandRepositoryInterface $commandRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * @return Collection<class-string, CommandDecorator>
@@ -35,27 +36,27 @@ final readonly class CommandManager
     {
         return $this
             ->get()
-            ->filter(fn(CommandDecorator $decorator) => $decorator->isSystem());
+            ->filter(fn (CommandDecorator $decorator) => $decorator->isSystem());
     }
 
     public function getApps(): Collection
     {
         return $this
             ->get()
-            ->filter(fn(CommandDecorator $decorator) => $decorator->isApp());
+            ->filter(fn (CommandDecorator $decorator) => $decorator->isApp());
     }
 
     public function getChronos(): Collection
     {
         return $this
             ->get()
-            ->filter(fn(CommandDecorator $decorator) => $decorator->isChronos());
+            ->filter(fn (CommandDecorator $decorator) => $decorator->isChronos());
     }
 
     /**
      * @param class-string $class
      */
-    public function getByClass(string $class): CommandDecorator
+    public function getByClass(string $class): ?CommandDecorator
     {
         return $this
             ->get()

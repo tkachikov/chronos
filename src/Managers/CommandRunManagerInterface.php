@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Managers;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Models\CommandRun;
 
 interface CommandRunManagerInterface
 {
+    public function load(): void;
+
     /**
      * @return Collection<int, CommandRun>
      */

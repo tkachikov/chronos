@@ -14,11 +14,13 @@ final readonly class StateService
     public function __construct(
         public RunDto $dto,
         private CacheService $cache,
-    ) {}
+    ) {
+    }
 
     public static function make(
         int $commandId,
     ): self {
+        /** @var CacheService $cache */
         $cache = app(CacheService::class);
         $dto = $cache->get($commandId);
 
@@ -41,7 +43,7 @@ final readonly class StateService
             ->args;
     }
 
-    public function getAnswer(): string
+    public function getAnswer(): ?string
     {
         return $this
             ->dto
@@ -67,13 +69,6 @@ final readonly class StateService
         return $this
             ->dto
             ->answerState === AnswerState::Received;
-    }
-
-    public function isSchedule(): bool
-    {
-        return $this
-            ->dto
-            ->schedule;
     }
 
     public function getLogs(): array

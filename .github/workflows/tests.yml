@@ -1,9 +1,9 @@
 name: Tests
 
 on:
-  push:
-    branches: [ "*" ]
   pull_request:
+    branches:
+      - dev
 
 jobs:
   test:
@@ -15,30 +15,39 @@ jobs:
         include:
           - php: 8.2
             laravel: 10.*
+            phpunit: 9.*
             testbench: 8.*
           - php: 8.3
             laravel: 10.*
+            phpunit: 9.*
             testbench: 8.*
           - php: 8.4
             laravel: 10.*
+            phpunit: 9.*
             testbench: 8.*
           - php: 8.2
             laravel: 11.*
+            phpunit: 10.*
             testbench: 9.*
           - php: 8.3
             laravel: 11.*
+            phpunit: 10.*
             testbench: 9.*
           - php: 8.4
             laravel: 11.*
+            phpunit: 10.*
             testbench: 9.*
           - php: 8.2
             laravel: 12.*
+            phpunit: 11.*
             testbench: 10.*
           - php: 8.3
             laravel: 12.*
+            phpunit: 11.*
             testbench: 10.*
           - php: 8.4
             laravel: 12.*
+            phpunit: 11.*
             testbench: 10.*
     steps:
       - name: Checkout code
@@ -48,16 +57,23 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, xml, pcntl, sqlite3
-          coverage: none
+          extensions: mbstring, xml, pcntl, sqlite3, xdebug
+          coverage: xdebug
 
       - name: Require Laravel & Testbench versions
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" --no-update --dev
+          composer require "phpunit/phpunit:${{ matrix.phpunit }}" --no-update --dev
           composer require "orchestra/testbench:${{ matrix.testbench }}" --no-update --dev
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
 
+      - name: Run PHP-CS-fixer check
+        run: composer fix:check
+
+      - name: Run Psalm
+        run: composer psalm
+
       - name: Run PHPUnit
-        run: vendor/bin/phpunit --testdox
+        run: composer test

@@ -9,7 +9,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-class CommandRun extends Model
+/**
+ * @property-read int|null $command_id
+ * @property-read int|null $state
+ * @property-read string|null $memory
+ * @property-read int|null $pid
+ * @property-read int|null $user_id
+ * @property-read class-string|null $user_type
+ * @property-read array|null $args
+ */
+final class CommandRun extends Model
 {
     protected $guarded = [];
 
@@ -53,12 +62,5 @@ class CommandRun extends Model
     public function user(): MorphTo
     {
         return $this->morphTo('user');
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'args' => 'array',
-        ];
     }
 }
