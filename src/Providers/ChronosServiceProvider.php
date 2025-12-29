@@ -157,17 +157,21 @@ class ChronosServiceProvider extends ServiceProvider
     {
         $this
             ->app
-            ->make(ArtisanRepositoryInterface::class)
-            ->load();
+            ->booted(function () {
+                $this
+                    ->app
+                    ->make(ArtisanRepositoryInterface::class)
+                    ->load();
 
-        $this
-            ->app
-            ->make(CommandRepositoryInterface::class)
-            ->load();
+                $this
+                    ->app
+                    ->make(CommandRepositoryInterface::class)
+                    ->load();
 
-        $this
-            ->app
-            ->make(CommandRunManagerInterface::class)
-            ->load();
+                $this
+                    ->app
+                    ->make(CommandRunManagerInterface::class)
+                    ->load();
+            });
     }
 }
