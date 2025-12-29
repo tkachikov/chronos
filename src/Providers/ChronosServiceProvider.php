@@ -18,8 +18,10 @@ use Tkachikov\Chronos\Console\Commands\ChronosOnlyOptionsTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosRunBackgroundCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
+use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Managers\CommandRunManager;
 use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
+use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Repositories\ArtisanRepository;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
 use Tkachikov\Chronos\Repositories\CommandRepository;
@@ -50,11 +52,13 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadTranslations();
         $this->loadServiceProvider();
 
-        if (! $this->app->environment('testing')) {
-            $this->loadSingletons();
-        }
+        if ($this->isBooted()) {
+            if (! $this->app->environment('testing')) {
+                $this->loadSingletons();
+            }
 
-        $this->loadSchedule();
+            $this->loadSchedule();
+        }
     }
 
     public function loadCommands(): void
@@ -173,5 +177,13 @@ class ChronosServiceProvider extends ServiceProvider
                     ->make(CommandRunManagerInterface::class)
                     ->load();
             });
+    }
+
+    private function isBooted(): bool
+    {
+        return $this
+            ->app
+            ->make(DatabaseHelper::class)
+            ->hasTable(new Command());
     }
 }
