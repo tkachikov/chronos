@@ -36,10 +36,19 @@ class ScheduleRepository
             $params['args'] = $newArgs;
         }
 
-        $id = $params['id'] ?? null;
-        $scheduleObject = new Schedule();
-        $data = collect($params)->only($scheduleObject->getFillable())->toArray();
-        $data['user_id'] = Auth::id();
+        $id = data_get($params, 'id');
+
+        $data = [
+            'command_id' => data_get($params, 'command_id'),
+            'args' => data_get($params, 'args'),
+            'time_method' => data_get($params, 'time_method'),
+            'time_params' => data_get($params, 'time_params'),
+            'without_overlapping' => data_get($params, 'without_overlapping'),
+            'without_overlapping_time' => data_get($params, 'without_overlapping_time'),
+            'run_in_background' => data_get($params, 'run_in_background'),
+            'run' => data_get($params, 'run'),
+            'user_id' => Auth::id(),
+        ];
 
         if ($id) {
             $schedule = Schedule::findOrFail($id);
