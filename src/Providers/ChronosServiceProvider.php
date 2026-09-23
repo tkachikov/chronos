@@ -53,10 +53,7 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadServiceProvider();
 
         if ($this->isBooted()) {
-            if (! $this->app->environment('testing')) {
-                $this->loadSingletons();
-            }
-
+            $this->loadSingletons();
             $this->loadSchedule();
         }
     }

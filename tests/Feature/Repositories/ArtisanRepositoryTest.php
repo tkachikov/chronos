@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Tests\Feature\Repositories;
 
-use Error;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use ReflectionException;
 use ReflectionProperty;
@@ -61,9 +60,10 @@ final class ArtisanRepositoryTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException
      * @throws BindingResolutionException
      */
-    public function testGettingEmptyCommands(): void
+    public function testGettingCommandsWithoutLoad(): void
     {
         $this
             ->app
@@ -73,9 +73,11 @@ final class ArtisanRepositoryTest extends TestCase
             ->app
             ->make(ArtisanRepositoryInterface::class);
 
-        $this->expectException(Error::class);
+        $reflection = new ReflectionProperty($repository, 'commands');
 
-        $repository->get();
+        $this->assertFalse($reflection->isInitialized($repository));
+        $this->assertNotCount(0, $repository->get());
+        $this->assertTrue($reflection->isInitialized($repository));
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Managers;
 
 use Illuminate\Support\Collection;
+use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 
@@ -17,6 +18,7 @@ final class CommandRunManager implements CommandRunManagerInterface
 
     public function __construct(
         private readonly CommandRunRepositoryInterface $commandRunRepository,
+        private readonly DatabaseHelper $databaseHelper,
     ) {
     }
 
@@ -32,6 +34,16 @@ final class CommandRunManager implements CommandRunManagerInterface
     #[\Override]
     public function getLastRunForEachCommand(): Collection
     {
+        if (isset($this->lastRunForEachCommand)) {
+            return $this->lastRunForEachCommand;
+        }
+
+        if (! $this->databaseHelper->hasTable(CommandRun::class)) {
+            return collect();
+        }
+
+        $this->load();
+
         return $this->lastRunForEachCommand;
     }
 }

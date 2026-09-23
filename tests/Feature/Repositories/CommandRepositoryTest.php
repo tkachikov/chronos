@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Feature\Repositories;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Support\Facades\Schema;
 use ReflectionException;
 use ReflectionProperty;
 use Tkachikov\Chronos\Models\Command;
@@ -71,6 +72,69 @@ final class CommandRepositoryTest extends TestCase
         $repository->load();
 
         $this->assertCount(0, $repository->get());
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws BindingResolutionException
+     */
+    public function testGettingCommandsWithoutLoad(): void
+    {
+        Command::query()->create(['class' => 'Test']);
+
+        $this
+            ->app
+            ->forgetInstance(CommandRepositoryInterface::class);
+
+        $repository = $this
+            ->app
+            ->make(CommandRepositoryInterface::class);
+
+        $reflection = new ReflectionProperty($repository, 'commands');
+
+        $this->assertFalse($reflection->isInitialized($repository));
+        $this->assertCount(1, $repository->get());
+        $this->assertTrue($reflection->isInitialized($repository));
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws BindingResolutionException
+     */
+    public function testGettingCommandsWithoutTable(): void
+    {
+        Schema::drop((new Command())->getTable());
+
+        $this
+            ->app
+            ->forgetInstance(CommandRepositoryInterface::class);
+
+        $repository = $this
+            ->app
+            ->make(CommandRepositoryInterface::class);
+
+        $reflection = new ReflectionProperty($repository, 'commands');
+
+        $this->assertCount(0, $repository->get());
+        $this->assertFalse($reflection->isInitialized($repository));
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testCreatedCommandIsCachedByClass(): void
+    {
+        $repository = $this
+            ->app
+            ->make(CommandRepositoryInterface::class);
+
+        $repository->load();
+
+        $command = $repository->getOrCreateByClass('Test');
+
+        $this->assertTrue($repository->get()->has('Test'));
+        $this->assertSame($command, $repository->get()->get('Test'));
+        $this->assertSame($command, $repository->getOrCreateByClass('Test'));
     }
 
     /**
