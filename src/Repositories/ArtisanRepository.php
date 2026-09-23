@@ -22,6 +22,10 @@ final class ArtisanRepository implements ArtisanRepositoryInterface
     #[\Override]
     public function get(): Collection
     {
+        if (! isset($this->commands)) {
+            $this->load();
+        }
+
         return $this->commands;
     }
 }
