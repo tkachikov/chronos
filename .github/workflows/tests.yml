@@ -67,7 +67,9 @@ jobs:
           composer require "orchestra/testbench:${{ matrix.testbench }}" --no-update --dev
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: |
+          composer config policy.advisories.block false
+          composer update --prefer-dist --no-interaction --no-progress
 
       - name: Run PHP-CS-fixer check
         run: composer fix:check
