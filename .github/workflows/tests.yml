@@ -49,6 +49,18 @@ jobs:
             laravel: 12.*
             phpunit: 11.*
             testbench: 10.*
+          - php: 8.3
+            laravel: 13.*
+            phpunit: 12.*
+            testbench: 11.*
+          - php: 8.4
+            laravel: 13.*
+            phpunit: 12.*
+            testbench: 11.*
+          - php: 8.5
+            laravel: 13.*
+            phpunit: 12.*
+            testbench: 11.*
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -74,7 +86,9 @@ jobs:
       - name: Run PHP-CS-fixer check
         run: composer fix:check
 
+      # Psalm 6 crashes while scanning Laravel 13 vendor (TypeParseTreeException)
       - name: Run Psalm
+        if: matrix.laravel != '13.*'
         run: composer psalm
 
       - name: Run PHPUnit
