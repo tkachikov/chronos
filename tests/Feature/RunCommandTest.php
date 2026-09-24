@@ -15,7 +15,6 @@ use Tkachikov\Chronos\Models\Command as CommandModel;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Models\Schedule;
-use Tkachikov\Chronos\Providers\ChronosServiceProvider;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
 use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 use Tkachikov\Chronos\Tests\Feature\TestCase;
@@ -454,8 +453,7 @@ final class RunCommandTest extends TestCase
 
         $this
             ->app
-            ->getProvider(ChronosServiceProvider::class)
-            ->boot();
+            ->forgetInstance(\Illuminate\Console\Scheduling\Schedule::class);
 
         $scheduler = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
         $events = $scheduler->dueEvents($this->app);

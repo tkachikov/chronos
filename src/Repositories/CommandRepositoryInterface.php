@@ -11,6 +11,8 @@ interface CommandRepositoryInterface
 {
     public function load(): void;
 
+    public function flush(): void;
+
     /**
      * @return Collection<string, Command>
      */
