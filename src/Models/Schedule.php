@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
 
 /**
@@ -21,6 +21,7 @@ use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
  * @property-read bool|null $run_in_background
  * @property-read bool|null $run
  * @property-read int|null $user_id
+ * @property-read class-string|null $user_type
  */
 final class Schedule extends Model
 {
@@ -84,8 +85,8 @@ final class Schedule extends Model
         return $this->hasMany(CommandRun::class, 'class', 'class');
     }
 
-    public function user(): BelongsTo
+    public function user(): MorphTo
     {
-        return $this->belongsTo(Auth::user()::class);
+        return $this->morphTo('user');
     }
 }

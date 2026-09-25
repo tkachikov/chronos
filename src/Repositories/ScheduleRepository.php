@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Repositories;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
@@ -37,6 +38,7 @@ class ScheduleRepository
         }
 
         $id = data_get($params, 'id');
+        $user = Auth::user();
 
         $data = [
             'command_id' => data_get($params, 'command_id'),
@@ -47,7 +49,10 @@ class ScheduleRepository
             'without_overlapping_time' => data_get($params, 'without_overlapping_time'),
             'run_in_background' => data_get($params, 'run_in_background'),
             'run' => data_get($params, 'run'),
-            'user_id' => Auth::id(),
+            'user_id' => $user?->getAuthIdentifier(),
+            'user_type' => $user instanceof Model
+                ? $user->getMorphClass()
+                : null,
         ];
 
         if ($id) {
