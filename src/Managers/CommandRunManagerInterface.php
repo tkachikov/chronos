@@ -11,6 +11,8 @@ interface CommandRunManagerInterface
 {
     public function load(): void;
 
+    public function flush(): void;
+
     /**
      * @return Collection<int, CommandRun>
      */

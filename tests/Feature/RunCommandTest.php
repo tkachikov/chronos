@@ -15,7 +15,6 @@ use Tkachikov\Chronos\Models\Command as CommandModel;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Models\Schedule;
-use Tkachikov\Chronos\Providers\ChronosServiceProvider;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
 use Tkachikov\Chronos\Repositories\CommandRepositoryInterface;
 use Tkachikov\Chronos\Tests\Feature\TestCase;
@@ -360,6 +359,30 @@ final class RunCommandTest extends TestCase
         $this->assertEquals(Command::SUCCESS, $run->status);
     }
 
+    public function testRunWithChronosTraitCreatesCommandModel(): void
+    {
+        $this->makeCommand(withChronosTrait: true);
+
+        $this->assertDatabaseMissing(
+            (new CommandModel())->getTable(),
+            ['class' => 'App\\Console\\Commands\\Test'],
+        );
+
+        $result = $this
+            ->artisan('app:test')
+            ->run();
+
+        $this->assertEquals(Command::SUCCESS, $result);
+
+        $model = CommandModel::firstWhere('class', 'App\\Console\\Commands\\Test');
+
+        $this->assertNotNull($model);
+        $this->assertDatabaseHas(
+            (new CommandRun())->getTable(),
+            ['command_id' => $model->id],
+        );
+    }
+
     /**
      * @throws BindingResolutionException
      */
@@ -454,8 +477,7 @@ final class RunCommandTest extends TestCase
 
         $this
             ->app
-            ->getProvider(ChronosServiceProvider::class)
-            ->boot();
+            ->forgetInstance(\Illuminate\Console\Scheduling\Schedule::class);
 
         $scheduler = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
         $events = $scheduler->dueEvents($this->app);

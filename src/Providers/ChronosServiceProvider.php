@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Database\Events\DatabaseRefreshed;
+use Illuminate\Database\Events\MigrationsEnded;
+use Illuminate\Database\Events\MigrationsStarted;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
@@ -51,10 +55,14 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadMigrations();
         $this->loadTranslations();
         $this->loadServiceProvider();
+        $this->loadSchedule();
+        $this->loadMigrationListeners();
 
-        if ($this->isBooted()) {
+        if (
+            ! $this->app->runningInConsole()
+            && $this->isBooted()
+        ) {
             $this->loadSingletons();
-            $this->loadSchedule();
         }
     }
 
@@ -140,18 +148,37 @@ class ChronosServiceProvider extends ServiceProvider
 
     public function loadSchedule(): void
     {
-        $this
-            ->app
-            ->booted(function () {
-                $scheduler = $this
-                    ->app
-                    ->make(Schedule::class);
-
+        $this->callAfterResolving(
+            Schedule::class,
+            function (Schedule $scheduler) {
                 $this
                     ->app
                     ->make(ScheduleService::class)
                     ->schedule($scheduler);
-            });
+            },
+        );
+    }
+
+    public function loadMigrationListeners(): void
+    {
+        Event::listen(
+            [
+                MigrationsStarted::class,
+                MigrationsEnded::class,
+                DatabaseRefreshed::class,
+            ],
+            function () {
+                $this
+                    ->app
+                    ->make(CommandRepositoryInterface::class)
+                    ->flush();
+
+                $this
+                    ->app
+                    ->make(CommandRunManagerInterface::class)
+                    ->flush();
+            },
+        );
     }
 
     public function loadSingletons(): void

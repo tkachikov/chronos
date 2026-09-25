@@ -29,6 +29,12 @@ final class CommandRepository implements CommandRepositoryInterface
     }
 
     #[\Override]
+    public function flush(): void
+    {
+        unset($this->commands);
+    }
+
+    #[\Override]
     public function get(): Collection
     {
         if (isset($this->commands)) {

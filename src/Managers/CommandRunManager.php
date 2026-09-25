@@ -32,6 +32,12 @@ final class CommandRunManager implements CommandRunManagerInterface
     }
 
     #[\Override]
+    public function flush(): void
+    {
+        unset($this->lastRunForEachCommand);
+    }
+
+    #[\Override]
     public function getLastRunForEachCommand(): Collection
     {
         if (isset($this->lastRunForEachCommand)) {
