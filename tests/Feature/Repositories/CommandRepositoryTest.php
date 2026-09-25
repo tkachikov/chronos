@@ -214,4 +214,57 @@ final class CommandRepositoryTest extends TestCase
                 ->is($commandTwo),
         );
     }
+
+    /**
+     * @throws ReflectionException
+     * @throws BindingResolutionException
+     */
+    public function testFlush(): void
+    {
+        $repository = $this
+            ->app
+            ->make(CommandRepositoryInterface::class);
+
+        $repository->load();
+
+        $reflection = new ReflectionProperty($repository, 'commands');
+
+        $this->assertTrue($reflection->isInitialized($repository));
+
+        $repository->flush();
+
+        $this->assertFalse($reflection->isInitialized($repository));
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testCreatingCommandAfterMigrateFresh(): void
+    {
+        Command::query()->create(['class' => 'Test']);
+
+        $repository = $this
+            ->app
+            ->make(CommandRepositoryInterface::class);
+
+        $repository->load();
+
+        $this->assertTrue($repository->get()->has('Test'));
+
+        $this
+            ->artisan('migrate:fresh')
+            ->run();
+
+        $this->assertSame(0, Command::query()->count());
+
+        $command = $repository->getOrCreateByClass('Test');
+
+        $this->assertTrue($command->wasRecentlyCreated);
+        $this->assertTrue(
+            Command::query()
+                ->whereKey($command->getKey())
+                ->where('class', 'Test')
+                ->exists(),
+        );
+    }
 }
