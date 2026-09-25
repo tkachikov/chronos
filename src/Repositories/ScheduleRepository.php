@@ -50,10 +50,13 @@ class ScheduleRepository
             'run_in_background' => data_get($params, 'run_in_background'),
             'run' => data_get($params, 'run'),
             'user_id' => $user?->getAuthIdentifier(),
-            'user_type' => $user instanceof Model
-                ? $user->getMorphClass()
-                : null,
         ];
+
+        if ($this->databaseHelper->hasColumn(Schedule::class, 'user_type')) {
+            $data['user_type'] = $user instanceof Model
+                ? $user->getMorphClass()
+                : null;
+        }
 
         if ($id) {
             $schedule = Schedule::findOrFail($id);

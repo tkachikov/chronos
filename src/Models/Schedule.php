@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
 
 /**
@@ -85,8 +86,16 @@ final class Schedule extends Model
         return $this->hasMany(CommandRun::class, 'class', 'class');
     }
 
-    public function user(): MorphTo
+    public function user(): MorphTo|BelongsTo
     {
+        if (
+            $this->user_id !== null
+            && $this->user_type === null
+            && ($model = app(DatabaseHelper::class)->getDefaultUserModel())
+        ) {
+            return $this->belongsTo($model, 'user_id');
+        }
+
         return $this->morphTo('user');
     }
 }
