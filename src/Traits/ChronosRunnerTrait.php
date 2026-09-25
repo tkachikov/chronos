@@ -220,7 +220,7 @@ trait ChronosRunnerTrait
         }
 
         if (!isset($this->model)) {
-            $this->model = CommandModel::firstWhere('class', $this::class);
+            $this->model = CommandModel::firstOrCreate(['class' => $this::class]);
         }
 
         return $this->model;

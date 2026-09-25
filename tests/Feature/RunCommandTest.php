@@ -359,6 +359,30 @@ final class RunCommandTest extends TestCase
         $this->assertEquals(Command::SUCCESS, $run->status);
     }
 
+    public function testRunWithChronosTraitCreatesCommandModel(): void
+    {
+        $this->makeCommand(withChronosTrait: true);
+
+        $this->assertDatabaseMissing(
+            (new CommandModel())->getTable(),
+            ['class' => 'App\\Console\\Commands\\Test'],
+        );
+
+        $result = $this
+            ->artisan('app:test')
+            ->run();
+
+        $this->assertEquals(Command::SUCCESS, $result);
+
+        $model = CommandModel::firstWhere('class', 'App\\Console\\Commands\\Test');
+
+        $this->assertNotNull($model);
+        $this->assertDatabaseHas(
+            (new CommandRun())->getTable(),
+            ['command_id' => $model->id],
+        );
+    }
+
     /**
      * @throws BindingResolutionException
      */
