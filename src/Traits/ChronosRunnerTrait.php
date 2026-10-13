@@ -75,8 +75,10 @@ trait ChronosRunnerTrait
     {
         $string = $this->prepareMessage($string);
         parent::line($string, $style, $verbosity);
-        if ($style !== TypeMessageEnum::COMMENT->value) {
-            $this->appendLog(TypeMessageEnum::from($style), $string);
+        $type = TypeMessageEnum::tryFrom((string) $style) ?? TypeMessageEnum::LINE;
+
+        if ($type !== TypeMessageEnum::COMMENT) {
+            $this->appendLog($type, $string);
         }
     }
 
