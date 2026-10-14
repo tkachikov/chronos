@@ -20,6 +20,12 @@ return [
      */
     'test_commands' => env('CHRONOS_TEST_COMMANDS'),
 
+    /*
+     * PHP binary for running commands in real time.
+     * By default it is found automatically (PHP_BINARY in console, PHP_BINDIR or PATH under php-fpm).
+     */
+    'php_binary' => env('CHRONOS_PHP_BINARY'),
+
     'middlewares' => [
         'web',
         // 'auth',

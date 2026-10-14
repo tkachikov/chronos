@@ -9,6 +9,7 @@ use ReflectionException;
 use ReflectionObject;
 use Symfony\Component\Console\Command\Command;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
+use Tkachikov\Chronos\Helpers\PhpHelper;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 
 class CommandDecorator
@@ -62,7 +63,7 @@ class CommandDecorator
         array $args = [],
     ): array {
         return [
-            'php',
+            app(PhpHelper::class)->getBinary(),
             base_path('artisan'),
             $this->getName(),
             ...$this->getArgumentsForExecToArray($args),
