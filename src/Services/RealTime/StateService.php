@@ -56,13 +56,6 @@ final readonly class StateService
             ->args;
     }
 
-    public function getAnswer(): ?string
-    {
-        return $this
-            ->dto
-            ->answer;
-    }
-
     public function isNotAwaiting(): bool
     {
         return $this
@@ -75,13 +68,6 @@ final readonly class StateService
         return $this
             ->dto
             ->answerState === AnswerState::Pending;
-    }
-
-    public function isReceived(): bool
-    {
-        return $this
-            ->dto
-            ->answerState === AnswerState::Received;
     }
 
     public function getLogs(): array
@@ -165,20 +151,22 @@ final readonly class StateService
         $this->appendLog(':wait:');
     }
 
+    /**
+     * The answer is passed by its own key, so the runner can't overwrite it with its state.
+     */
     public function received(
         string $answer,
     ): void {
         $this
-            ->dto
-            ->answerState = AnswerState::Received;
-
-        $this
-            ->dto
-            ->answer = $answer;
-
-        $this
             ->cache
-            ->set($this->dto);
+            ->setAnswer($this->dto->commandId, $answer);
+    }
+
+    public function pullAnswer(): ?string
+    {
+        return $this
+            ->cache
+            ->pullAnswer($this->dto->commandId);
     }
 
     /**

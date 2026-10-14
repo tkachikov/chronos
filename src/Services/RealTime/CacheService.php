@@ -61,6 +61,10 @@ final readonly class CacheService
         $this
             ->driver
             ->delete($this->getSignalKey($commandId));
+
+        $this
+            ->driver
+            ->delete($this->getAnswerKey($commandId));
     }
 
     public function setSignal(
@@ -86,6 +90,37 @@ final readonly class CacheService
         return is_string($signal)
             ? Signals::tryFrom($signal)
             : null;
+    }
+
+    public function setAnswer(
+        int $commandId,
+        string $answer,
+    ): void {
+        $this
+            ->driver
+            ->set(
+                $this->getAnswerKey($commandId),
+                $answer,
+                now()->addMinutes(5),
+            );
+    }
+
+    public function pullAnswer(
+        int $commandId,
+    ): ?string {
+        $answer = $this
+            ->driver
+            ->pull($this->getAnswerKey($commandId));
+
+        return is_string($answer)
+            ? $answer
+            : null;
+    }
+
+    private function getAnswerKey(
+        int $commandId,
+    ): string {
+        return $this->getKey($commandId) . '-answer';
     }
 
     private function getSignalKey(

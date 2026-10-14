@@ -327,17 +327,13 @@ class RunnerService
             ->state
             ->refresh();
 
-        if (
-            !$this
-                ->state
-                ->isReceived()
-        ) {
-            return;
-        }
-
         $answer = $this
             ->state
-            ->getAnswer();
+            ->pullAnswer();
+
+        if ($answer === null) {
+            return;
+        }
 
         $this
             ->state

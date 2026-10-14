@@ -165,10 +165,39 @@ final class RunnerServiceTest extends TestCase
         $this->assertSame(123, StateService::make(self::COMMAND_ID)->getPid());
     }
 
+    public function testAnswerIsSentToProcess(): void
+    {
+        $logs = $this->listen(
+            'echo "\n Name?:\n > "; $name = trim(fgets(STDIN)); echo "Hello $name\n";',
+            answer: 'John',
+        );
+
+        $this->assertStringContainsString("Hello John\n", implode('', $logs));
+    }
+
+    public function testAnswerIsNotOverwrittenByRunnerState(): void
+    {
+        $this
+            ->app
+            ->make(CacheService::class)
+            ->set(new RunDto(commandId: self::COMMAND_ID));
+
+        $runner = StateService::make(self::COMMAND_ID);
+
+        StateService::make(self::COMMAND_ID)->received('John');
+
+        // the runner writes its state that was read before the answer
+        $runner->appendLog('output');
+
+        $this->assertSame('John', $runner->refresh()->pullAnswer());
+        $this->assertNull($runner->pullAnswer());
+    }
+
     private function listen(
         string $code,
         ?Signals $signal = null,
         int $commandId = self::COMMAND_ID,
+        ?string $answer = null,
     ): array {
         $cache = $this
             ->app
@@ -178,6 +207,10 @@ final class RunnerServiceTest extends TestCase
 
         if ($signal) {
             $cache->setSignal($commandId, $signal);
+        }
+
+        if ($answer !== null) {
+            $cache->setAnswer($commandId, $answer);
         }
 
         $pipes = [];
