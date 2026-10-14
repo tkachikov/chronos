@@ -115,8 +115,7 @@
 
             var xhr = new XMLHttpRequest();
 
-            let commandId = '{{ $command->getModel()->id }}';
-            xhr.open('POST', `/chronos/${commandId}/run-in-real-time`, true);
+            xhr.open('POST', {{ Js::from(route('chronos.runInRealTime.run', $command->getModel())) }}, true);
 
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
@@ -159,8 +158,7 @@
             var timer = setInterval(() => {
                 var xhr = new XMLHttpRequest();
 
-                let commandId = '{{ $command->getModel()->id }}';
-                xhr.open('GET', `/chronos/${commandId}/run-in-real-time/logs`, true);
+                xhr.open('GET', {{ Js::from(route('chronos.runInRealTime.logs', $command->getModel())) }}, true);
 
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4 && xhr.status === 200) {
@@ -236,8 +234,7 @@
                 event.target.setAttribute('contenteditable', false);
                 var xhr = new XMLHttpRequest();
 
-                let commandId = '{{ $command->getModel()->id }}';
-                xhr.open('POST', `/chronos/${commandId}/run-in-real-time/answer`, true);
+                xhr.open('POST', {{ Js::from(route('chronos.runInRealTime.answer', $command->getModel())) }}, true);
 
                 var formData = new FormData();
                 formData.append('_token', '{{ csrf_token() }}');
@@ -249,8 +246,7 @@
         function sigterm() {
             var xhr = new XMLHttpRequest();
 
-            let commandId = '{{ $command->getModel()->id }}';
-            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/sigterm`, true);
+            xhr.open('POST', {{ Js::from(route('chronos.runInRealTime.sigterm', $command->getModel())) }}, true);
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
@@ -260,8 +256,7 @@
         function sigkill() {
             var xhr = new XMLHttpRequest();
 
-            let commandId = '{{ $command->getModel()->id }}';
-            xhr.open('POST', `/chronos/${commandId}/run-in-real-time/sigkill`, true);
+            xhr.open('POST', {{ Js::from(route('chronos.runInRealTime.sigkill', $command->getModel())) }}, true);
 
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
