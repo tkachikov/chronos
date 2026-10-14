@@ -52,6 +52,10 @@ class ScheduleRepository
             'user_id' => $user?->getAuthIdentifier(),
         ];
 
+        if ($this->databaseHelper->hasColumn(Schedule::class, 'name')) {
+            $data['name'] = data_get($params, 'name');
+        }
+
         if ($this->databaseHelper->hasColumn(Schedule::class, 'user_type')) {
             $data['user_type'] = $user instanceof Model
                 ? $user->getMorphClass()

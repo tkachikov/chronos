@@ -546,4 +546,44 @@ final class RunCommandTest extends TestCase
         $this->assertTrue(str($events->first()->command)->contains($uuid));
         $this->assertTrue($events->first()->isDue($this->app));
     }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testScheduleNameIsEventDescription(): void
+    {
+        $this->makeCommand(withChronosTrait: true);
+
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
+
+        $model = $this
+            ->app
+            ->make(CommandManager::class)
+            ->getApps()
+            ->first()
+            ->getModel();
+
+        Schedule::create([
+            'command_id' => $model->id,
+            'name' => 'Import #1',
+            'args' => [],
+            'time_method' => 'everyMinute',
+            'run' => true,
+        ]);
+
+        $this
+            ->app
+            ->forgetInstance(\Illuminate\Console\Scheduling\Schedule::class);
+
+        $events = $this
+            ->app
+            ->make(\Illuminate\Console\Scheduling\Schedule::class)
+            ->events();
+
+        $this->assertCount(1, $events);
+        $this->assertSame('Import #1', $events[0]->description);
+    }
 }
