@@ -46,6 +46,14 @@ class ChronosServiceProvider extends ServiceProvider
         CommandRunManagerInterface::class => CommandRunManager::class,
     ];
 
+    /**
+     * New keys get defaults also for apps with the config published by an older version.
+     */
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__ . '/../../config/chronos.php', 'chronos');
+    }
+
     public function boot(): void
     {
         $this->loadViews();
