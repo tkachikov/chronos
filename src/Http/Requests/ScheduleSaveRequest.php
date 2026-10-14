@@ -15,6 +15,7 @@ final class ScheduleSaveRequest extends FormRequest
         return [
             'command_id' => ['exists:' . (new Command())->getTable() . ',id'],
             'id' => ['nullable', 'exists:' . (new Schedule())->getTable() . ',id'],
+            'name' => ['nullable', 'string', 'max:255'],
             'run' => ['required', 'boolean'],
             'without_overlapping' => ['required', 'boolean'],
             'without_overlapping_time' => ['required', 'integer'],

@@ -55,6 +55,11 @@ class ScheduleService
                 $event = $scheduleConsole
                     ->command($schedule->command->class, $schedule->preparedArgs)
                     ->{$schedule->time_method}(...$args);
+
+                if ($schedule->name) {
+                    $event->description($schedule->name);
+                }
+
                 $properties = [
                     'without_overlapping' => [$schedule->without_overlapping_time],
                     'run_in_background' => [],

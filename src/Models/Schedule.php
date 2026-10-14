@@ -14,6 +14,7 @@ use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
 
 /**
  * @property-read int|null $command_id
+ * @property-read string|null $name
  * @property-read array|null $args
  * @property-read string|null $time_method
  * @property-read array|null $time_params

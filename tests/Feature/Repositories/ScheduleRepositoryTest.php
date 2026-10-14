@@ -72,7 +72,7 @@ final class ScheduleRepositoryTest extends TestCase
     public function testSaveWithoutUserTypeColumn(): void
     {
         $this
-            ->artisan('migrate:rollback', ['--step' => 1])
+            ->artisan('migrate:rollback', ['--step' => 2])
             ->run();
 
         $this->assertFalse(Schema::hasColumn('schedules', 'user_type'));
@@ -84,6 +84,42 @@ final class ScheduleRepositoryTest extends TestCase
         $this->save();
 
         $this->assertSame($user->getKey(), Schedule::firstOrFail()->user_id);
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testSaveWithName(): void
+    {
+        $this->save(['name' => 'Import #1']);
+
+        $this->assertSame('Import #1', Schedule::firstOrFail()->name);
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testSaveWithoutName(): void
+    {
+        $this->save();
+
+        $this->assertNull(Schedule::firstOrFail()->name);
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    public function testSaveWithoutNameColumn(): void
+    {
+        $this
+            ->artisan('migrate:rollback', ['--step' => 1])
+            ->run();
+
+        $this->assertFalse(Schema::hasColumn('schedules', 'name'));
+
+        $this->save(['name' => 'Import #1']);
+
+        $this->assertSame(1, Schedule::count());
     }
 
     private function createUser(): User
@@ -98,7 +134,7 @@ final class ScheduleRepositoryTest extends TestCase
     /**
      * @throws BindingResolutionException
      */
-    private function save(): void
+    private function save(array $params = []): void
     {
         $command = Command::create(['class' => 'App\\Console\\Commands\\Test']);
 
@@ -114,6 +150,7 @@ final class ScheduleRepositoryTest extends TestCase
                 'without_overlapping_time' => 1440,
                 'run_in_background' => false,
                 'run' => true,
+                ...$params,
             ]);
     }
 }

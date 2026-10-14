@@ -129,6 +129,9 @@
                                                                         @include('chronos::icons.off')
                                                                     @endif
                                                                     <span>
+                                                                        @if($schedule->name)
+                                                                            <b>{{ $schedule->name }}:</b>
+                                                                        @endif
                                                                         {{ $times[$schedule->time_method]->getDescription($schedule) }}
                                                                     </span>
                                                                 </div>
