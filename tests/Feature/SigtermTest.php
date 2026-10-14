@@ -38,13 +38,39 @@ final class SigtermTest extends TestCase
         $this->assertSame(0, $this->runAndSendSigterm());
     }
 
-    private function runAndSendSigterm(): int
+    public function testSigtermIsHandledByQueueWorker(): void
     {
+        $this->makeCommand(
+            withChronosTrait: true,
+            body: 'sleep(10);',
+        );
+
+        $flag = tempnam(sys_get_temp_dir(), 'chronos');
+
+        // like Illuminate\Queue\Worker::listenForSignals()
+        $worker = function () use ($flag): void {
+            pcntl_async_signals(true);
+            pcntl_signal(SIGTERM, fn () => file_put_contents($flag, 'quit'));
+        };
+
+        $this->assertSame(0, $this->runAndSendSigterm($worker));
+        $this->assertSame('quit', file_get_contents($flag));
+
+        unlink($flag);
+    }
+
+    private function runAndSendSigterm(
+        ?callable $beforeRun = null,
+    ): int {
         Signals::resolveAvailabilityUsing(fn () => true);
 
         $pid = pcntl_fork();
 
         if ($pid === 0) {
+            if ($beforeRun) {
+                $beforeRun();
+            }
+
             $code = $this
                 ->artisan('app:test')
                 ->run();

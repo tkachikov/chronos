@@ -48,6 +48,10 @@ trait ChronosRunnerTrait
         $this->createRun();
         $this->appendLog(TypeMessageEnum::INFO, 'Running command');
 
+        // e.g. a queue worker that runs the command and stops gracefully by SIGTERM itself
+        $this->sigtermTrapped = function_exists('pcntl_signal_get_handler')
+            && is_callable(pcntl_signal_get_handler(SIGTERM));
+
         parent::trap(SIGTERM, fn (int $signal) => $this->handleSigterm($signal));
 
         try {
@@ -132,7 +136,8 @@ trait ChronosRunnerTrait
     }
 
     /**
-     * The command is finished by SIGTERM unless it traps SIGTERM itself for a graceful shutdown.
+     * The command is finished by SIGTERM unless SIGTERM is handled by someone else:
+     * the command itself (graceful shutdown) or the process that runs it (e.g. a queue worker).
      */
     private function handleSigterm(int $signal): void
     {
