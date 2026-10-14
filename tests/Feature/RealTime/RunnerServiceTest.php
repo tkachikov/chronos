@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Feature\RealTime;
 
+use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use ReflectionClass;
+use Tkachikov\Chronos\Actions\InitializeCacheAction;
 use Tkachikov\Chronos\Dto\RunDto;
+use Tkachikov\Chronos\Enums\Signals;
+use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Services\RealTime\CacheService;
 use Tkachikov\Chronos\Services\RealTime\RunnerService;
 use Tkachikov\Chronos\Services\RealTime\StateService;
@@ -80,13 +85,133 @@ final class RunnerServiceTest extends TestCase
         $this->assertSame(':wait:', $logs[$question + 1]);
     }
 
-    private function listen(
-        string $code,
-    ): array {
+    public function testSigtermIsSentByRunner(): void
+    {
+        $start = microtime(true);
+
+        $logs = $this->listen(
+            'echo "started\n"; sleep(10);',
+            Signals::Sigterm,
+        );
+
+        $this->assertLessThan(5, microtime(true) - $start);
+        $this->assertContains('sigterm', $logs);
+        $this->assertContains('Process killed by signal: ' . SIGTERM, $logs);
+        $this->assertSame('Finished', end($logs));
+    }
+
+    #[RequiresPhpExtension('pcntl')]
+    /**
+     * @requires extension pcntl
+     */
+    public function testSigkillIsSentByRunner(): void
+    {
+        $logs = $this->listen(
+            'pcntl_signal(SIGTERM, SIG_IGN); echo "started\n"; sleep(10);',
+            Signals::Sigkill,
+        );
+
+        $this->assertContains('sigkill', $logs);
+        $this->assertContains('Process killed by signal: ' . SIGKILL, $logs);
+    }
+
+    public function testKilledRunIsMarked(): void
+    {
+        $command = Command::create(['class' => 'App\\Console\\Commands\\Test']);
+
+        $run = new CommandRun();
+        $run->command()->associate($command);
+        $run->state = 2;
+        $run->save();
+
+        $this->listen(
+            'sleep(10);',
+            Signals::Sigkill,
+            $command->id,
+        );
+
+        $this->assertSame(3, $run->refresh()->state);
+    }
+
+    public function testSignalOfPreviousRunIsDropped(): void
+    {
+        $cache = $this
+            ->app
+            ->make(CacheService::class);
+
+        $cache->setSignal(self::COMMAND_ID, Signals::Sigkill);
+
+        $this
+            ->app
+            ->make(InitializeCacheAction::class)
+            ->execute(new RunDto(commandId: self::COMMAND_ID));
+
+        $this->assertNull(StateService::make(self::COMMAND_ID)->pullSignal());
+    }
+
+    public function testExpiredStateIsRestored(): void
+    {
+        $cache = $this
+            ->app
+            ->make(CacheService::class);
+
+        $cache->set(new RunDto(commandId: self::COMMAND_ID, pid: 123));
+
+        $state = StateService::make(self::COMMAND_ID);
+
+        $cache->delete(self::COMMAND_ID);
+
+        $this->assertSame(123, $state->refresh()->getPid());
+        $this->assertSame(123, StateService::make(self::COMMAND_ID)->getPid());
+    }
+
+    public function testAnswerIsSentToProcess(): void
+    {
+        $logs = $this->listen(
+            'echo "\n Name?:\n > "; $name = trim(fgets(STDIN)); echo "Hello $name\n";',
+            answer: 'John',
+        );
+
+        $this->assertStringContainsString("Hello John\n", implode('', $logs));
+    }
+
+    public function testAnswerIsNotOverwrittenByRunnerState(): void
+    {
         $this
             ->app
             ->make(CacheService::class)
             ->set(new RunDto(commandId: self::COMMAND_ID));
+
+        $runner = StateService::make(self::COMMAND_ID);
+
+        StateService::make(self::COMMAND_ID)->received('John');
+
+        // the runner writes its state that was read before the answer
+        $runner->appendLog('output');
+
+        $this->assertSame('John', $runner->refresh()->pullAnswer());
+        $this->assertNull($runner->pullAnswer());
+    }
+
+    private function listen(
+        string $code,
+        ?Signals $signal = null,
+        int $commandId = self::COMMAND_ID,
+        ?string $answer = null,
+    ): array {
+        $cache = $this
+            ->app
+            ->make(CacheService::class);
+
+        $cache->set(new RunDto(commandId: $commandId));
+
+        if ($signal) {
+            $cache->setSignal($commandId, $signal);
+        }
+
+        if ($answer !== null) {
+            $cache->setAnswer($commandId, $answer);
+        }
 
         $pipes = [];
         $process = proc_open(
@@ -104,7 +229,7 @@ final class RunnerServiceTest extends TestCase
         $properties = [
             'process' => $process,
             'pipes' => $pipes,
-            'state' => StateService::make(self::COMMAND_ID),
+            'state' => StateService::make($commandId),
         ];
 
         foreach ($properties as $name => $value) {
@@ -121,6 +246,6 @@ final class RunnerServiceTest extends TestCase
         fclose($pipes[1]);
         proc_close($process);
 
-        return StateService::make(self::COMMAND_ID)->getLogs();
+        return StateService::make($commandId)->getLogs();
     }
 }

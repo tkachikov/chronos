@@ -11,6 +11,7 @@ use Tkachikov\Chronos\Dto\SortDto;
 use Tkachikov\Chronos\Enums\LastRunStateFilterEnum;
 use Tkachikov\Chronos\Enums\RunsInFilterEnum;
 use Tkachikov\Chronos\Enums\SchedulersFilterEnum;
+use Tkachikov\Chronos\Helpers\MemoryHelper;
 use Tkachikov\Chronos\Managers\CommandManager;
 use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
 use Tkachikov\Chronos\Models\CommandMetric;
@@ -21,6 +22,7 @@ class CommandService
     public function __construct(
         private readonly CommandManager $manager,
         private readonly CommandRunManagerInterface $commandRunManager,
+        private readonly MemoryHelper $memoryHelper,
     ) {
     }
 
@@ -62,10 +64,7 @@ class CommandService
                 value: in_array($sort->column, CommandMetric::$sortKeys, true),
                 callback: fn (Collection $commands): Collection => $commands
                     ->sortBy(
-                        callback: fn (CommandDecorator $decorator) => $decorator
-                            ->getModel()
-                            ->metrics
-                            ->{$sort->column}
+                        callback: fn (CommandDecorator $decorator) => $this->getMetricForSort($decorator, $sort->column)
                             ?? ($sort->direction === 'asc' ? INF : -INF),
                         descending: $sort->direction === 'desc',
                     ),
@@ -152,6 +151,27 @@ class CommandService
     }
 
     /**
+     * Memory is stored with units, so it is compared in bytes.
+     */
+    private function getMetricForSort(
+        CommandDecorator $decorator,
+        string $column,
+    ): ?float {
+        $value = $decorator
+            ->getModel()
+            ->metrics
+            ?->{$column};
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return str_starts_with($column, 'memory_')
+            ? $this->memoryHelper->toBytes($value)
+            : (float) $value;
+    }
+
+    /**
      * @param class-string $class
      */
     public function getByClass(string $class): ?CommandDecorator
@@ -163,17 +183,10 @@ class CommandService
 
     public function exists(string $class): bool
     {
-        $existsInApps = $this
-            ->manager
-            ->getApps()
-            ->has($class);
-
-        $existsInChronos = $this
-            ->manager
-            ->getChronos()
-            ->has($class);
-
-        return $existsInApps || $existsInChronos;
+        return $this
+            ->getByClass($class)
+            ?->isAllowed()
+            ?? false;
     }
 
     /**
@@ -189,6 +202,13 @@ class CommandService
             ->manager
             ->getChronos();
 
-        return $appCommands->merge($chronosCommands);
+        $allowedSystemCommands = $this
+            ->manager
+            ->getSystems()
+            ->filter(fn (CommandDecorator $decorator) => $decorator->isAllowedSystem());
+
+        return $appCommands
+            ->merge($chronosCommands)
+            ->merge($allowedSystemCommands);
     }
 }

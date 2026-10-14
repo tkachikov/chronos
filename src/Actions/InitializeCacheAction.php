@@ -31,6 +31,10 @@ final readonly class InitializeCacheAction
 
         $this
             ->cache
+            ->delete($dto->commandId);
+
+        $this
+            ->cache
             ->set($dto);
     }
 }

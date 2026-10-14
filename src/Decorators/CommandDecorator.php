@@ -9,6 +9,7 @@ use ReflectionException;
 use ReflectionObject;
 use Symfony\Component\Console\Command\Command;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
+use Tkachikov\Chronos\Helpers\PhpHelper;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 
 class CommandDecorator
@@ -62,7 +63,7 @@ class CommandDecorator
         array $args = [],
     ): array {
         return [
-            'php',
+            app(PhpHelper::class)->getBinary(),
             base_path('artisan'),
             $this->getName(),
             ...$this->getArgumentsForExecToArray($args),
@@ -183,6 +184,24 @@ class CommandDecorator
     public function isApp(): bool
     {
         return str($this->command::class)->startsWith('App\\');
+    }
+
+    /**
+     * App and Chronos commands are allowed, system commands only from the config.
+     */
+    public function isAllowed(): bool
+    {
+        return $this->isApp()
+            || $this->isChronos()
+            || $this->isAllowedSystem();
+    }
+
+    public function isAllowedSystem(): bool
+    {
+        $allowed = (array) config('chronos.system_commands', []);
+
+        return in_array($this->getName(), $allowed, true)
+            || in_array($this->command::class, $allowed, true);
     }
 
     public function isChronos(): bool

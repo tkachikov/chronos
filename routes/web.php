@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Tkachikov\Chronos\Http\Controllers\ChronosController;
+use Tkachikov\Chronos\Http\Middleware\EnsureCommandIsAllowed;
 
 Route::controller(ChronosController::class)
     ->name('chronos.')
     ->group(function () {
         Route::get('/', 'index')->name('main');
-        Route::prefix('/{command}')->group(function () {
+        Route::prefix('/{command}')->middleware(EnsureCommandIsAllowed::class)->group(function () {
             Route::get('/', 'edit')->name('edit');
             Route::post('/', 'update')->name('update');
             Route::post('/run', 'run')->name('run');

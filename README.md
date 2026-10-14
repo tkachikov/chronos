@@ -9,7 +9,6 @@
   <img src="https://img.shields.io/badge/Laravel-12.x-blue" alt="Laravel 12.x">
   <img src="https://img.shields.io/badge/Laravel-11.x-blue" alt="Laravel 11.x">
   <img src="https://img.shields.io/badge/Laravel-10.x-blue" alt="Laravel 10.x">
-  <img src="https://img.shields.io/badge/Laravel-9.x-blue" alt="Laravel 9.x">
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 </p>
 
@@ -78,11 +77,31 @@ class ChronosServiceProvider extends ChronosApplicationServiceProvider
 }
 ```
 
+## System commands
+
+Only your application commands (`App\`) and Chronos commands can be run and scheduled from Chronos.
+System commands (Laravel and other packages) are disabled by default.
+To allow some of them, add their names or classes in config `chronos.php`:
+```php
+return [
+    // ...
+
+    'system_commands' => [
+        'cache:clear',
+        'queue:restart',
+    ],
+];
+```
+
 ## Usage
 
 Visit route `/chronos`, example: [localhost:8000/chronos](http://localhost:8000/chronos)
 
 ### For testing
+
+Chronos has commands for testing (`chronos:test`, `chronos:answer`, `chronos:dd`, ...).
+By default they are registered only in the `local` environment.
+To enable or disable them explicitly set `CHRONOS_TEST_COMMANDS=true` or `false` in `.env`.
 
 Open `chronos:test` command:
 ![Open test](images/open_test.png)

@@ -102,7 +102,10 @@ class ChronosController extends Controller
         Command $command,
         ScheduleSaveRequest $request,
     ): RedirectResponse {
-        $this->scheduleService->saveSchedule($request->validated());
+        $this->scheduleService->saveSchedule([
+            ...$request->validated(),
+            'command_id' => $command->id,
+        ]);
 
         return redirect()
             ->route('chronos.edit', [
@@ -161,9 +164,13 @@ class ChronosController extends Controller
 
     public function getLogsForRunInRealTime(
         Command $command,
+        Request $request,
         GetStateAndFinishRunAction $action,
     ) {
-        return response()->json($action->execute($command));
+        return response()->json($action->execute(
+            $command,
+            max(0, $request->integer('offset')),
+        ));
     }
 
     public function setAnswerForRunning(

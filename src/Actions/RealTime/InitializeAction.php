@@ -8,12 +8,14 @@ use Exception;
 use Tkachikov\Chronos\Actions\InitializeCacheAction;
 use Tkachikov\Chronos\Converters\RealTimeConverter;
 use Tkachikov\Chronos\Dto\RealTimeDto;
+use Tkachikov\Chronos\Helpers\PhpHelper;
 
 final readonly class InitializeAction
 {
     public function __construct(
         private InitializeCacheAction $initializeCacheAction,
         private RealTimeConverter $converter,
+        private PhpHelper $phpHelper,
     ) {
     }
 
@@ -32,8 +34,9 @@ final readonly class InitializeAction
             ->execute($runDto);
 
         \exec(sprintf(
-            'php %s %s %d > /dev/null 2>&1 &',
-            base_path('artisan'),
+            '%s %s %s %d > /dev/null 2>&1 &',
+            escapeshellarg($this->phpHelper->getBinary()),
+            escapeshellarg(base_path('artisan')),
             'chronos:run-background',
             $dto->commandId,
         ));
