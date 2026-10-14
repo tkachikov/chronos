@@ -8,7 +8,7 @@ use Closure;
 
 class ChronosAuthentication
 {
-    public static Closure $auth;
+    public static ?Closure $auth = null;
 
     /**
      * @param $callable
@@ -29,7 +29,7 @@ class ChronosAuthentication
      */
     public static function check($request): bool
     {
-        return (static::$auth ?: function () {
+        return (static::$auth ?? function () {
             return app()->environment('local');
         })($request);
     }
