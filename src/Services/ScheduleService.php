@@ -6,9 +6,8 @@ namespace Tkachikov\Chronos\Services;
 
 use Exception;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
-use Illuminate\Support\Facades\DB;
 use Throwable;
-use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Helpers\MemoryHelper;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandMetric;
@@ -21,8 +20,8 @@ class ScheduleService
     public function __construct(
         private readonly CommandService $commandService,
         private readonly ScheduleRepository $scheduleRepository,
-        private readonly DatabaseHelper $databaseHelper,
         private readonly TimeRepositoryInterface $timeRepository,
+        private readonly MemoryHelper $memoryHelper,
     ) {
     }
 
@@ -144,62 +143,82 @@ class ScheduleService
         return $logs;
     }
 
+    /**
+     * Avg is calculated by the runs that are stored now (they are deleted by chronos:free-logs),
+     * min and max are kept for all time.
+     */
     public function updateMetrics(): void
     {
         $metrics = CommandMetric::query()
             ->get()
-            ->keyBy('command_id')
-            ->toArray();
-        $newMetrics = $this->getStatistics();
-        $rows = [];
-        $now = now()->format('Y-m-d H:i:s');
-        foreach ($newMetrics as $commandId => $values) {
-            $row = ['command_id' => $commandId, 'created_at' => $now, 'updated_at' => $now];
-            foreach (['time', 'memory'] as $type) {
-                foreach (['avg', 'min', 'max'] as $key) {
-                    $index = $type . '_' . $key;
-                    $value = (float) $values[$index];
-                    $oldValue = (float) ($metrics[$index] ?? 0);
-                    $row[$index] = match ($key) {
-                        'avg' => ($oldValue + $value) / ($oldValue ? 2 : 1),
-                        'min' => $oldValue ? min($oldValue, $value) : $value,
-                        'max' => $oldValue ? max($oldValue, $value) : $value,
-                    };
-                    if ($type === 'memory') {
-                        $row[$index] .= ' MB';
-                    }
-                }
+            ->keyBy('command_id');
+
+        foreach ($this->getStatistics() as $commandId => $values) {
+            /** @var CommandMetric|null $metric */
+            $metric = $metrics->get($commandId);
+
+            $timeMin = min($values['time_min'], (float) ($metric->time_min ?? INF));
+            $timeMax = max($values['time_max'], (float) ($metric->time_max ?? -INF));
+            $row = [
+                'time_avg' => (string) round($values['time_avg']),
+                'time_min' => (string) round($timeMin),
+                'time_max' => (string) round($timeMax),
+            ];
+
+            if ($values['memory_avg'] === null) {
+                $row += [
+                    'memory_avg' => $metric->memory_avg ?? '',
+                    'memory_min' => $metric->memory_min ?? '',
+                    'memory_max' => $metric->memory_max ?? '',
+                ];
+            } else {
+                $oldMin = $this->memoryHelper->toBytes($metric?->memory_min);
+                $oldMax = $this->memoryHelper->toBytes($metric?->memory_max);
+
+                $row += [
+                    'memory_avg' => $this->memoryHelper->format($values['memory_avg']),
+                    'memory_min' => $this->memoryHelper->format(min($values['memory_min'], $oldMin ?? INF)),
+                    'memory_max' => $this->memoryHelper->format(max($values['memory_max'], $oldMax ?? -INF)),
+                ];
             }
-            $rows[] = $row;
-        }
-        if ($rows) {
-            CommandMetric::truncate();
-            CommandMetric::insert($rows);
+
+            CommandMetric::query()->updateOrCreate(
+                ['command_id' => $commandId],
+                $row,
+            );
         }
     }
 
     /**
-     * @description Values memory in Megabytes
+     * Statistics of finished runs: time in seconds, memory in bytes.
+     *
+     * @return array<int, array{time_avg: float, time_min: float, time_max: float, memory_avg: float|null, memory_min: float|null, memory_max: float|null}>
      */
     public function getStatistics(): array
     {
-        $diffDate = $this->databaseHelper->getTimeDiffInSeconds('created_at', 'updated_at');
-        $concat = $this->databaseHelper->getConcat(DB::raw('round(avg(memory))'), ' MB');
-        $select = [
-            'command_id',
-            DB::raw("round(avg($diffDate)) time_avg"),
-            DB::raw("min($diffDate) time_min"),
-            DB::raw("max($diffDate) time_max"),
-            DB::raw("$concat memory_avg"),
-            DB::raw('min(memory) memory_min'),
-            DB::raw('max(memory) memory_max'),
-        ];
+        $runs = [];
 
-        return CommandRun::query()
-            ->select($select)
-            ->groupBy('command_id')
-            ->get()
-            ->keyBy('command_id')
-            ->toArray();
+        CommandRun::query()
+            ->select(['id', 'command_id', 'memory', 'created_at', 'updated_at'])
+            ->where('state', '!=', 2)
+            ->lazyById()
+            ->each(function (CommandRun $run) use (&$runs): void {
+                $runs[$run->command_id]['time'][] = abs($run->updated_at->getTimestamp() - $run->created_at->getTimestamp());
+
+                $memory = $this->memoryHelper->toBytes($run->memory);
+
+                if ($memory !== null) {
+                    $runs[$run->command_id]['memory'][] = $memory;
+                }
+            });
+
+        return array_map(fn (array $values): array => [
+            'time_avg' => array_sum($values['time']) / count($values['time']),
+            'time_min' => (float) min($values['time']),
+            'time_max' => (float) max($values['time']),
+            'memory_avg' => isset($values['memory']) ? array_sum($values['memory']) / count($values['memory']) : null,
+            'memory_min' => isset($values['memory']) ? min($values['memory']) : null,
+            'memory_max' => isset($values['memory']) ? max($values['memory']) : null,
+        ], $runs);
     }
 }
