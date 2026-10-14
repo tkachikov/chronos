@@ -196,20 +196,37 @@
         }
         function setLog(message) {
             if (message === ':wait:') {
-                message = `<span contenteditable="true" tabindex="0" style="outline: none; margin-left: 10px;" class="w-100 entering" onkeyup="sendAnswer(event)"></span>`;
-                document.querySelector('#terminal > div:last-child > div > pre').innerHTML += message;
-                document.querySelector('#terminal > div:last-child .entering').focus();
+                let entering = document.createElement('span');
+                entering.contentEditable = 'true';
+                entering.tabIndex = 0;
+                entering.style.outline = 'none';
+                entering.style.marginLeft = '10px';
+                entering.className = 'w-100 entering';
+                entering.onkeyup = sendAnswer;
+
+                document.querySelector('#terminal > div:last-child > div > pre').append(entering);
+                entering.focus();
             } else {
-                message = `<div class="row mx-auto w-100 py-1"><div class="col pl-5"><pre class="m-0">${message}</pre></div></div>`;
-                document.getElementById('terminal').innerHTML += message;
+                let row = document.createElement('div');
+                let col = document.createElement('div');
+                let pre = document.createElement('pre');
+
+                row.className = 'row mx-auto w-100 py-1';
+                col.className = 'col pl-5';
+                pre.className = 'm-0';
+                pre.style.whiteSpace = 'pre-wrap';
+                pre.style.overflowWrap = 'anywhere';
+                pre.textContent = message;
+
+                col.append(pre);
+                row.append(col);
+                terminal.append(row);
 
                 if (autoScroll) {
-                    document
-                        .querySelector('#terminal .row:last-child')
-                        .scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'end',
-                        });
+                    row.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'end',
+                    });
                 }
             }
         }

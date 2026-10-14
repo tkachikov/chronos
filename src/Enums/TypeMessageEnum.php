@@ -6,6 +6,8 @@ namespace Tkachikov\Chronos\Enums;
 
 enum TypeMessageEnum: string
 {
+    case LINE = 'line';
+
     case COMMENT = 'comment';
 
     case INFO = 'info';
@@ -26,7 +28,7 @@ enum TypeMessageEnum: string
     public function css(): string
     {
         return (match ($this) {
-            self::COMMENT => CssLevelClassEnum::SECONDARY,
+            self::LINE, self::COMMENT => CssLevelClassEnum::SECONDARY,
             self::INFO => CssLevelClassEnum::PRIMARY,
             self::QUESTION, self::ALERT => CssLevelClassEnum::WARNING,
             self::ERROR, self::WARNING => CssLevelClassEnum::DANGER,
