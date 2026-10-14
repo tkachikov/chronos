@@ -9,7 +9,6 @@
   <img src="https://img.shields.io/badge/Laravel-12.x-blue" alt="Laravel 12.x">
   <img src="https://img.shields.io/badge/Laravel-11.x-blue" alt="Laravel 11.x">
   <img src="https://img.shields.io/badge/Laravel-10.x-blue" alt="Laravel 10.x">
-  <img src="https://img.shields.io/badge/Laravel-9.x-blue" alt="Laravel 9.x">
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 </p>
 
