@@ -22,6 +22,8 @@ class RunnerService
 
     private StateService $state;
 
+    private string $lastChar = '';
+
     public function __construct(
         private readonly CommandService $commandService,
     ) {
@@ -123,32 +125,20 @@ class RunnerService
             ->appendLog('Waiting messages...');
 
         stream_set_blocking($this->pipes[1], false);
-        $in = '';
+        $buffer = '';
 
-        while (!feof($this->pipes[1])) {
-            $in .= fread($this->pipes[1], CHRONOS_READ_BYTES);
+        while (true) {
+            $status = proc_get_status($this->process);
+            $finished = !data_get($status, 'running');
 
-            if (
-                $in
-                && mb_check_encoding($in, 'UTF-8')
-            ) {
-                $this
-                    ->state
-                    ->appendLog($in);
+            $in = $this->read($finished);
+            $buffer .= $in;
 
-                $this->checkAwaiting($in);
-
-                $in = '';
-            }
+            $this->flush($buffer, $in === '', $finished);
 
             $this->sendAnswerIfNeeded();
 
-            $status = proc_get_status($this->process);
-
-            if (
-                !data_get($status, 'running')
-                && empty($in)
-            ) {
+            if ($finished) {
                 $this
                     ->state
                     ->appendLog(sprintf(
@@ -165,6 +155,76 @@ class RunnerService
         $this
             ->state
             ->finished();
+    }
+
+    /**
+     * Reads everything that is available in the pipe right now.
+     * After the process has finished the rest of the pipe is read without limit.
+     */
+    private function read(
+        bool $finished,
+    ): string {
+        $in = '';
+
+        while (
+            $finished
+            || strlen($in) < CHRONOS_MAX_MESSAGE_LENGTH
+        ) {
+            $chunk = fread($this->pipes[1], CHRONOS_READ_BYTES);
+
+            if (
+                $chunk === false
+                || $chunk === ''
+            ) {
+                break;
+            }
+
+            $in .= $chunk;
+        }
+
+        return $in;
+    }
+
+    /**
+     * Sends only complete lines so that a long line is not split between messages.
+     * The unfinished line is sent when the process is idle (e.g. waiting for an answer) or finished.
+     */
+    private function flush(
+        string &$buffer,
+        bool $idle,
+        bool $finished,
+    ): void {
+        $position = strrpos($buffer, "\n");
+
+        $length = match (true) {
+            $idle, $finished => strlen($buffer),
+            $position === false => 0,
+            default => $position + 1,
+        };
+
+        $message = substr($buffer, 0, $length);
+
+        if ($message === '') {
+            return;
+        }
+
+        if (!mb_check_encoding($message, 'UTF-8')) {
+            if (!$finished) {
+                return;
+            }
+
+            $message = mb_scrub($message, 'UTF-8');
+        }
+
+        $buffer = substr($buffer, $length);
+
+        $this
+            ->state
+            ->appendLog($message);
+
+        $this->checkAwaiting($this->lastChar . $message);
+
+        $this->lastChar = substr($message, -1);
     }
 
     private function checkAwaiting(

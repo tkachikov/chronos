@@ -31,6 +31,26 @@ class DatabaseHelper
             && Schema::hasTable($this->getTable($model));
     }
 
+    public function hasColumn(Model|string $model, string $column): bool
+    {
+        return $this->hasConnect()
+            && Schema::hasColumn($this->getTable($model), $column);
+    }
+
+    /**
+     * @return class-string<Model>|null
+     */
+    public function getDefaultUserModel(): ?string
+    {
+        $guard = config('auth.defaults.guard');
+        $provider = config("auth.guards.$guard.provider");
+        $model = config("auth.providers.$provider.model");
+
+        return is_string($model) && is_subclass_of($model, Model::class)
+            ? $model
+            : null;
+    }
+
     public function getTable(Model|string $model): string
     {
         return $this->getObject($model)->getTable();

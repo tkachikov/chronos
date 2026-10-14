@@ -429,6 +429,66 @@ final class RunCommandTest extends TestCase
         );
     }
 
+    public static function getLineStyles(): array
+    {
+        return [
+            'without style' => ['', 'line'],
+            'known style' => [", 'error'", 'error'],
+            'custom style' => [", 'fg=red'", 'line'],
+        ];
+    }
+
+    #[DataProvider('getLineStyles')]
+    /**
+     * @dataProvider getLineStyles
+     */
+    public function testLogsFromLine(
+        string $style,
+        string $type,
+    ): void {
+        $this->makeCommand(
+            command: 'app:test {--uuid=}',
+            withChronosTrait: true,
+            body: "\$this->line(\$this->option('uuid')$style);",
+        );
+
+        $this
+            ->app
+            ->make(ArtisanRepositoryInterface::class)
+            ->load();
+
+        $manager = $this
+            ->app
+            ->make(CommandManager::class);
+
+        $decorator = $manager
+            ->getApps()
+            ->first();
+
+        $model = $decorator->getModel();
+        $uuid = Str::uuid()->toString();
+
+        $result = $this
+            ->artisan('app:test', ['--uuid' => $uuid])
+            ->run();
+
+        $this->assertEquals(Command::SUCCESS, $result);
+
+        $run = $model
+            ->runs()
+            ->latest('id')
+            ->first();
+
+        $this->assertDatabaseHas(
+            (new CommandLog())->getTable(),
+            [
+                'command_run_id' => $run->id,
+                'type' => $type,
+                'message' => $uuid,
+            ],
+        );
+    }
+
     #[DataProvider('getScheduleTimes')]
     /**
      * @dataProvider getScheduleTimes
