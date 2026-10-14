@@ -203,12 +203,14 @@ class ScheduleService
             ->where('state', '!=', 2)
             ->lazyById()
             ->each(function (CommandRun $run) use (&$runs): void {
-                $runs[$run->command_id]['time'][] = abs($run->updated_at->getTimestamp() - $run->created_at->getTimestamp());
+                $commandId = (int) $run->command_id;
+
+                $runs[$commandId]['time'][] = abs($run->updated_at->getTimestamp() - $run->created_at->getTimestamp());
 
                 $memory = $this->memoryHelper->toBytes($run->memory);
 
                 if ($memory !== null) {
-                    $runs[$run->command_id]['memory'][] = $memory;
+                    $runs[$commandId]['memory'][] = $memory;
                 }
             });
 

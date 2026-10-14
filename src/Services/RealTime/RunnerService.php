@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services\RealTime;
 
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
@@ -293,9 +294,11 @@ class RunnerService
         CommandRun::query()
             ->where('command_id', $this->state->dto->commandId)
             ->where('state', 2)
-            ->where(fn ($query) => $query
-                ->where('pid', $pid)
-                ->orWhereNull('pid'))
+            ->where(function (Builder $query) use ($pid): void {
+                $query
+                    ->where('pid', $pid)
+                    ->orWhereNull('pid');
+            })
             ->latest('id')
             ->first()
             ?->update(['state' => 3]);

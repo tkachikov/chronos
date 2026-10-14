@@ -49,6 +49,7 @@ class ChronosServiceProvider extends ServiceProvider
     /**
      * New keys get defaults also for apps with the config published by an older version.
      */
+    #[\Override]
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__ . '/../../config/chronos.php', 'chronos');
@@ -105,7 +106,7 @@ class ChronosServiceProvider extends ServiceProvider
         $testCommands = config('chronos.test_commands');
 
         return $testCommands === null
-            ? $this->app->environment('local')
+            ? $this->app->environment() === 'local'
             : filter_var($testCommands, FILTER_VALIDATE_BOOLEAN);
     }
 
