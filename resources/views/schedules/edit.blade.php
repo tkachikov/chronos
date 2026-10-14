@@ -26,6 +26,20 @@
                 </div>
             </div>
         @endif
+        <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
+            <div class="col-4">
+                <label for="name">Name</label>
+            </div>
+            <div class="col-8">
+                <input id="name"
+                       class="form-control"
+                       type="text"
+                       name="name"
+                       maxlength="255"
+                       value="{{ old('name', $schedule?->name) }}"
+                       form="updateForm">
+            </div>
+        </div>
         @foreach(['run', 'without_overlapping', 'run_in_background'] as $key)
             <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
                 <div class="col-4">

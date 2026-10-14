@@ -7,6 +7,7 @@
             <thead>
             <tr>
                 <th>ID</th>
+                <th>Name</th>
                 <th>User</th>
                 <th>Run</th>
                 <th>With overlapping</th>
@@ -19,7 +20,7 @@
             <tbody>
             @if(!$command->getModel()->schedules->count())
                 <tr>
-                    <td colspan="8" @class(['border-bottom-0' => true])>No schedules</td>
+                    <td colspan="9" @class(['border-bottom-0' => true])>No schedules</td>
                 </tr>
             @endif
             @foreach($command->getModel()->schedules as $item)
@@ -34,6 +35,7 @@
                 @endphp
                 <tr @class(['bg-light' => $item->id == $schedule?->id])>
                     <td @class($border)>{{ $item->id }}</td>
+                    <td @class($border)>{{ $item->name }}</td>
                     <td @class($border)>
                         @if($item->user_id && ($user = $item->userWithTrashed()->first()))
                             {{ $user->email }}
