@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Traits;
 
+use Illuminate\Support\Collection;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
@@ -21,6 +22,8 @@ trait ChronosRunnerTrait
 {
     public static int $waiting = 2;
 
+    public static int $killed = 3;
+
     public static int $maxLogSize = 1000;
 
     private MemoryHelper $memoryHelper;
@@ -33,6 +36,8 @@ trait ChronosRunnerTrait
 
     private array $logs = [];
 
+    private bool $sigtermTrapped = false;
+
     /**
      * @throws Throwable
      */
@@ -43,7 +48,7 @@ trait ChronosRunnerTrait
         $this->createRun();
         $this->appendLog(TypeMessageEnum::INFO, 'Running command');
 
-        $this->trap(SIGTERM, fn ($s) => $this->info('Signal received: ' . $s));
+        parent::trap(SIGTERM, fn (int $signal) => $this->handleSigterm($signal));
 
         try {
             $state = parent::run($input, $output);
@@ -62,6 +67,17 @@ trait ChronosRunnerTrait
         }
 
         return $state;
+    }
+
+    public function trap($signals, $callback): void
+    {
+        $signals = Collection::wrap(value($signals));
+
+        if ($signals->contains(SIGTERM)) {
+            $this->sigtermTrapped = true;
+        }
+
+        parent::trap($signals->all(), $callback);
     }
 
     public function alert($string, $verbosity = null): void
@@ -113,6 +129,24 @@ trait ChronosRunnerTrait
         $this->updateRun(self::FAILURE);
 
         exit(1);
+    }
+
+    /**
+     * The command is finished by SIGTERM unless it traps SIGTERM itself for a graceful shutdown.
+     */
+    private function handleSigterm(int $signal): void
+    {
+        $this->info('Signal received: ' . $signal);
+
+        if ($this->sigtermTrapped) {
+            return;
+        }
+
+        $this->appendLog(TypeMessageEnum::INFO, 'Finished command');
+        $this->saveLogs();
+        $this->updateRun(self::$killed);
+
+        exit(128 + $signal);
     }
 
     private function initDi(): void

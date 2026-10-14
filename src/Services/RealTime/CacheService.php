@@ -6,6 +6,7 @@ namespace Tkachikov\Chronos\Services\RealTime;
 
 use Illuminate\Cache\CacheManager;
 use Tkachikov\Chronos\Dto\RunDto;
+use Tkachikov\Chronos\Enums\Signals;
 
 final readonly class CacheService
 {
@@ -40,7 +41,7 @@ final readonly class CacheService
 
     public function get(
         int $commandId,
-    ): RunDto {
+    ): ?RunDto {
         $key = $this->getKey($commandId);
 
         return $this
@@ -56,6 +57,41 @@ final readonly class CacheService
         $this
             ->driver
             ->delete($key);
+
+        $this
+            ->driver
+            ->delete($this->getSignalKey($commandId));
+    }
+
+    public function setSignal(
+        int $commandId,
+        Signals $signal,
+    ): void {
+        $this
+            ->driver
+            ->set(
+                $this->getSignalKey($commandId),
+                $signal->value,
+                now()->addMinutes(5),
+            );
+    }
+
+    public function pullSignal(
+        int $commandId,
+    ): ?Signals {
+        $signal = $this
+            ->driver
+            ->pull($this->getSignalKey($commandId));
+
+        return is_string($signal)
+            ? Signals::tryFrom($signal)
+            : null;
+    }
+
+    private function getSignalKey(
+        int $commandId,
+    ): string {
+        return $this->getKey($commandId) . '-signal';
     }
 
     private function getKey(

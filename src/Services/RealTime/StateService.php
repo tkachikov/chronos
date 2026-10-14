@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services\RealTime;
 
 use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
 use Tkachikov\Chronos\Dto\RunDto;
 use Tkachikov\Chronos\Enums\AnswerState;
 use Tkachikov\Chronos\Enums\Signals;
@@ -22,18 +23,30 @@ final readonly class StateService
     ): self {
         /** @var CacheService $cache */
         $cache = app(CacheService::class);
-        $dto = $cache->get($commandId);
+        $dto = $cache->get($commandId)
+            ?? throw new RuntimeException('Command is not running');
 
         return new self($dto, $cache);
     }
 
+    /**
+     * If the state has expired in the cache (e.g. the command is silent for a long time), it is restored.
+     */
     public function refresh(): self
     {
-        $commandId = $this
-            ->dto
-            ->commandId;
+        $dto = $this
+            ->cache
+            ->get($this->dto->commandId);
 
-        return self::make($commandId);
+        if ($dto === null) {
+            $this
+                ->cache
+                ->set($this->dto);
+
+            return $this;
+        }
+
+        return new self($dto, $this->cache);
     }
 
     public function getArgs(): array
@@ -168,14 +181,24 @@ final readonly class StateService
             ->set($this->dto);
     }
 
+    /**
+     * The signal is sent by the runner, because only it owns the process (it can be on another server).
+     */
     public function sigterm(): void
     {
-        $this->sendSignal(Signals::Sigterm);
+        $this->requestSignal(Signals::Sigterm);
     }
 
     public function sigkill(): void
     {
-        $this->sendSignal(Signals::Sigkill);
+        $this->requestSignal(Signals::Sigkill);
+    }
+
+    public function pullSignal(): ?Signals
+    {
+        return $this
+            ->cache
+            ->pullSignal($this->dto->commandId);
     }
 
     public function finished(): void
@@ -203,33 +226,11 @@ final readonly class StateService
             ->delete($this->dto->commandId);
     }
 
-    private function sendSignal(
+    private function requestSignal(
         Signals $signal,
     ): void {
-        $this->appendLog($signal->value);
-
-        if (!function_exists('posix_kill')) {
-            $this->appendLog('POSIX not installed');
-
-            return;
-        }
-
-        $pid = $this
-            ->dto
-            ->pid;
-
-        if (!$pid) {
-            $this->appendLog('PID not found');
-
-            return;
-        }
-
-        \exec(sprintf(
-            'kill -%d %d',
-            $signal->getSignal(),
-            $pid,
-        ));
-
-        $this->finished();
+        $this
+            ->cache
+            ->setSignal($this->dto->commandId, $signal);
     }
 }

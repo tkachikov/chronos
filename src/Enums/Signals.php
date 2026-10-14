@@ -31,12 +31,7 @@ enum Signals: string
             ->upper()
             ->toString();
 
-        return $this->posixExists()
+        return function_exists('proc_terminate')
             && defined($constName);
-    }
-
-    private function posixExists(): bool
-    {
-        return function_exists('posix_kill');
     }
 }

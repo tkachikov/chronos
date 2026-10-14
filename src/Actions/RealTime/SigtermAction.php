@@ -14,9 +14,5 @@ final readonly class SigtermAction
     ): void {
         StateService::make($command->id)
             ->sigterm();
-
-        $command
-            ->lastRun()
-            ->update(['state' => 3]);
     }
 }
