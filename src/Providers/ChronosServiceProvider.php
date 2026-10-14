@@ -75,16 +75,30 @@ class ChronosServiceProvider extends ServiceProvider
             ]);
         }
         $this->commands([
-            ChronosTestCommand::class,
-            ChronosDdTestCommand::class,
-            ChronosDumpTestCommand::class,
             ChronosFreeLogsCommand::class,
-            ChronosAnswerTestCommand::class,
             ChronosUpdateMetricsCommand::class,
-            ChronosMalformedTestCommand::class,
-            ChronosOnlyOptionsTestCommand::class,
-            ChronosOnlyArgumentsTestCommand::class,
         ]);
+
+        if ($this->hasTestCommands()) {
+            $this->commands([
+                ChronosTestCommand::class,
+                ChronosDdTestCommand::class,
+                ChronosDumpTestCommand::class,
+                ChronosAnswerTestCommand::class,
+                ChronosMalformedTestCommand::class,
+                ChronosOnlyOptionsTestCommand::class,
+                ChronosOnlyArgumentsTestCommand::class,
+            ]);
+        }
+    }
+
+    private function hasTestCommands(): bool
+    {
+        $testCommands = config('chronos.test_commands');
+
+        return $testCommands === null
+            ? $this->app->environment('local')
+            : filter_var($testCommands, FILTER_VALIDATE_BOOLEAN);
     }
 
     public function loadMigrations(): void

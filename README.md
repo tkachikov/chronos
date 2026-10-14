@@ -100,6 +100,10 @@ Visit route `/chronos`, example: [localhost:8000/chronos](http://localhost:8000/
 
 ### For testing
 
+Chronos has commands for testing (`chronos:test`, `chronos:answer`, `chronos:dd`, ...).
+By default they are registered only in the `local` environment.
+To enable or disable them explicitly set `CHRONOS_TEST_COMMANDS=true` or `false` in `.env`.
+
 Open `chronos:test` command:
 ![Open test](images/open_test.png)
 
