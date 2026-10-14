@@ -164,9 +164,13 @@ class ChronosController extends Controller
 
     public function getLogsForRunInRealTime(
         Command $command,
+        Request $request,
         GetStateAndFinishRunAction $action,
     ) {
-        return response()->json($action->execute($command));
+        return response()->json($action->execute(
+            $command,
+            max(0, $request->integer('offset')),
+        ));
     }
 
     public function setAnswerForRunning(

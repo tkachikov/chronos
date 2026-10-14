@@ -10,6 +10,7 @@ final readonly class RealTimeStateDto
         public array $logs,
         public bool $status,
         public array $signals,
+        public int $offset = 0,
     ) {
     }
 }

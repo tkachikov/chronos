@@ -158,7 +158,7 @@
             var timer = setInterval(() => {
                 var xhr = new XMLHttpRequest();
 
-                xhr.open('GET', {{ Js::from(route('chronos.runInRealTime.logs', $command->getModel())) }}, true);
+                xhr.open('GET', {{ Js::from(route('chronos.runInRealTime.logs', $command->getModel())) }} + '?offset=' + logs.length, true);
 
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4 && xhr.status === 200) {
@@ -172,7 +172,9 @@
                             $('#sigkill').show();
                         }
 
-                        data.logs.forEach((value, index) => {
+                        data.logs.forEach((value, i) => {
+                            let index = (data.offset || 0) + i;
+
                             if (!logs.hasOwnProperty(index)) {
                                 logs[index] = value.trim();
                                 setLog(value.trim());
