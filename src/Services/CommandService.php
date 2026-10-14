@@ -163,17 +163,10 @@ class CommandService
 
     public function exists(string $class): bool
     {
-        $existsInApps = $this
-            ->manager
-            ->getApps()
-            ->has($class);
-
-        $existsInChronos = $this
-            ->manager
-            ->getChronos()
-            ->has($class);
-
-        return $existsInApps || $existsInChronos;
+        return $this
+            ->getByClass($class)
+            ?->isAllowed()
+            ?? false;
     }
 
     /**
@@ -189,6 +182,13 @@ class CommandService
             ->manager
             ->getChronos();
 
-        return $appCommands->merge($chronosCommands);
+        $allowedSystemCommands = $this
+            ->manager
+            ->getSystems()
+            ->filter(fn (CommandDecorator $decorator) => $decorator->isAllowedSystem());
+
+        return $appCommands
+            ->merge($chronosCommands)
+            ->merge($allowedSystemCommands);
     }
 }

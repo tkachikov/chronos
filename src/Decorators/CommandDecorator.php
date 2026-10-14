@@ -185,6 +185,24 @@ class CommandDecorator
         return str($this->command::class)->startsWith('App\\');
     }
 
+    /**
+     * App and Chronos commands are allowed, system commands only from the config.
+     */
+    public function isAllowed(): bool
+    {
+        return $this->isApp()
+            || $this->isChronos()
+            || $this->isAllowedSystem();
+    }
+
+    public function isAllowedSystem(): bool
+    {
+        $allowed = (array) config('chronos.system_commands', []);
+
+        return in_array($this->getName(), $allowed, true)
+            || in_array($this->command::class, $allowed, true);
+    }
+
     public function isChronos(): bool
     {
         $nameSpace = str(__NAMESPACE__)->before('\\');

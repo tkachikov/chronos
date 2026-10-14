@@ -78,6 +78,22 @@ class ChronosServiceProvider extends ChronosApplicationServiceProvider
 }
 ```
 
+## System commands
+
+Only your application commands (`App\`) and Chronos commands can be run and scheduled from Chronos.
+System commands (Laravel and other packages) are disabled by default.
+To allow some of them, add their names or classes in config `chronos.php`:
+```php
+return [
+    // ...
+
+    'system_commands' => [
+        'cache:clear',
+        'queue:restart',
+    ],
+];
+```
+
 ## Usage
 
 Visit route `/chronos`, example: [localhost:8000/chronos](http://localhost:8000/chronos)

@@ -31,7 +31,10 @@ class CommandRunJob implements ShouldQueue, ShouldBeUnique
 
     public function handle(CommandService $commandService): void
     {
-        if ($commandService->getByClass($this->class)->runInManual()) {
+        if (
+            $commandService->exists($this->class)
+            && $commandService->getByClass($this->class)->runInManual()
+        ) {
             Artisan::call($this->class, $this->args);
         }
     }

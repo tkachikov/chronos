@@ -38,6 +38,17 @@ class RunnerService
     ): void {
         $this->state = StateService::make($commandId);
         $command = Command::find($commandId);
+
+        if (
+            !$command
+            || !$this->commandService->exists($command->class)
+        ) {
+            $this->state->appendLog('Command is not allowed');
+            $this->state->finished();
+
+            return;
+        }
+
         $this->decorator = $this
             ->commandService
             ->getByClass($command->class);

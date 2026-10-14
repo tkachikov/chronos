@@ -102,7 +102,10 @@ class ChronosController extends Controller
         Command $command,
         ScheduleSaveRequest $request,
     ): RedirectResponse {
-        $this->scheduleService->saveSchedule($request->validated());
+        $this->scheduleService->saveSchedule([
+            ...$request->validated(),
+            'command_id' => $command->id,
+        ]);
 
         return redirect()
             ->route('chronos.edit', [
