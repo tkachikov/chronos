@@ -100,6 +100,13 @@ final class HealthTest extends TestCase
             ->assertFailed();
     }
 
+    protected function getEnvironmentSetUp($app): void
+    {
+        parent::getEnvironmentSetUp($app);
+
+        $app['config']->set('chronos.middlewares', []);
+    }
+
     private function reloadRoutes(): void
     {
         $this->app['router']->setRoutes(new RouteCollection());

@@ -41,9 +41,12 @@ class SchedulerHeartbeatService
             return collect();
         }
 
-        return SchedulerHeartbeat::query()
+        /** @var Collection<int, SchedulerHeartbeat> $heartbeats */
+        $heartbeats = SchedulerHeartbeat::query()
             ->orderByDesc('last_run_at')
             ->get();
+
+        return $heartbeats;
     }
 
     public function getLastRunAt(): ?Carbon
@@ -77,7 +80,11 @@ class SchedulerHeartbeatService
      */
     public function getTimeout(): int
     {
-        return max(1, (int) config('chronos.monitoring.scheduler_timeout', 5));
+        $timeout = config('chronos.monitoring.scheduler_timeout');
+
+        return is_numeric($timeout)
+            ? max(1, (int) $timeout)
+            : 5;
     }
 
     public function getHost(): string
