@@ -22,6 +22,7 @@ class ScheduleService
         private readonly ScheduleRepository $scheduleRepository,
         private readonly TimeRepositoryInterface $timeRepository,
         private readonly MemoryHelper $memoryHelper,
+        private readonly ScheduleTrackerService $scheduleTracker,
     ) {
     }
 
@@ -58,6 +59,8 @@ class ScheduleService
                 if ($schedule->name) {
                     $event->description($schedule->name);
                 }
+
+                $this->scheduleTracker->track($event, $schedule);
 
                 $properties = [
                     'without_overlapping' => [$schedule->without_overlapping_time],

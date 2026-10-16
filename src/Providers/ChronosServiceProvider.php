@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Providers;
 
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Console\Events\ScheduledBackgroundTaskFinished;
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Console\Events\ScheduledTaskFinished;
+use Illuminate\Console\Events\ScheduledTaskSkipped;
+use Illuminate\Console\Events\ScheduledTaskStarting;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Events\DatabaseRefreshed;
 use Illuminate\Database\Events\MigrationsEnded;
@@ -37,6 +42,7 @@ use Tkachikov\Chronos\Repositories\TimeRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 use Tkachikov\Chronos\Services\SchedulerHeartbeatService;
 use Tkachikov\Chronos\Services\ScheduleService;
+use Tkachikov\Chronos\Services\ScheduleTrackerService;
 
 class ChronosServiceProvider extends ServiceProvider
 {
@@ -46,6 +52,7 @@ class ChronosServiceProvider extends ServiceProvider
         CommandRepositoryInterface::class => CommandRepository::class,
         CommandRunRepositoryInterface::class => CommandRunRepository::class,
         CommandRunManagerInterface::class => CommandRunManager::class,
+        ScheduleTrackerService::class => ScheduleTrackerService::class,
     ];
 
     /**
@@ -220,6 +227,22 @@ class ChronosServiceProvider extends ServiceProvider
                     ->app
                     ->make(SchedulerHeartbeatService::class)
                     ->beat());
+            },
+        );
+
+        Event::listen(
+            [
+                ScheduledTaskStarting::class,
+                ScheduledTaskFinished::class,
+                ScheduledTaskFailed::class,
+                ScheduledTaskSkipped::class,
+                ScheduledBackgroundTaskFinished::class,
+            ],
+            function (ScheduledTaskStarting|ScheduledTaskFinished|ScheduledTaskFailed|ScheduledTaskSkipped|ScheduledBackgroundTaskFinished $event) {
+                rescue(fn () => $this
+                    ->app
+                    ->make(ScheduleTrackerService::class)
+                    ->handle($event));
             },
         );
     }
