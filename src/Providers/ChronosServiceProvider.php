@@ -46,6 +46,15 @@ class ChronosServiceProvider extends ServiceProvider
         CommandRunManagerInterface::class => CommandRunManager::class,
     ];
 
+    /**
+     * New keys get defaults also for apps with the config published by an older version.
+     */
+    #[\Override]
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__ . '/../../config/chronos.php', 'chronos');
+    }
+
     public function boot(): void
     {
         $this->loadViews();
@@ -75,16 +84,30 @@ class ChronosServiceProvider extends ServiceProvider
             ]);
         }
         $this->commands([
-            ChronosTestCommand::class,
-            ChronosDdTestCommand::class,
-            ChronosDumpTestCommand::class,
             ChronosFreeLogsCommand::class,
-            ChronosAnswerTestCommand::class,
             ChronosUpdateMetricsCommand::class,
-            ChronosMalformedTestCommand::class,
-            ChronosOnlyOptionsTestCommand::class,
-            ChronosOnlyArgumentsTestCommand::class,
         ]);
+
+        if ($this->hasTestCommands()) {
+            $this->commands([
+                ChronosTestCommand::class,
+                ChronosDdTestCommand::class,
+                ChronosDumpTestCommand::class,
+                ChronosAnswerTestCommand::class,
+                ChronosMalformedTestCommand::class,
+                ChronosOnlyOptionsTestCommand::class,
+                ChronosOnlyArgumentsTestCommand::class,
+            ]);
+        }
+    }
+
+    private function hasTestCommands(): bool
+    {
+        $testCommands = config('chronos.test_commands');
+
+        return $testCommands === null
+            ? $this->app->environment() === 'local'
+            : filter_var($testCommands, FILTER_VALIDATE_BOOLEAN);
     }
 
     public function loadMigrations(): void

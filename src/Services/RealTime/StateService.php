@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services\RealTime;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use RuntimeException;
 use Tkachikov\Chronos\Dto\RunDto;
 use Tkachikov\Chronos\Enums\AnswerState;
 use Tkachikov\Chronos\Enums\Signals;
@@ -22,18 +24,30 @@ final readonly class StateService
     ): self {
         /** @var CacheService $cache */
         $cache = app(CacheService::class);
-        $dto = $cache->get($commandId);
+        $dto = $cache->get($commandId)
+            ?? throw new RuntimeException('Command is not running');
 
         return new self($dto, $cache);
     }
 
+    /**
+     * If the state has expired in the cache (e.g. the command is silent for a long time), it is restored.
+     */
     public function refresh(): self
     {
-        $commandId = $this
-            ->dto
-            ->commandId;
+        $dto = $this
+            ->cache
+            ->get($this->dto->commandId);
 
-        return self::make($commandId);
+        if ($dto === null) {
+            $this
+                ->cache
+                ->set($this->dto);
+
+            return $this;
+        }
+
+        return new self($dto, $this->cache);
     }
 
     public function getArgs(): array
@@ -41,13 +55,6 @@ final readonly class StateService
         return $this
             ->dto
             ->args;
-    }
-
-    public function getAnswer(): ?string
-    {
-        return $this
-            ->dto
-            ->answer;
     }
 
     public function isNotAwaiting(): bool
@@ -62,13 +69,6 @@ final readonly class StateService
         return $this
             ->dto
             ->answerState === AnswerState::Pending;
-    }
-
-    public function isReceived(): bool
-    {
-        return $this
-            ->dto
-            ->answerState === AnswerState::Received;
     }
 
     public function getLogs(): array
@@ -101,9 +101,23 @@ final readonly class StateService
 
     public function getUser(): ?Model
     {
-        return $this
-            ->dto
-            ->user;
+        if ($this->dto->user) {
+            return $this->dto->user;
+        }
+
+        if (
+            $this->dto->userType === null
+            || $this->dto->userId === null
+        ) {
+            return null;
+        }
+
+        $class = Relation::getMorphedModel($this->dto->userType)
+            ?? $this->dto->userType;
+
+        return is_subclass_of($class, Model::class)
+            ? $class::find($this->dto->userId)
+            : null;
     }
 
     public function appendLog(
@@ -152,30 +166,42 @@ final readonly class StateService
         $this->appendLog(':wait:');
     }
 
+    /**
+     * The answer is passed by its own key, so the runner can't overwrite it with its state.
+     */
     public function received(
         string $answer,
     ): void {
         $this
-            ->dto
-            ->answerState = AnswerState::Received;
-
-        $this
-            ->dto
-            ->answer = $answer;
-
-        $this
             ->cache
-            ->set($this->dto);
+            ->setAnswer($this->dto->commandId, $answer);
     }
 
+    public function pullAnswer(): ?string
+    {
+        return $this
+            ->cache
+            ->pullAnswer($this->dto->commandId);
+    }
+
+    /**
+     * The signal is sent by the runner, because only it owns the process (it can be on another server).
+     */
     public function sigterm(): void
     {
-        $this->sendSignal(Signals::Sigterm);
+        $this->requestSignal(Signals::Sigterm);
     }
 
     public function sigkill(): void
     {
-        $this->sendSignal(Signals::Sigkill);
+        $this->requestSignal(Signals::Sigkill);
+    }
+
+    public function pullSignal(): ?Signals
+    {
+        return $this
+            ->cache
+            ->pullSignal($this->dto->commandId);
     }
 
     public function finished(): void
@@ -203,33 +229,11 @@ final readonly class StateService
             ->delete($this->dto->commandId);
     }
 
-    private function sendSignal(
+    private function requestSignal(
         Signals $signal,
     ): void {
-        $this->appendLog($signal->value);
-
-        if (!function_exists('posix_kill')) {
-            $this->appendLog('POSIX not installed');
-
-            return;
-        }
-
-        $pid = $this
-            ->dto
-            ->pid;
-
-        if (!$pid) {
-            $this->appendLog('PID not found');
-
-            return;
-        }
-
-        \exec(sprintf(
-            'kill -%d %d',
-            $signal->getSignal(),
-            $pid,
-        ));
-
-        $this->finished();
+        $this
+            ->cache
+            ->setSignal($this->dto->commandId, $signal);
     }
 }

@@ -10,15 +10,20 @@ use Tkachikov\Chronos\Services\RealTime\StateService;
 
 final readonly class GetStateAndFinishRunAction
 {
+    /**
+     * Only logs starting from the offset are returned, the page already has the previous ones.
+     */
     public function execute(
         Command $command,
+        int $offset = 0,
     ): RealTimeStateDto {
         $state = StateService::make($command->id);
 
         $stateDto = new RealTimeStateDto(
-            logs: $state->getLogs(),
+            logs: array_slice($state->getLogs(), $offset),
             status: $state->getStatus(),
             signals: $state->getSignals(),
+            offset: $offset,
         );
 
         $state->stopRunIfNeeded();

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services\RealTime;
 
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 use Tkachikov\Chronos\Decorators\CommandDecorator;
 use Tkachikov\Chronos\Models\Command;
+use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Services\CommandService;
 
 class RunnerService
@@ -37,6 +39,17 @@ class RunnerService
     ): void {
         $this->state = StateService::make($commandId);
         $command = Command::find($commandId);
+
+        if (
+            !$command
+            || !$this->commandService->exists($command->class)
+        ) {
+            $this->state->appendLog('Command is not allowed');
+            $this->state->finished();
+
+            return;
+        }
+
         $this->decorator = $this
             ->commandService
             ->getByClass($command->class);
@@ -139,15 +152,12 @@ class RunnerService
             $this->sendAnswerIfNeeded();
 
             if ($finished) {
-                $this
-                    ->state
-                    ->appendLog(sprintf(
-                        'Process finished: %s',
-                        data_get($status, 'exitcode'),
-                    ));
+                $this->finish($status);
 
                 break;
             }
+
+            $this->sendSignalIfNeeded();
 
             usleep(100000);
         }
@@ -227,6 +237,73 @@ class RunnerService
         $this->lastChar = substr($message, -1);
     }
 
+    private function sendSignalIfNeeded(): void
+    {
+        $signal = $this
+            ->state
+            ->pullSignal();
+
+        if (!$signal) {
+            return;
+        }
+
+        $this
+            ->state
+            ->appendLog($signal->value);
+
+        if (!proc_terminate($this->process, $signal->getSignal())) {
+            $this
+                ->state
+                ->appendLog('Signal not sent');
+        }
+    }
+
+    private function finish(
+        array $status,
+    ): void {
+        if (!data_get($status, 'signaled')) {
+            $this
+                ->state
+                ->appendLog(sprintf(
+                    'Process finished: %s',
+                    data_get($status, 'exitcode'),
+                ));
+
+            return;
+        }
+
+        $this
+            ->state
+            ->appendLog(sprintf(
+                'Process killed by signal: %s',
+                data_get($status, 'termsig'),
+            ));
+
+        rescue(fn () => $this->markRunAsKilled());
+    }
+
+    /**
+     * A killed process can't update its run itself.
+     */
+    private function markRunAsKilled(): void
+    {
+        $pid = $this
+            ->state
+            ->getPid();
+
+        CommandRun::query()
+            ->where('command_id', $this->state->dto->commandId)
+            ->where('state', 2)
+            ->where(function (Builder $query) use ($pid): void {
+                $query
+                    ->where('pid', $pid)
+                    ->orWhereNull('pid');
+            })
+            ->latest('id')
+            ->first()
+            ?->update(['state' => 3]);
+    }
+
     private function checkAwaiting(
         string $in,
     ): void {
@@ -253,17 +330,13 @@ class RunnerService
             ->state
             ->refresh();
 
-        if (
-            !$this
-                ->state
-                ->isReceived()
-        ) {
-            return;
-        }
-
         $answer = $this
             ->state
-            ->getAnswer();
+            ->pullAnswer();
+
+        if ($answer === null) {
+            return;
+        }
 
         $this
             ->state

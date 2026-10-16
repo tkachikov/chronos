@@ -14,9 +14,5 @@ final readonly class SigkillAction
     ): void {
         StateService::make($command->id)
             ->sigkill();
-
-        $command
-            ->lastRun()
-            ->update(['state' => 3]);
     }
 }
