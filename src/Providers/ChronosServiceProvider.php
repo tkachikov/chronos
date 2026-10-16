@@ -21,6 +21,7 @@ use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosDdTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosDumpTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosFreeLogsCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosHealthCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosMalformedTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosOnlyArgumentsTestCommand;
@@ -29,6 +30,8 @@ use Tkachikov\Chronos\Console\Commands\ChronosRunBackgroundCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Http\Controllers\HealthController;
+use Tkachikov\Chronos\Http\Middleware\AuthorizeHealthToken;
 use Tkachikov\Chronos\Managers\CommandRunManager;
 use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
 use Tkachikov\Chronos\Models\Command;
@@ -93,6 +96,7 @@ class ChronosServiceProvider extends ServiceProvider
             $this->commands([
                 ChronosInstallCommand::class,
                 ChronosRunBackgroundCommand::class,
+                ChronosHealthCommand::class,
             ]);
         }
         $this->commands([
@@ -144,6 +148,17 @@ class ChronosServiceProvider extends ServiceProvider
     public function loadRoutes(): void
     {
         Route::middlewareGroup('chronos', config('chronos.middlewares', []));
+        // Before the routes of commands, so that health is not taken as a command.
+        // With a token it is available to external monitoring without the middlewares of the panel.
+        Route::group([
+            'domain' => config('chronos.domain'),
+            'prefix' => 'chronos',
+            'middleware' => config('chronos.monitoring.health_token')
+                ? AuthorizeHealthToken::class
+                : 'chronos',
+        ], function () {
+            Route::get('/health', HealthController::class)->name('chronos.health');
+        });
         Route::group([
             'domain' => config('chronos.domain'),
             'prefix' => 'chronos',

@@ -31,6 +31,13 @@ return [
          * The scheduler is considered stopped when no server has run schedule:run for this number of minutes.
          */
         'scheduler_timeout' => (int) env('CHRONOS_SCHEDULER_TIMEOUT', 5),
+
+        /*
+         * GET /chronos/health returns 503 when the scheduler is stopped or schedules have missed runs.
+         * Without a token it is behind the middlewares of the panel,
+         * with a token it is available by `Authorization: Bearer <token>` or `?token=<token>` only.
+         */
+        'health_token' => env('CHRONOS_HEALTH_TOKEN'),
     ],
 
     'middlewares' => [
