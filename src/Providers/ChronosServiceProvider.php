@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Providers;
 
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Events\DatabaseRefreshed;
 use Illuminate\Database\Events\MigrationsEnded;
@@ -34,6 +35,7 @@ use Tkachikov\Chronos\Repositories\CommandRunRepository;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 use Tkachikov\Chronos\Repositories\TimeRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
+use Tkachikov\Chronos\Services\SchedulerHeartbeatService;
 use Tkachikov\Chronos\Services\ScheduleService;
 
 class ChronosServiceProvider extends ServiceProvider
@@ -66,6 +68,7 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadServiceProvider();
         $this->loadSchedule();
         $this->loadMigrationListeners();
+        $this->loadMonitoringListeners();
 
         if (
             ! $this->app->runningInConsole()
@@ -200,6 +203,23 @@ class ChronosServiceProvider extends ServiceProvider
                     ->app
                     ->make(CommandRunManagerInterface::class)
                     ->flush();
+            },
+        );
+    }
+
+    public function loadMonitoringListeners(): void
+    {
+        Event::listen(
+            CommandStarting::class,
+            function (CommandStarting $event) {
+                if ($event->command !== 'schedule:run') {
+                    return;
+                }
+
+                rescue(fn () => $this
+                    ->app
+                    ->make(SchedulerHeartbeatService::class)
+                    ->beat());
             },
         );
     }

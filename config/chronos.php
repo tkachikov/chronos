@@ -26,6 +26,13 @@ return [
      */
     'php_binary' => env('CHRONOS_PHP_BINARY'),
 
+    'monitoring' => [
+        /*
+         * The scheduler is considered stopped when no server has run schedule:run for this number of minutes.
+         */
+        'scheduler_timeout' => (int) env('CHRONOS_SCHEDULER_TIMEOUT', 5),
+    ],
+
     'middlewares' => [
         'web',
         // 'auth',
