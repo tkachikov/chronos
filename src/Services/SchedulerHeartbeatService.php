@@ -7,6 +7,7 @@ namespace Tkachikov\Chronos\Services;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Models\SchedulerHeartbeat;
 
 /**
@@ -59,6 +60,16 @@ class SchedulerHeartbeatService
 
         return $lastRunAt !== null
             && $lastRunAt->greaterThanOrEqualTo(now()->subMinutes($this->getTimeout()));
+    }
+
+    /**
+     * The scheduler is stopped when there are enabled schedules, but no server runs schedule:run.
+     */
+    public function isStopped(): bool
+    {
+        return $this->databaseHelper->hasTable(SchedulerHeartbeat::class)
+            && Schedule::query()->where('run', true)->exists()
+            && !$this->isAlive();
     }
 
     /**

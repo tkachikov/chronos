@@ -40,6 +40,7 @@ use Tkachikov\Chronos\Repositories\CommandRunRepository;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 use Tkachikov\Chronos\Repositories\TimeRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
+use Tkachikov\Chronos\Services\ScheduleMonitorService;
 use Tkachikov\Chronos\Services\SchedulerHeartbeatService;
 use Tkachikov\Chronos\Services\ScheduleService;
 use Tkachikov\Chronos\Services\ScheduleTrackerService;
@@ -53,6 +54,7 @@ class ChronosServiceProvider extends ServiceProvider
         CommandRunRepositoryInterface::class => CommandRunRepository::class,
         CommandRunManagerInterface::class => CommandRunManager::class,
         ScheduleTrackerService::class => ScheduleTrackerService::class,
+        ScheduleMonitorService::class => ScheduleMonitorService::class,
     ];
 
     /**
