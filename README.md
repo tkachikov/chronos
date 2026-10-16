@@ -171,6 +171,43 @@ class TestCommand extends Command
 
 For calculate statistics run commands you must create schedule for `chronos:update-metrics`
 
+## Monitoring
+
+Chronos saves every `schedule:run` of each server and the last run of each schedule:
+
+- the panel shows a banner when no server has run `schedule:run` for `CHRONOS_SCHEDULER_TIMEOUT` minutes (5 by default) while there are enabled schedules — e.g. cron is broken;
+- schedules show the status and time of the last run, the next run and `Missed since` when a run due more than 2 minutes ago has not started.
+
+### Health check
+
+`GET /chronos/health` returns `200` with `"status": "ok"`, or `503` with `"status": "fail"` when the scheduler is stopped or schedules have missed runs:
+
+```json
+{
+    "status": "fail",
+    "scheduler": {"status": "stopped", "last_run_at": "2026-10-16T11:46:11+00:00", "timeout_minutes": 5, "hosts": [{"host": "web-1", "last_run_at": "2026-10-16T11:46:11+00:00"}]},
+    "schedules": {"enabled": 3, "missed": [{"id": 1, "name": "Import #1", "command": "App\\Console\\Commands\\ImportCommand", "missed_since": "2026-10-16T11:47:00+00:00"}], "failed": 1, "running": 0}
+}
+```
+
+By default it is behind the middlewares of the panel. For external monitoring (uptime checkers, Kubernetes probes, etc.) set a token: then it is available only by the token and without the middlewares of the panel.
+
+```dotenv
+CHRONOS_HEALTH_TOKEN=secret
+```
+
+```shell
+curl -H "Authorization: Bearer secret" https://example.com/chronos/health
+curl "https://example.com/chronos/health?token=secret"
+```
+
+The same check in console (exit code `1` when it fails):
+
+```shell
+php artisan chronos:health
+php artisan chronos:health --json
+```
+
 ## License
 
 This package is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
