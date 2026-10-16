@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services\RealTime;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use RuntimeException;
 use Tkachikov\Chronos\Dto\RunDto;
 use Tkachikov\Chronos\Enums\AnswerState;
@@ -100,9 +101,23 @@ final readonly class StateService
 
     public function getUser(): ?Model
     {
-        return $this
-            ->dto
-            ->user;
+        if ($this->dto->user) {
+            return $this->dto->user;
+        }
+
+        if (
+            $this->dto->userType === null
+            || $this->dto->userId === null
+        ) {
+            return null;
+        }
+
+        $class = Relation::getMorphedModel($this->dto->userType)
+            ?? $this->dto->userType;
+
+        return is_subclass_of($class, Model::class)
+            ? $class::find($this->dto->userId)
+            : null;
     }
 
     public function appendLog(

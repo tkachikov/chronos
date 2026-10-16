@@ -34,7 +34,7 @@ final readonly class CacheService
             ->driver
             ->set(
                 $key,
-                $dto,
+                $dto->toArray(),
                 now()->addMinutes(5),
             );
     }
@@ -44,9 +44,13 @@ final readonly class CacheService
     ): ?RunDto {
         $key = $this->getKey($commandId);
 
-        return $this
+        $data = $this
             ->driver
             ->get($key);
+
+        return is_array($data)
+            ? RunDto::fromArray($data)
+            : null;
     }
 
     public function delete(
