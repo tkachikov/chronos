@@ -136,6 +136,11 @@
                                                                     </span>
                                                                 </div>
                                                             </div>
+                                                            <div class="row w-100 mx-auto">
+                                                                <div class="col px-0">
+                                                                    @include('chronos::monitoring.last-run', ['item' => $schedule, 'compact' => true])
+                                                                </div>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 @endforeach

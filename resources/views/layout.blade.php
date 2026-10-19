@@ -9,6 +9,7 @@
     </head>
     <body class="bg-light m-0">
         <div class="h-100 container-fluid p-5">
+            @include('chronos::monitoring.scheduler')
             @yield('content')
         </div>
         @yield('footer_scripts')

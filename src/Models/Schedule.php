@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
 
@@ -24,6 +25,13 @@ use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
  * @property-read bool|null $run
  * @property-read int|null $user_id
  * @property-read class-string|null $user_type
+ * @property-read Carbon|null $last_run_at
+ * @property-read Carbon|null $last_finished_at
+ * @property-read string|null $last_status
+ * @property-read Carbon|null $last_skipped_at
+ * @property-read int|null $skipped_count
+ * @property-read Carbon|null $created_at
+ * @property-read Carbon|null $updated_at
  */
 final class Schedule extends Model
 {
@@ -34,6 +42,10 @@ final class Schedule extends Model
     protected $casts = [
         'args' => 'array',
         'time_params' => 'array',
+        'last_run_at' => 'datetime',
+        'last_finished_at' => 'datetime',
+        'last_skipped_at' => 'datetime',
+        'skipped_count' => 'integer',
     ];
 
     public function preparedArgs(): Attribute
