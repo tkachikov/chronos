@@ -30,6 +30,7 @@ use Tkachikov\Chronos\Console\Commands\ChronosRunBackgroundCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Http\Controllers\DashboardController;
 use Tkachikov\Chronos\Http\Controllers\HealthController;
 use Tkachikov\Chronos\Http\Middleware\AuthorizeHealthToken;
 use Tkachikov\Chronos\Managers\CommandRunManager;
@@ -148,8 +149,8 @@ class ChronosServiceProvider extends ServiceProvider
     public function loadRoutes(): void
     {
         Route::middlewareGroup('chronos', config('chronos.middlewares', []));
-        // Before the routes of commands, so that health is not taken as a command.
-        // With a token it is available to external monitoring without the middlewares of the panel.
+        // Before the routes of commands, so that health and the dashboard are not taken as commands.
+        // With a token they are available to external monitoring and screens without the middlewares of the panel.
         Route::group([
             'domain' => config('chronos.domain'),
             'prefix' => 'chronos',
@@ -158,6 +159,16 @@ class ChronosServiceProvider extends ServiceProvider
                 : 'chronos',
         ], function () {
             Route::get('/health', HealthController::class)->name('chronos.health');
+        });
+        Route::group([
+            'domain' => config('chronos.domain'),
+            'prefix' => 'chronos/dashboard',
+            'middleware' => config('chronos.monitoring.dashboard_token')
+                ? AuthorizeHealthToken::class . ':dashboard_token'
+                : 'chronos',
+        ], function () {
+            Route::get('/', [DashboardController::class, 'index'])->name('chronos.dashboard');
+            Route::get('/data', [DashboardController::class, 'data'])->name('chronos.dashboard.data');
         });
         Route::group([
             'domain' => config('chronos.domain'),

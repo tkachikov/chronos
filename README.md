@@ -208,6 +208,26 @@ php artisan chronos:health
 php artisan chronos:health --json
 ```
 
+### Dashboard
+
+`GET /chronos/dashboard` is a dark full-screen page for a monitor, it refreshes itself every 5 seconds (`?refresh=10` to change):
+
+- the scheduler, commands running now with their elapsed time, runs, errors, the average time and memory of runs (with the slowest and the largest) for the last 24 hours, missed schedules;
+- runs by hours;
+- columns in the order of a run: upcoming runs of schedules with a countdown → running now → problems (missed schedules; failed and killed runs grouped by commands with their counts, joined with failed schedules of the commands) or recent runs with their duration and memory; new rows are highlighted.
+
+Runs are shown for commands with `ChronosRunnerTrait`. The data is available as JSON by `GET /chronos/dashboard/data`.
+
+By default it is behind the middlewares of the panel. For a screen without a login set a token: then the dashboard is available only by the token and without the middlewares of the panel.
+
+```dotenv
+CHRONOS_DASHBOARD_TOKEN=secret
+```
+
+```
+https://example.com/chronos/dashboard?token=secret
+```
+
 ## License
 
 This package is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

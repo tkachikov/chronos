@@ -9,12 +9,13 @@ use Illuminate\Http\Request;
 
 /**
  * The token is passed as a bearer token or the token query parameter.
+ * The key of the token in the monitoring config is the parameter of the middleware, health_token by default.
  */
 final class AuthorizeHealthToken
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next, string $key = 'health_token')
     {
-        $token = (string) config('chronos.monitoring.health_token');
+        $token = (string) config("chronos.monitoring.$key");
         $given = (string) ($request->bearerToken() ?? $request->query('token', ''));
 
         abort_unless(

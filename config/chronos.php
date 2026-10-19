@@ -38,6 +38,13 @@ return [
          * with a token it is available by `Authorization: Bearer <token>` or `?token=<token>` only.
          */
         'health_token' => env('CHRONOS_HEALTH_TOKEN'),
+
+        /*
+         * GET /chronos/dashboard shows runs of commands, errors and the scheduler in real time, e.g. on a monitor.
+         * Without a token it is behind the middlewares of the panel,
+         * with a token it is available by `?token=<token>` only.
+         */
+        'dashboard_token' => env('CHRONOS_DASHBOARD_TOKEN'),
     ],
 
     'middlewares' => [
