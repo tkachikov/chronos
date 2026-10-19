@@ -83,24 +83,28 @@ class DashboardService
             'hourly' => $hourly,
             'duration' => rescue(fn () => $this->getDuration(), null, false),
             'memory' => $this->getMemory(),
-            'running' => $this->mapRuns(
-                CommandRun::query()
-                    ->with('command')
-                    ->where('state', 2)
-                    ->latest('id')
-                    ->limit(self::LIMIT)
-                    ->get(),
-            ),
+            'running' => $this->mapRuns($this->getLastRuns([2])),
             'errors' => $this->getErrors(),
-            'recent' => $this->mapRuns(
-                CommandRun::query()
-                    ->with('command')
-                    ->whereIn('state', [0, 1, 3])
-                    ->latest('id')
-                    ->limit(self::LIMIT)
-                    ->get(),
-            ),
+            'recent' => $this->mapRuns($this->getLastRuns([0, 1, 3])),
         ];
+    }
+
+    /**
+     * @param list<int> $states
+     *
+     * @return Collection<int, CommandRun>
+     */
+    private function getLastRuns(array $states): Collection
+    {
+        /** @var Collection<int, CommandRun> $runs */
+        $runs = CommandRun::query()
+            ->with('command')
+            ->whereIn('state', $states)
+            ->latest('id')
+            ->limit(self::LIMIT)
+            ->get();
+
+        return $runs;
     }
 
     /**
