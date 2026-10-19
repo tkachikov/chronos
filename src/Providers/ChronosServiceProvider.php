@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Tkachikov\Chronos\Providers;
 
+use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Console\Events\ScheduledBackgroundTaskFinished;
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Console\Events\ScheduledTaskFinished;
+use Illuminate\Console\Events\ScheduledTaskSkipped;
+use Illuminate\Console\Events\ScheduledTaskStarting;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Events\DatabaseRefreshed;
 use Illuminate\Database\Events\MigrationsEnded;
@@ -15,6 +21,7 @@ use Tkachikov\Chronos\Console\Commands\ChronosAnswerTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosDdTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosDumpTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosFreeLogsCommand;
+use Tkachikov\Chronos\Console\Commands\ChronosHealthCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosInstallCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosMalformedTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosOnlyArgumentsTestCommand;
@@ -23,6 +30,9 @@ use Tkachikov\Chronos\Console\Commands\ChronosRunBackgroundCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosTestCommand;
 use Tkachikov\Chronos\Console\Commands\ChronosUpdateMetricsCommand;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
+use Tkachikov\Chronos\Http\Controllers\DashboardController;
+use Tkachikov\Chronos\Http\Controllers\HealthController;
+use Tkachikov\Chronos\Http\Middleware\AuthorizeHealthToken;
 use Tkachikov\Chronos\Managers\CommandRunManager;
 use Tkachikov\Chronos\Managers\CommandRunManagerInterface;
 use Tkachikov\Chronos\Models\Command;
@@ -34,7 +44,11 @@ use Tkachikov\Chronos\Repositories\CommandRunRepository;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 use Tkachikov\Chronos\Repositories\TimeRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
+use Tkachikov\Chronos\Services\CommandRunReaperService;
+use Tkachikov\Chronos\Services\ScheduleMonitorService;
+use Tkachikov\Chronos\Services\SchedulerHeartbeatService;
 use Tkachikov\Chronos\Services\ScheduleService;
+use Tkachikov\Chronos\Services\ScheduleTrackerService;
 
 class ChronosServiceProvider extends ServiceProvider
 {
@@ -44,6 +58,8 @@ class ChronosServiceProvider extends ServiceProvider
         CommandRepositoryInterface::class => CommandRepository::class,
         CommandRunRepositoryInterface::class => CommandRunRepository::class,
         CommandRunManagerInterface::class => CommandRunManager::class,
+        ScheduleTrackerService::class => ScheduleTrackerService::class,
+        ScheduleMonitorService::class => ScheduleMonitorService::class,
     ];
 
     /**
@@ -66,6 +82,7 @@ class ChronosServiceProvider extends ServiceProvider
         $this->loadServiceProvider();
         $this->loadSchedule();
         $this->loadMigrationListeners();
+        $this->loadMonitoringListeners();
 
         if (
             ! $this->app->runningInConsole()
@@ -81,6 +98,7 @@ class ChronosServiceProvider extends ServiceProvider
             $this->commands([
                 ChronosInstallCommand::class,
                 ChronosRunBackgroundCommand::class,
+                ChronosHealthCommand::class,
             ]);
         }
         $this->commands([
@@ -132,6 +150,27 @@ class ChronosServiceProvider extends ServiceProvider
     public function loadRoutes(): void
     {
         Route::middlewareGroup('chronos', config('chronos.middlewares', []));
+        // Before the routes of commands, so that health and the dashboard are not taken as commands.
+        // With a token they are available to external monitoring and screens without the middlewares of the panel.
+        Route::group([
+            'domain' => config('chronos.domain'),
+            'prefix' => 'chronos',
+            'middleware' => config('chronos.monitoring.health_token')
+                ? AuthorizeHealthToken::class
+                : 'chronos',
+        ], function () {
+            Route::get('/health', HealthController::class)->name('chronos.health');
+        });
+        Route::group([
+            'domain' => config('chronos.domain'),
+            'prefix' => 'chronos/dashboard',
+            'middleware' => config('chronos.monitoring.dashboard_token')
+                ? AuthorizeHealthToken::class . ':dashboard_token'
+                : 'chronos',
+        ], function () {
+            Route::get('/', [DashboardController::class, 'index'])->name('chronos.dashboard');
+            Route::get('/data', [DashboardController::class, 'data'])->name('chronos.dashboard.data');
+        });
         Route::group([
             'domain' => config('chronos.domain'),
             'prefix' => 'chronos',
@@ -200,6 +239,44 @@ class ChronosServiceProvider extends ServiceProvider
                     ->app
                     ->make(CommandRunManagerInterface::class)
                     ->flush();
+            },
+        );
+    }
+
+    public function loadMonitoringListeners(): void
+    {
+        Event::listen(
+            CommandStarting::class,
+            function (CommandStarting $event) {
+                if ($event->command !== 'schedule:run') {
+                    return;
+                }
+
+                rescue(fn () => $this
+                    ->app
+                    ->make(SchedulerHeartbeatService::class)
+                    ->beat());
+
+                rescue(fn () => $this
+                    ->app
+                    ->make(CommandRunReaperService::class)
+                    ->reap());
+            },
+        );
+
+        Event::listen(
+            [
+                ScheduledTaskStarting::class,
+                ScheduledTaskFinished::class,
+                ScheduledTaskFailed::class,
+                ScheduledTaskSkipped::class,
+                ScheduledBackgroundTaskFinished::class,
+            ],
+            function (ScheduledTaskStarting|ScheduledTaskFinished|ScheduledTaskFailed|ScheduledTaskSkipped|ScheduledBackgroundTaskFinished $event) {
+                rescue(fn () => $this
+                    ->app
+                    ->make(ScheduleTrackerService::class)
+                    ->handle($event));
             },
         );
     }

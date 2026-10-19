@@ -32,6 +32,10 @@
             </button>
         </form>
 
+        <a class="btn btn-outline-secondary" href="{{ route('chronos.dashboard') }}">
+            Dashboard
+        </a>
+
         <button
                 class="btn btn-outline-primary"
                 type="button"

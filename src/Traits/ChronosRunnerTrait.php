@@ -190,6 +190,14 @@ trait ChronosRunnerTrait
             $this->run->args = $state->getArgs();
         }
 
+        // The process and the server of the run, so that the scheduler of the server finds runs whose process is gone.
+        // The own pid, not the pid of a real-time state: the state may be left from a previous run.
+        $this->run->pid = getmypid() ?: $this->run->pid;
+
+        if ($this->databaseHelper->hasColumn(CommandRun::class, 'host')) {
+            $this->run->host = gethostname() ?: null;
+        }
+
         $this->run->save();
     }
 

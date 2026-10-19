@@ -71,9 +71,7 @@ final class ScheduleRepositoryTest extends TestCase
      */
     public function testSaveWithoutUserTypeColumn(): void
     {
-        $this
-            ->artisan('migrate:rollback', ['--step' => 2])
-            ->run();
+        $this->rollbackTo('2026_09_25_000000_add_user_type_to_schedules_table');
 
         $this->assertFalse(Schema::hasColumn('schedules', 'user_type'));
 
@@ -111,15 +109,29 @@ final class ScheduleRepositoryTest extends TestCase
      */
     public function testSaveWithoutNameColumn(): void
     {
-        $this
-            ->artisan('migrate:rollback', ['--step' => 1])
-            ->run();
+        $this->rollbackTo('2026_10_14_000000_add_name_to_schedules_table');
 
         $this->assertFalse(Schema::hasColumn('schedules', 'name'));
 
         $this->save(['name' => 'Import #1']);
 
         $this->assertSame(1, Schedule::count());
+    }
+
+    /**
+     * Rolls back the given migration and all migrations after it.
+     */
+    private function rollbackTo(string $migration): void
+    {
+        $files = glob(__DIR__ . '/../../../database/migrations/*.php') ?: [];
+        $steps = count(array_filter(
+            $files,
+            fn (string $file): bool => basename($file, '.php') >= $migration,
+        ));
+
+        $this
+            ->artisan('migrate:rollback', ['--step' => $steps])
+            ->run();
     }
 
     private function createUser(): User

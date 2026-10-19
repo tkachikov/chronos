@@ -1,8 +1,9 @@
+@inject('scheduleMonitor', 'Tkachikov\Chronos\Services\ScheduleMonitorService')
 <div class="card shadow mb-5">
     <div class="card-header">
         <h2 class="h2 m-0 text-muted">Schedules</h2>
     </div>
-    <div class="card-body">
+    <div class="card-body table-responsive">
         <table class="table m-0">
             <thead>
             <tr>
@@ -13,6 +14,8 @@
                 <th>With overlapping</th>
                 <th>Run in background</th>
                 <th>Time</th>
+                <th>Last run</th>
+                <th>Next run</th>
                 <th>In code</th>
                 <th>Edit</th>
             </tr>
@@ -20,7 +23,7 @@
             <tbody>
             @if(!$command->getModel()->schedules->count())
                 <tr>
-                    <td colspan="9" @class(['border-bottom-0' => true])>No schedules</td>
+                    <td colspan="11" @class(['border-bottom-0' => true])>No schedules</td>
                 </tr>
             @endif
             @foreach($command->getModel()->schedules as $item)
@@ -50,6 +53,14 @@
                     @endforeach
                     <td @class($border)>
                         {{ $times[$item->time_method]->getDescription($item) }}
+                    </td>
+                    <td @class($border)>
+                        @include('chronos::monitoring.last-run', ['item' => $item])
+                    </td>
+                    <td @class($border)>
+                        @if($nextRunAt = $scheduleMonitor->getNextRunAt($item))
+                            <span class="text-nowrap" title="{{ $nextRunAt->diffForHumans() }}">{{ $nextRunAt->toDateTimeString() }}</span>
+                        @endif
                     </td>
                     <td @class($border)>
                         <div class="d-none d-xl-block">@include('chronos::schedules.in_code', ['item' => $item, 'command' => $command])</div>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services;
 
 use Exception;
+use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule as ScheduleConsole;
 use Throwable;
 use Tkachikov\Chronos\Helpers\MemoryHelper;
@@ -12,6 +13,7 @@ use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\CommandLog;
 use Tkachikov\Chronos\Models\CommandMetric;
 use Tkachikov\Chronos\Models\CommandRun;
+use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Repositories\ScheduleRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
 
@@ -22,6 +24,7 @@ class ScheduleService
         private readonly ScheduleRepository $scheduleRepository,
         private readonly TimeRepositoryInterface $timeRepository,
         private readonly MemoryHelper $memoryHelper,
+        private readonly ScheduleTrackerService $scheduleTracker,
     ) {
     }
 
@@ -50,31 +53,40 @@ class ScheduleService
                     continue;
                 }
 
-                $args = $schedule->time_params ?? [];
-                $event = $scheduleConsole
-                    ->command($schedule->command->class, $schedule->preparedArgs)
-                    ->{$schedule->time_method}(...$args);
-
-                if ($schedule->name) {
-                    $event->description($schedule->name);
-                }
-
-                $properties = [
-                    'without_overlapping' => [$schedule->without_overlapping_time],
-                    'run_in_background' => [],
-                ];
-
-                foreach ($properties as $property => $params) {
-                    if (!$schedule->$property) {
-                        continue;
-                    }
-                    $method = str($property)->camel()->toString();
-                    $event->$method(...$params);
-                }
+                $this->register($scheduleConsole, $schedule);
             } catch (Throwable $e) {
                 report($e);
             }
         }
+    }
+
+    public function register(ScheduleConsole $scheduleConsole, Schedule $schedule): Event
+    {
+        $args = $schedule->time_params ?? [];
+        $event = $scheduleConsole
+            ->command($schedule->command->class, $schedule->preparedArgs)
+            ->{$schedule->time_method}(...$args);
+
+        if ($schedule->name) {
+            $event->description($schedule->name);
+        }
+
+        $properties = [
+            'without_overlapping' => [$schedule->without_overlapping_time],
+            'run_in_background' => [],
+        ];
+
+        foreach ($properties as $property => $params) {
+            if (!$schedule->$property) {
+                continue;
+            }
+            $method = str($property)->camel()->toString();
+            $event->$method(...$params);
+        }
+
+        $this->scheduleTracker->track($event, $schedule);
+
+        return $event;
     }
 
     public function saveSchedule(array $input): void
