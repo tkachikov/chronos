@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Services;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 use Tkachikov\Chronos\Enums\ScheduleStatusEnum;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Helpers\MemoryHelper;
+use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\CommandRun;
 use Tkachikov\Chronos\Models\Schedule;
 use Tkachikov\Chronos\Repositories\ArtisanRepositoryInterface;
@@ -22,6 +24,8 @@ class DashboardService
     public const HOURS = 24;
 
     public const LIMIT = 20;
+
+    public const TOP = 8;
 
     private const STATES = [
         0 => 'success',
@@ -75,12 +79,11 @@ class DashboardService
 
     private function getRuns(): array
     {
-        [$totals, $hourly] = $this->getStatistics();
-
         return [
             'hours' => self::HOURS,
-            'totals' => $totals,
-            'hourly' => $hourly,
+            'totals' => $this->getTotals(),
+            'load' => $this->getLoad(),
+            'top' => $this->getTopCommands(),
             'duration' => rescue(fn () => $this->getDuration(), null, false),
             'memory' => $this->getMemory(),
             'running' => $this->mapRuns($this->getLastRuns([2])),
@@ -108,33 +111,22 @@ class DashboardService
     }
 
     /**
-     * Counts by states for the whole period and by hours in one query, portable between databases.
+     * Counts by states for the period in one query.
      *
-     * @return array{0: array<string, int>, 1: list<array{hour: string, success: int, failed: int}>}
+     * @return array<string, int>
      */
-    private function getStatistics(): array
+    private function getTotals(): array
     {
-        $start = $this->getStart();
         $selects = [];
-        $bindings = [];
 
         foreach (self::STATES as $state => $title) {
             $selects[] = "sum(case when state = $state then 1 else 0 end) as total_$title";
         }
 
-        for ($i = 0; $i < self::HOURS; $i++) {
-            $from = $start->copy()->addHours($i)->format('Y-m-d H:i:s');
-            $to = $start->copy()->addHours($i + 1)->format('Y-m-d H:i:s');
-
-            $selects[] = "sum(case when created_at >= ? and created_at < ? and state = 0 then 1 else 0 end) as success_$i";
-            $selects[] = "sum(case when created_at >= ? and created_at < ? and state in (1, 3) then 1 else 0 end) as failed_$i";
-            array_push($bindings, $from, $to, $from, $to);
-        }
-
         $row = (array) CommandRun::query()
             ->toBase()
-            ->selectRaw(implode(', ', $selects), $bindings)
-            ->where('created_at', '>=', $start->format('Y-m-d H:i:s'))
+            ->selectRaw(implode(', ', $selects))
+            ->where('created_at', '>=', $this->getStart()->format('Y-m-d H:i:s'))
             ->first();
 
         $totals = ['total' => 0];
@@ -144,17 +136,171 @@ class DashboardService
             $totals['total'] += $totals[$title];
         }
 
-        $hourly = [];
+        return $totals;
+    }
 
-        for ($i = 0; $i < self::HOURS; $i++) {
-            $hourly[] = [
-                'hour' => $start->copy()->addHours($i)->toIso8601String(),
-                'success' => (int) ($row["success_$i"] ?? 0),
-                'failed' => (int) ($row["failed_$i"] ?? 0),
+    /**
+     * Load of the commands by hours of the period: the peak of runs going on at once
+     * and the peak of their memory in total (the memory of a run is known when it is finished).
+     * Raw rows without models: there may be many runs in a day.
+     */
+    private function getLoad(): array
+    {
+        $now = now();
+        $start = $this->getStart();
+        $first = $start->getTimestamp();
+        $classes = Command::query()->pluck('class', 'id');
+
+        $rows = CommandRun::query()
+            ->toBase()
+            ->select(['command_id', 'state', 'memory', 'created_at', 'updated_at'])
+            ->where(function (QueryBuilder $query) use ($start): void {
+                $query
+                    ->where('state', 2)
+                    ->orWhere('updated_at', '>=', $start->format('Y-m-d H:i:s'));
+            })
+            ->get();
+
+        /** @var array<int, list<array{from: int, to: int, memory: float, command: string}>> $buckets */
+        $buckets = array_fill(0, self::HOURS, []);
+
+        foreach ($rows as $row) {
+            $startedAt = $row->created_at ? strtotime((string) $row->created_at) : false;
+
+            if ($startedAt === false) {
+                continue;
+            }
+
+            // A running run goes on up to now
+            $finishedAt = (int) $row->state === 2 || !$row->updated_at
+                ? $now->getTimestamp() + 1
+                : (int) strtotime((string) $row->updated_at);
+
+            $run = [
+                'from' => $startedAt,
+                // A run shorter than a second is still a run of its hour
+                'to' => max($finishedAt, $startedAt + 1),
+                'memory' => $this->memoryHelper->toBytes($row->memory === null ? null : (string) $row->memory) ?? 0.0,
+                'command' => $this->getName($classes->get((int) $row->command_id)),
+            ];
+
+            // Finished before the period, e.g. at its start
+            if ($run['to'] <= $first) {
+                continue;
+            }
+
+            $firstHour = max(0, (int) floor(($run['from'] - $first) / 3600));
+            $lastHour = min(self::HOURS - 1, (int) floor(($run['to'] - 1 - $first) / 3600));
+
+            for ($hour = $firstHour; $hour <= $lastHour; $hour++) {
+                $buckets[$hour][] = $run;
+            }
+        }
+
+        $points = [];
+        $maxRunning = 0;
+        $maxMemory = 0.0;
+
+        foreach ($buckets as $hour => $active) {
+            $from = $first + $hour * 3600;
+            [$running, $memory] = $this->getPeaks($active, $from, $from + 3600);
+
+            $maxRunning = max($maxRunning, $running);
+            $maxMemory = max($maxMemory, $memory);
+
+            // The commands with the most runs in the hour
+            $commands = array_count_values(array_column($active, 'command'));
+            arsort($commands);
+
+            $points[] = [
+                'hour' => $start->copy()->addHours($hour)->toIso8601String(),
+                'runs' => count($active),
+                'running' => $running,
+                'memory' => $memory > 0 ? $this->memoryHelper->format($memory) : null,
+                'memory_bytes' => (int) $memory,
+                'commands' => array_slice(array_keys($commands), 0, 5),
+                'more_commands' => max(0, count($commands) - 5),
             ];
         }
 
-        return [$totals, $hourly];
+        return [
+            'hours' => self::HOURS,
+            'points' => $points,
+            'max_running' => $maxRunning,
+            'max_memory' => $maxMemory > 0 ? $this->memoryHelper->format($maxMemory) : null,
+        ];
+    }
+
+    /**
+     * Commands of the period with the most time of runs: they load the server the most.
+     * By the number of runs for a database whose time functions are unknown.
+     */
+    private function getTopCommands(): array
+    {
+        $start = $this->getStart()->format('Y-m-d H:i:s');
+        $diff = rescue(fn () => $this->databaseHelper->getTimeDiffInSeconds('created_at', 'updated_at'), null, false);
+        $selects = [
+            'command_id',
+            'count(*) as runs',
+            'sum(case when state in (1, 3) then 1 else 0 end) as errors',
+        ];
+
+        if ($diff) {
+            // Without running and killed runs: their time is not known
+            $selects[] = "sum(case when state in (0, 1) then $diff else 0 end) as total_time";
+            $selects[] = "avg(case when state in (0, 1) then $diff end) as average_time";
+            $selects[] = "max(case when state in (0, 1) then $diff end) as max_time";
+        }
+
+        $groups = CommandRun::query()
+            ->toBase()
+            ->selectRaw(implode(', ', $selects))
+            ->where('created_at', '>=', $start)
+            ->groupBy('command_id')
+            ->orderByRaw($diff ? 'total_time desc' : 'runs desc')
+            ->orderByDesc('runs')
+            ->limit(self::TOP)
+            ->get();
+
+        if ($groups->isEmpty()) {
+            return [];
+        }
+
+        $classes = Command::query()->pluck('class', 'id');
+        $memory = [];
+
+        // Memory is stored as a string with units: the largest by commands and their few values
+        CommandRun::query()
+            ->toBase()
+            ->select(['command_id', 'memory'])
+            ->whereIn('command_id', $groups->pluck('command_id'))
+            ->whereNotNull('memory')
+            ->where('created_at', '>=', $start)
+            ->groupBy('command_id', 'memory')
+            ->get()
+            ->each(function (object $row) use (&$memory): void {
+                $bytes = $this->memoryHelper->toBytes((string) $row->memory);
+                $id = (int) $row->command_id;
+
+                if ($bytes !== null && $bytes > ($memory[$id] ?? 0)) {
+                    $memory[$id] = $bytes;
+                }
+            });
+
+        return $groups
+            ->map(fn (object $group): array => [
+                'command' => $this->getName($classes->get((int) $group->command_id)),
+                'runs' => (int) $group->runs,
+                'errors' => (int) $group->errors,
+                'total_time' => isset($group->total_time) ? (int) round((float) $group->total_time) : null,
+                'average_time' => isset($group->average_time) ? round((float) $group->average_time, 1) : null,
+                'max_time' => isset($group->max_time) ? (int) $group->max_time : null,
+                'max_memory' => isset($memory[(int) $group->command_id])
+                    ? $this->memoryHelper->format($memory[(int) $group->command_id])
+                    : null,
+            ])
+            ->values()
+            ->all();
     }
 
     /**
@@ -290,12 +436,45 @@ class DashboardService
         ];
     }
 
+    /**
+     * Peaks of runs at once and of their memory within the interval: by starts and finishes in order of time.
+     *
+     * @param array<array{from: int, to: int, memory: float, command?: string}> $runs
+     *
+     * @return array{0: int, 1: float}
+     */
+    private function getPeaks(array $runs, int $from, int $to): array
+    {
+        $events = [];
+
+        foreach ($runs as $run) {
+            $events[] = [max($run['from'], $from), 1, $run['memory']];
+            $events[] = [min($run['to'], $to), -1, -$run['memory']];
+        }
+
+        // A finish before a start at the same second: the runs did not go on at once
+        usort($events, fn (array $a, array $b): int => [$a[0], $a[1]] <=> [$b[0], $b[1]]);
+
+        $running = $peakRunning = 0;
+        $memory = $peakMemory = 0.0;
+
+        foreach ($events as [, $delta, $bytes]) {
+            $running += $delta;
+            $memory += $bytes;
+            $peakRunning = max($peakRunning, $running);
+            $peakMemory = max($peakMemory, $memory);
+        }
+
+        return [$peakRunning, $peakMemory];
+    }
+
     private function getEmptyRuns(): array
     {
         return [
             'hours' => self::HOURS,
             'totals' => ['total' => 0] + array_fill_keys(self::STATES, 0),
-            'hourly' => [],
+            'load' => null,
+            'top' => [],
             'duration' => null,
             'memory' => null,
             'running' => [],

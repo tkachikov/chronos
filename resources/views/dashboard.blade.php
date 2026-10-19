@@ -4,7 +4,31 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Chronos dashboard</title>
+        <script>
+            // The theme before the first paint: ?theme= (e.g. for a monitor) or the saved choice, system by default.
+            (function () {
+                const themes = ['system', 'light', 'dark'];
+                let theme = new URLSearchParams(location.search).get('theme');
+
+                try {
+                    if (themes.includes(theme)) {
+                        localStorage.setItem('chronos.dashboard.theme', theme);
+                    } else {
+                        theme = localStorage.getItem('chronos.dashboard.theme');
+                    }
+                } catch (e) {
+                    //
+                }
+
+                theme = themes.includes(theme) ? theme : 'system';
+
+                if (theme !== 'system') {
+                    document.documentElement.dataset.theme = theme;
+                }
+            })();
+        </script>
         <style>
+            /* Dark by default, light by the choice or by the system when nothing is chosen. */
             :root {
                 --bg: #0e1116;
                 --panel: #161b22;
@@ -15,6 +39,62 @@
                 --danger: #f85149;
                 --warning: #d29922;
                 --primary: #58a6ff;
+                --danger-soft: rgba(248, 81, 73, .2);
+                --warning-soft: rgba(210, 153, 34, .2);
+                --primary-soft: rgba(88, 166, 255, .18);
+                --accent: #a371f7;
+                --banner: rgba(248, 81, 73, .15);
+                --banner-pulse: rgba(248, 81, 73, .28);
+                --banner-text: #ffb3ad;
+                --flash: rgba(88, 166, 255, .25);
+                --shadow: none;
+                color-scheme: dark;
+            }
+
+            :root[data-theme="light"] {
+                --bg: #f6f8fa;
+                --panel: #ffffff;
+                --border: #d0d7de;
+                --text: #1f2328;
+                --muted: #59636e;
+                --success: #1a7f37;
+                --danger: #cf222e;
+                --warning: #9a6700;
+                --primary: #0969da;
+                --danger-soft: rgba(207, 34, 46, .12);
+                --warning-soft: rgba(154, 103, 0, .14);
+                --primary-soft: rgba(9, 105, 218, .12);
+                --accent: #8250df;
+                --banner: rgba(207, 34, 46, .08);
+                --banner-pulse: rgba(207, 34, 46, .16);
+                --banner-text: #82071e;
+                --flash: rgba(9, 105, 218, .16);
+                --shadow: 0 1px 2px rgba(31, 35, 40, .06);
+                color-scheme: light;
+            }
+
+            @media (prefers-color-scheme: light) {
+                :root:not([data-theme="dark"]) {
+                    --bg: #f6f8fa;
+                    --panel: #ffffff;
+                    --border: #d0d7de;
+                    --text: #1f2328;
+                    --muted: #59636e;
+                    --success: #1a7f37;
+                    --danger: #cf222e;
+                    --warning: #9a6700;
+                    --primary: #0969da;
+                    --danger-soft: rgba(207, 34, 46, .12);
+                    --warning-soft: rgba(154, 103, 0, .14);
+                    --primary-soft: rgba(9, 105, 218, .12);
+                    --accent: #8250df;
+                    --banner: rgba(207, 34, 46, .08);
+                    --banner-pulse: rgba(207, 34, 46, .16);
+                    --banner-text: #82071e;
+                    --flash: rgba(9, 105, 218, .16);
+                    --shadow: 0 1px 2px rgba(31, 35, 40, .06);
+                    color-scheme: light;
+                }
             }
 
             * { box-sizing: border-box; }
@@ -57,16 +137,16 @@
                 display: none;
                 padding: 14px 18px;
                 border-radius: 8px;
-                background: rgba(248, 81, 73, .15);
+                background: var(--banner);
                 border: 1px solid var(--danger);
-                color: #ffb3ad;
+                color: var(--banner-text);
                 font-size: 20px;
             }
 
             .banner b { color: var(--danger); }
             .banner.show { display: block; animation: pulse 2s ease-in-out infinite; }
 
-            @keyframes pulse { 50% { background: rgba(248, 81, 73, .28); } }
+            @keyframes pulse { 50% { background: var(--banner-pulse); } }
 
             .tiles {
                 display: grid;
@@ -77,6 +157,7 @@
             .panel {
                 background: var(--panel);
                 border: 1px solid var(--border);
+                box-shadow: var(--shadow);
                 border-radius: 8px;
                 padding: 16px 18px;
                 min-width: 0;
@@ -93,13 +174,40 @@
             .tile.good .value { color: var(--success); }
             .tile.active .value { color: var(--primary); }
 
-            .chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
-            .bar { flex: 1; display: flex; flex-direction: column-reverse; height: 100%; min-width: 0; }
-            .bar .s { background: var(--success); opacity: .75; }
-            .bar .f { background: var(--danger); }
-            .bar .s, .bar .f { border-radius: 2px 2px 0 0; }
-            .axis { display: flex; gap: 4px; margin-top: 6px; color: var(--muted); font-size: 12px; }
-            .axis span { flex: 1; text-align: center; min-width: 0; }
+            .load { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
+            .load-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+            .load-head h2 { margin-bottom: 4px; }
+            .legend { display: flex; gap: 16px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+            .legend b { color: var(--text); }
+            .legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+            .legend .running i { background: var(--primary); }
+            .legend .memory i { background: repeating-linear-gradient(90deg, var(--accent) 0 5px, transparent 5px 8px); }
+
+            #load-chart { display: block; width: 100%; height: 170px; overflow: visible; }
+            #load-chart .grid { stroke: var(--border); stroke-width: 1; }
+            #load-chart .tick { fill: var(--muted); font-size: 11px; }
+            #load-chart .tick.running { fill: var(--primary); }
+            #load-chart .tick.memory { fill: var(--accent); }
+            #load-chart .line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+            #load-chart .area { stroke: none; opacity: .14; }
+            #load-chart .running { stroke: var(--primary); }
+            #load-chart .area.running { fill: var(--primary); }
+            #load-chart .memory { stroke: var(--accent); }
+            /* Dashed: visible when it goes along the line of runs */
+            #load-chart .line.memory { stroke-dasharray: 6 5; stroke-width: 2.5; }
+            #load-chart .area.memory { fill: var(--accent); }
+            #load-chart .point { fill: var(--panel); stroke-width: 2; }
+            #load-chart .point.now { animation: blink 2s ease-in-out infinite; }
+            #load-chart .hover { fill: transparent; }
+            #load-chart .hover:hover { fill: var(--primary-soft); }
+
+            .top th { color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; text-align: right; padding: 0 6px 6px; white-space: nowrap; }
+            .top th:first-child { text-align: left; }
+            .top td { padding: 5px 6px; vertical-align: middle; }
+            .top td.cmd { max-width: 0; width: 100%; }
+            .top td.cmd .name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .top .share { height: 3px; margin-top: 3px; border-radius: 2px; background: var(--primary); opacity: .6; }
+            .top td.num.bad { color: var(--danger); font-weight: 600; }
 
             .columns {
                 display: grid;
@@ -132,15 +240,44 @@
             /* A row that has just come to the list, e.g. a run moved from upcoming to running and then to recent. */
             tr.new td { animation: flash 2.5s ease-out; }
 
-            @keyframes flash { from { background: rgba(88, 166, 255, .25); } to { background: transparent; } }
+            @keyframes flash { from { background: var(--flash); } to { background: transparent; } }
 
             @keyframes blink { 50% { opacity: .3; } }
 
             .tag { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; }
-            .tag.failed, .tag.killed { background: rgba(248, 81, 73, .2); color: var(--danger); }
-            .tag.missed { background: rgba(210, 153, 34, .2); color: var(--warning); }
-            .tag.schedule, .tag.stuck { background: rgba(248, 81, 73, .2); color: var(--danger); }
-            .tag.held { background: rgba(88, 166, 255, .18); color: var(--primary); }
+            .tag.failed, .tag.killed, .tag.schedule, .tag.stuck { background: var(--danger-soft); color: var(--danger); }
+            .tag.missed { background: var(--warning-soft); color: var(--warning); }
+            .tag.held { background: var(--primary-soft); color: var(--primary); }
+
+            .header-right { display: flex; align-items: baseline; gap: 16px; }
+
+            .themes {
+                display: inline-flex;
+                align-self: center;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .themes button {
+                background: transparent;
+                border: 0;
+                color: var(--muted);
+                padding: 5px 8px;
+                line-height: 0;
+                cursor: pointer;
+            }
+
+            .themes button + button { border-left: 1px solid var(--border); }
+            .themes button:hover { color: var(--text); }
+            .themes button[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); }
+
+            /* Narrower screens: the main columns of the top and smaller numbers of the tiles */
+            @media (max-width: 1600px) {
+                .top .wide { display: none; }
+                .tile .value { font-size: 40px; }
+                .tile .value .unit { font-size: 22px; }
+            }
 
             @media (max-width: 1500px), (max-height: 700px) {
                 .page { height: auto; min-height: 100%; }
@@ -151,6 +288,7 @@
             }
 
             @media (max-width: 1200px) {
+                .load { grid-template-columns: minmax(0, 1fr); }
                 .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
                 .columns { grid-template-columns: minmax(0, 1fr); }
             }
@@ -167,9 +305,22 @@
         <div class="page">
             <header>
                 <h1>{{ config('app.name') }} <small>/ Chronos</small></h1>
-                <div>
-                    <span class="clock" id="clock"></span>
-                    <span class="updated" id="updated">Loading…</span>
+                <div class="header-right">
+                    <div class="themes" role="group" aria-label="Theme">
+                        <button type="button" data-theme-option="system" title="System" aria-label="System theme">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                        </button>
+                        <button type="button" data-theme-option="light" title="Light" aria-label="Light theme">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                        </button>
+                        <button type="button" data-theme-option="dark" title="Dark" aria-label="Dark theme">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        </button>
+                    </div>
+                    <div>
+                        <span class="clock" id="clock"></span>
+                        <span class="updated" id="updated">Loading…</span>
+                    </div>
                 </div>
             </header>
 
@@ -213,10 +364,26 @@
                 </div>
             </section>
 
-            <section class="panel">
-                <h2>Runs by hour</h2>
-                <div class="chart" id="chart"></div>
-                <div class="axis" id="axis"></div>
+            <section class="load">
+                <div class="panel">
+                    <div class="load-head">
+                        <h2>Load of commands, {{ \Tkachikov\Chronos\Services\DashboardService::HOURS }}h</h2>
+                        <div class="legend">
+                            <span class="running"><i></i>At once, max <b id="load-running-max">—</b></span>
+                            <span class="memory"><i></i>Memory, max <b id="load-memory-max">—</b></span>
+                        </div>
+                    </div>
+                    <svg id="load-chart" role="img" aria-label="Load of commands by hours"></svg>
+                </div>
+                <div class="panel">
+                    <h2>Top commands, {{ \Tkachikov\Chronos\Services\DashboardService::HOURS }}h</h2>
+                    <table class="top">
+                        <thead>
+                            <tr><th>Command</th><th>Runs</th><th>Errors</th><th class="wide">Avg</th><th class="wide">Max mem</th><th>Total</th></tr>
+                        </thead>
+                        <tbody id="top-list"></tbody>
+                    </table>
+                </div>
             </section>
 
             <section class="columns">
@@ -353,20 +520,111 @@
                         : '';
                 }
 
-                function renderChart() {
-                    const hourly = data.runs.hourly;
-                    const max = Math.max(1, ...hourly.map((h) => h.success + h.failed));
+                const bytes = (value) => {
+                    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                    let unit = 0;
+                    while (value >= 1024 && unit < units.length - 1) {
+                        value /= 1024;
+                        unit++;
+                    }
+                    return (Math.round(value * 10) / 10) + ' ' + units[unit];
+                };
 
-                    $('chart').innerHTML = hourly.map((h) => {
-                        const title = new Date(h.hour).getHours() + ':00 — ' + h.success + ' succeeded, ' + h.failed + ' failed';
-                        return '<div class="bar" title="' + esc(title) + '">'
-                            + '<div class="s" style="height:' + (h.success / max * 100) + '%"></div>'
-                            + '<div class="f" style="height:' + (h.failed / max * 100) + '%"></div>'
-                            + '</div>';
-                    }).join('');
-                    $('axis').innerHTML = hourly.map((h, i) => '<span>'
-                        + (i % 3 === 0 || i === hourly.length - 1 ? pad(new Date(h.hour).getHours()) : '')
-                        + '</span>').join('');
+                // A line chart by hours: the peak of runs at once and of their memory, each by its own scale.
+                function renderChart() {
+                    const svg = $('load-chart');
+                    const load = data.runs.load;
+
+                    if (!load || !load.points.length) {
+                        svg.innerHTML = '';
+                        return;
+                    }
+
+                    const points = load.points;
+                    const width = svg.clientWidth || 800;
+                    const height = svg.clientHeight || 170;
+                    const box = { left: 30, right: 58, top: 10, bottom: 22 };
+                    const w = width - box.left - box.right;
+                    const h = height - box.top - box.bottom;
+                    const maxRunning = Math.max(1, load.max_running);
+                    const maxMemory = Math.max(1, ...points.map((p) => p.memory_bytes));
+                    const step = points.length > 1 ? w / (points.length - 1) : 0;
+                    const x = (i) => box.left + i * step;
+                    const y = (value, max) => box.top + h - value / max * h;
+                    const hour = (p) => pad(new Date(p.hour).getHours());
+                    const line = (value, max) => points.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(value(p), max).toFixed(1)).join(' ');
+                    const area = (value, max) => line(value, max)
+                        + ' L' + x(points.length - 1).toFixed(1) + ',' + (box.top + h) + ' L' + x(0).toFixed(1) + ',' + (box.top + h) + ' Z';
+                    const running = (p) => p.running;
+                    const memory = (p) => p.memory_bytes;
+                    let out = '';
+
+                    // Grid and scales: runs at once on the left, memory on the right
+                    [0, 0.5, 1].forEach((fraction) => {
+                        const gy = box.top + h - fraction * h;
+                        out += '<line class="grid" x1="' + box.left + '" x2="' + (box.left + w) + '" y1="' + gy + '" y2="' + gy + '"/>'
+                            + '<text class="tick running" x="' + (box.left - 8) + '" y="' + (gy + 4) + '" text-anchor="end">'
+                            + esc(Math.round(maxRunning * fraction * 10) / 10) + '</text>'
+                            + '<text class="tick memory" x="' + (box.left + w + 8) + '" y="' + (gy + 4) + '">'
+                            + (fraction ? esc(bytes(maxMemory * fraction)) : '0') + '</text>';
+                    });
+
+                    // Hours: each one when there is room, every other one otherwise
+                    const every = step >= 34 ? 1 : 2;
+                    points.forEach((p, i) => {
+                        const last = i === points.length - 1;
+                        if (last || i % every === 0) {
+                            out += '<text class="tick" x="' + x(i) + '" y="' + (height - 4) + '" text-anchor="middle">'
+                                + (last ? 'now' : esc(hour(p))) + '</text>';
+                        }
+                    });
+
+                    out += '<path class="area memory" d="' + area(memory, maxMemory) + '"/>'
+                        + '<path class="area running" d="' + area(running, maxRunning) + '"/>'
+                        + '<path class="line running" d="' + line(running, maxRunning) + '"/>'
+                        // Over the line of runs: the dashes show both when they go along
+                        + '<path class="line memory" d="' + line(memory, maxMemory) + '"/>';
+
+                    points.forEach((p, i) => {
+                        const now = i === points.length - 1 ? ' now' : '';
+                        out += '<circle class="point running' + now + '" cx="' + x(i) + '" cy="' + y(p.running, maxRunning) + '" r="' + (now ? 4 : 2.5) + '"/>';
+                    });
+
+                    // Columns of hours for the tooltip
+                    points.forEach((p, i) => {
+                        const next = i === points.length - 1 ? 'now' : pad((new Date(p.hour).getHours() + 1) % 24) + ':00';
+                        const title = hour(p) + ':00–' + next
+                            + ' · up to ' + p.running + ' at once'
+                            + (p.memory ? ' · ' + p.memory : '')
+                            + ' · ' + p.runs + ' runs'
+                            + (p.commands.length ? '\n' + p.commands.join(', ') + (p.more_commands ? ' +' + p.more_commands : '') : '');
+                        out += '<rect class="hover" x="' + (x(i) - step / 2) + '" y="' + box.top + '" width="' + Math.max(step, 1) + '" height="' + h + '">'
+                            + '<title>' + esc(title) + '</title></rect>';
+                    });
+
+                    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+                    svg.innerHTML = out;
+
+                    $('load-running-max').textContent = load.max_running;
+                    $('load-memory-max').textContent = load.max_memory || '—';
+                }
+
+                function renderTop() {
+                    const top = data.runs.top || [];
+                    const total = (item) => item.total_time ?? item.runs;
+                    const max = Math.max(1, ...top.map(total));
+
+                    $('top-list').innerHTML = top.length
+                        ? top.map((item) => '<tr>'
+                            + '<td class="cmd"><span class="name" title="' + esc(item.command) + '">' + esc(item.command) + '</span>'
+                            + '<div class="share" style="width:' + (total(item) / max * 100) + '%"></div></td>'
+                            + '<td class="num">' + esc(item.runs) + '</td>'
+                            + '<td class="num' + (item.errors ? ' bad' : '') + '">' + esc(item.errors) + '</td>'
+                            + '<td class="num wide">' + (item.average_time !== null ? esc(duration(item.average_time)) : '—') + '</td>'
+                            + '<td class="num wide">' + esc(item.max_memory || '—') + '</td>'
+                            + '<td class="num">' + (item.total_time !== null ? esc(duration(item.total_time)) : '—') + '</td>'
+                            + '</tr>').join('')
+                        : '<tr><td class="empty" colspan="6">No runs yet</td></tr>';
                 }
 
                 function renderLists() {
@@ -493,6 +751,7 @@
 
                         renderTiles();
                         renderChart();
+                        renderTop();
                         renderLists();
                     } catch (e) {
                         failedRequests++;
@@ -507,6 +766,36 @@
                     }
                 }
 
+                // The switch of the theme, the choice is saved in the browser of the screen.
+                function renderThemes() {
+                    const current = document.documentElement.dataset.theme || 'system';
+                    document.querySelectorAll('[data-theme-option]').forEach((button) => {
+                        button.setAttribute('aria-pressed', String(button.dataset.themeOption === current));
+                    });
+                }
+
+                document.querySelectorAll('[data-theme-option]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const theme = button.dataset.themeOption;
+
+                        if (theme === 'system') {
+                            delete document.documentElement.dataset.theme;
+                        } else {
+                            document.documentElement.dataset.theme = theme;
+                        }
+
+                        try {
+                            localStorage.setItem('chronos.dashboard.theme', theme);
+                        } catch (e) {
+                            //
+                        }
+
+                        renderThemes();
+                    });
+                });
+
+                renderThemes();
+                window.addEventListener('resize', () => data && renderChart());
                 setInterval(tick, 1000);
                 setTimeout(() => location.reload(), reloadAfter);
                 load();

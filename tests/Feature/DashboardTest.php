@@ -22,6 +22,7 @@ final class DashboardTest extends TestCase
             ->get('/chronos/dashboard')
             ->assertOk()
             ->assertSee('Running now')
+            ->assertSeeInOrder(['data-theme-option="system"', 'data-theme-option="light"', 'data-theme-option="dark"'], false)
             ->assertSee(json_encode(route('chronos.dashboard.data')), false);
     }
 
@@ -33,7 +34,10 @@ final class DashboardTest extends TestCase
             ->assertJsonPath('status', 'ok')
             ->assertJsonPath('scheduler.status', 'ok')
             ->assertJsonPath('runs.totals', ['total' => 0, 'success' => 0, 'failed' => 0, 'running' => 0, 'killed' => 0])
-            ->assertJsonCount(24, 'runs.hourly')
+            ->assertJsonCount(24, 'runs.load.points')
+            ->assertJsonPath('runs.load.max_running', 0)
+            ->assertJsonPath('runs.load.max_memory', null)
+            ->assertJsonPath('runs.top', [])
             ->assertJsonPath('runs.duration', null)
             ->assertJsonPath('runs.memory', null)
             ->assertJsonPath('runs.running', [])
@@ -61,9 +65,32 @@ final class DashboardTest extends TestCase
             ->assertJsonPath('runs.totals', ['total' => 4, 'success' => 1, 'failed' => 1, 'running' => 1, 'killed' => 1])
             ->assertJsonPath('runs.duration', ['average' => 3, 'max' => 5, 'max_command' => 'app:test'])
             ->assertJsonPath('runs.memory', ['average' => '20 MB', 'max' => '30 MB', 'max_command' => 'app:test'])
-            ->assertJsonPath('runs.hourly.0.hour', '2026-10-15T13:00:00+00:00')
-            ->assertJsonPath('runs.hourly.22', ['hour' => '2026-10-16T11:00:00+00:00', 'success' => 0, 'failed' => 1])
-            ->assertJsonPath('runs.hourly.23', ['hour' => '2026-10-16T12:00:00+00:00', 'success' => 1, 'failed' => 1])
+            ->assertJsonPath('runs.top', [[
+                'command' => 'app:test',
+                'runs' => 4,
+                'errors' => 2,
+                // Without the running and the killed runs
+                'total_time' => 6,
+                'average_time' => 3,
+                'max_time' => 5,
+                'max_memory' => '30 MB',
+            ]])
+            ->assertJsonPath('runs.load.points.0.hour', '2026-10-15T13:00:00+00:00')
+            // The run out of the period finished at 13:00:00
+            ->assertJsonPath('runs.load.points.0.runs', 0)
+            ->assertJsonPath('runs.load.points.22', [
+                'hour' => '2026-10-16T11:00:00+00:00',
+                'runs' => 1,
+                'running' => 1,
+                'memory' => '30 MB',
+                'memory_bytes' => 31457280,
+                'commands' => ['app:test'],
+                'more_commands' => 0,
+            ])
+            // Success, killed and running one after another; the memory of the running run is unknown
+            ->assertJsonPath('runs.load.points.23.runs', 3)
+            ->assertJsonPath('runs.load.points.23.running', 1)
+            ->assertJsonPath('runs.load.points.23.memory', '20 MB')
             ->assertJsonCount(1, 'runs.running')
             ->assertJsonPath('runs.running.0.id', $running->id)
             ->assertJsonPath('runs.running.0.command', 'app:test')
@@ -121,6 +148,37 @@ final class DashboardTest extends TestCase
             ]]);
     }
 
+    public function testLoadIsPeakOfRunsAtOnce(): void
+    {
+        $this->travelTo('2026-10-16 12:30:00');
+        $model = $this->model();
+
+        // At once
+        $this->createRun($model, 0, '2026-10-16 12:20:00', '2026-10-16 12:20:10', ['memory' => '10 MB']);
+        $this->createRun($model, 0, '2026-10-16 12:20:05', '2026-10-16 12:20:20', ['memory' => '20 MB']);
+        // One after another
+        $this->createRun($model, 0, '2026-10-16 11:21:00', '2026-10-16 11:21:10', ['memory' => '10 MB']);
+        $this->createRun($model, 0, '2026-10-16 11:21:10', '2026-10-16 11:21:20', ['memory' => '20 MB']);
+        // Through several hours
+        $this->createRun($model, 1, '2026-10-16 08:30:00', '2026-10-16 10:30:00', ['memory' => '5 MB']);
+
+        $this
+            ->getJson('/chronos/dashboard/data')
+            ->assertOk()
+            ->assertJsonPath('runs.load.points.23.running', 2)
+            ->assertJsonPath('runs.load.points.23.memory', '30 MB')
+            ->assertJsonPath('runs.load.points.22.runs', 2)
+            ->assertJsonPath('runs.load.points.22.running', 1)
+            ->assertJsonPath('runs.load.points.22.memory', '20 MB')
+            ->assertJsonPath('runs.load.points.18.running', 0)
+            ->assertJsonPath('runs.load.points.19.running', 1)
+            ->assertJsonPath('runs.load.points.20.running', 1)
+            ->assertJsonPath('runs.load.points.21.running', 1)
+            ->assertJsonPath('runs.load.points.21.memory', '5 MB')
+            ->assertJsonPath('runs.load.max_running', 2)
+            ->assertJsonPath('runs.load.max_memory', '30 MB');
+    }
+
     public function testErrorsAreGroupedByCommands(): void
     {
         $this->travelTo('2026-10-16 12:30:00');
@@ -153,6 +211,10 @@ final class DashboardTest extends TestCase
             ->assertJsonPath('runs.errors.1.failed', 1);
 
         $this->assertSame([3, 1], array_column($response->json('runs.errors'), 'total'));
+
+        // The most time of runs first
+        $this->assertSame(['app:test', 'app:other'], array_column($response->json('runs.top'), 'command'));
+        $this->assertSame([4, 1], array_column($response->json('runs.top'), 'runs'));
     }
 
     public function testUpcoming(): void
