@@ -176,17 +176,21 @@ For calculate statistics run commands you must create schedule for `chronos:upda
 Chronos saves every `schedule:run` of each server and the last run of each schedule:
 
 - the panel shows a banner when no server has run `schedule:run` for `CHRONOS_SCHEDULER_TIMEOUT` minutes (5 by default) while there are enabled schedules — e.g. cron is broken;
-- schedules show the status and time of the last run, the next run and `Missed since` when a run due more than 2 minutes ago has not started.
+- schedules show the status and time of the last run, the next run and `Missed since` when a run due more than 2 minutes ago has not started;
+- runs skipped by `withoutOverlapping` while the previous run goes on are counted (`Skipped N times`) and do not change the status and the start of the running run;
+- `Lock is stuck` when the runs are skipped by `withoutOverlapping`, but no run of the command is running: the process that held the lock is gone (e.g. the server was restarted) and the lock is held until it expires (24 hours by default). Release it by `php artisan schedule:clear-cache`.
+
+Each `schedule:run` finishes as killed the runs of its server whose process is gone without finishing them (SIGKILL, OOM, a restart), so they are not running forever. The state of runs is known only for commands with `ChronosRunnerTrait`: for other commands a lock is not considered stuck.
 
 ### Health check
 
-`GET /chronos/health` returns `200` with `"status": "ok"`, or `503` with `"status": "fail"` when the scheduler is stopped or schedules have missed runs:
+`GET /chronos/health` returns `200` with `"status": "ok"`, or `503` with `"status": "fail"` when the scheduler is stopped, schedules have missed runs or stuck locks:
 
 ```json
 {
     "status": "fail",
     "scheduler": {"status": "stopped", "last_run_at": "2026-10-16T11:46:11+00:00", "timeout_minutes": 5, "hosts": [{"host": "web-1", "last_run_at": "2026-10-16T11:46:11+00:00"}]},
-    "schedules": {"enabled": 3, "missed": [{"id": 1, "name": "Import #1", "command": "App\\Console\\Commands\\ImportCommand", "missed_since": "2026-10-16T11:47:00+00:00"}], "failed": 1, "running": 0}
+    "schedules": {"enabled": 3, "missed": [{"id": 1, "name": "Import #1", "command": "App\\Console\\Commands\\ImportCommand", "missed_since": "2026-10-16T11:47:00+00:00"}], "stuck": [], "failed": 1, "running": 0}
 }
 ```
 

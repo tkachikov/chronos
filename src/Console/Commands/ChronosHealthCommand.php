@@ -15,7 +15,7 @@ final class ChronosHealthCommand extends Command
 {
     protected $signature = 'chronos:health {--json : Output as JSON}';
 
-    protected $description = 'Check that the scheduler is running and schedules have no missed runs';
+    protected $description = 'Check that the scheduler is running and schedules have no missed runs and stuck locks';
 
     public function handle(HealthService $healthService): int
     {
@@ -39,11 +39,12 @@ final class ChronosHealthCommand extends Command
             $schedules = $health['schedules'];
 
             $this->line(sprintf(
-                'Schedules: %d enabled, %d missed, %d failed, %d running',
+                'Schedules: %d enabled, %d missed, %d failed, %d running, %d stuck',
                 $schedules['enabled'],
                 count($schedules['missed']),
                 $schedules['failed'],
                 $schedules['running'],
+                count($schedules['stuck']),
             ));
 
             foreach ($schedules['missed'] as $missed) {
@@ -52,6 +53,16 @@ final class ChronosHealthCommand extends Command
                     $missed['id'],
                     $missed['name'] ?? $missed['command'] ?? '',
                     $missed['missed_since'],
+                ));
+            }
+
+            foreach ($schedules['stuck'] as $stuck) {
+                $this->line(sprintf(
+                    '  #%d %s: stuck lock, skipped %d times since %s, release it by schedule:clear-cache',
+                    $stuck['id'],
+                    $stuck['name'] ?? $stuck['command'] ?? '',
+                    $stuck['skipped'],
+                    $stuck['last_run_at'] ?? 'never',
                 ));
             }
         }

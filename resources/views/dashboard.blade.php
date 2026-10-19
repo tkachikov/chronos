@@ -139,7 +139,8 @@
             .tag { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; }
             .tag.failed, .tag.killed { background: rgba(248, 81, 73, .2); color: var(--danger); }
             .tag.missed { background: rgba(210, 153, 34, .2); color: var(--warning); }
-            .tag.schedule { background: rgba(248, 81, 73, .2); color: var(--danger); }
+            .tag.schedule, .tag.stuck { background: rgba(248, 81, 73, .2); color: var(--danger); }
+            .tag.held { background: rgba(88, 166, 255, .18); color: var(--primary); }
 
             @media (max-width: 1500px), (max-height: 700px) {
                 .page { height: auto; min-height: 100%; }
@@ -369,10 +370,18 @@
                 }
 
                 function renderLists() {
+                    // A schedule under the lock of withoutOverlapping: its next run will be skipped.
+                    const lockTag = (lock) => lock
+                        ? '<span class="tag ' + esc(lock.state) + '">' + (lock.state === 'stuck' ? 'lock stuck' : 'locked')
+                            + (lock.skipped ? ' · skipped ×' + esc(lock.skipped) : '') + '</span>'
+                        : '';
+
                     list('upcoming-list', data.schedules.upcoming.map((schedule) => ({
                         key: schedule.id + '@' + schedule.next_run_at,
                         html: '<td><span class="dot upcoming" data-due="' + esc(schedule.next_run_at) + '"></span><span class="name">' + esc(schedule.name || schedule.command) + '</span>'
-                            + '<div class="sub">' + (schedule.name ? esc(schedule.command) + ' · ' : '') + 'at ' + esc(time(schedule.next_run_at)) + '</div></td>'
+                            + lockTag(schedule.lock)
+                            + '<div class="sub">' + (schedule.name ? esc(schedule.command) + ' · ' : '') + 'at ' + esc(time(schedule.next_run_at))
+                            + (schedule.lock && schedule.lock.since ? ' · locked since ' + esc(time(schedule.lock.since)) : '') + '</div></td>'
                             + '<td class="num" data-countdown="' + esc(schedule.next_run_at) + '">' + esc(countdown(schedule.next_run_at)) + '</td>',
                     })), 'No enabled schedules');
 
@@ -384,6 +393,13 @@
                     })), 'Nothing is running');
 
                     const problems = [];
+                    data.schedules.stuck.forEach((schedule) => problems.push({
+                        key: 'stuck' + schedule.id + '@' + schedule.skipped,
+                        html: '<td><span class="dot failed"></span><span class="name">' + esc(schedule.name || schedule.command) + '</span><span class="tag stuck">lock stuck · skipped ×' + esc(schedule.skipped) + '</span>'
+                            + '<div class="sub">' + (schedule.name ? esc(schedule.command) + ' · ' : '')
+                            + 'nothing is running, but the runs are skipped by withoutOverlapping · <code>schedule:clear-cache</code></div></td>'
+                            + '<td class="num">' + (schedule.last_run_at ? 'since ' + esc(time(schedule.last_run_at)) : '') + '</td>',
+                    }));
                     data.schedules.missed.forEach((schedule) => problems.push({
                         key: 'missed' + schedule.id + '@' + schedule.missed_since,
                         html: '<td><span class="dot missed"></span><span class="name">' + esc(schedule.name || schedule.command) + '</span><span class="tag missed">missed</span>'

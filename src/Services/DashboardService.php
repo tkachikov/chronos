@@ -60,6 +60,10 @@ class DashboardService
                     fn (array $missed): array => ['command' => $this->getName($missed['command'])] + $missed,
                     $health['schedules']['missed'],
                 ),
+                'stuck' => array_map(
+                    fn (array $stuck): array => ['command' => $this->getName($stuck['command'])] + $stuck,
+                    $health['schedules']['stuck'],
+                ),
                 'failed' => $this->getFailedSchedules(),
                 'upcoming' => $this->getUpcomingSchedules(),
             ],
@@ -379,9 +383,26 @@ class DashboardService
                 'name' => $item['schedule']->name,
                 'command' => $this->getName($item['schedule']->command?->class),
                 'next_run_at' => $item['next_run_at']->toIso8601String(),
+                'lock' => $this->getLock($item['schedule']),
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * The lock of withoutOverlapping when the runs of the schedule are skipped by it.
+     */
+    private function getLock(Schedule $schedule): ?array
+    {
+        $state = $this->scheduleMonitor->getLockState($schedule);
+
+        return $state === null
+            ? null
+            : [
+                'state' => $state,
+                'since' => $schedule->last_run_at?->toIso8601String(),
+                'skipped' => (int) $schedule->skipped_count,
+            ];
     }
 
     private function getName(?string $class): string

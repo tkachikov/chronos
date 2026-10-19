@@ -64,14 +64,53 @@ final class ScheduleTrackerTest extends TestCase
         $this->assertNotNull($schedule->last_run_at);
     }
 
+    public function testSkipsKeepRunningRun(): void
+    {
+        [$schedule, $event] = $this->createSchedule(['without_overlapping' => true]);
+
+        $this->travelTo('2026-10-16 10:00:00');
+        event(new ScheduledTaskStarting($event));
+
+        $this->travelTo('2026-10-16 10:01:00');
+        event(new ScheduledTaskSkipped($event));
+        $this->travelTo('2026-10-16 10:02:00');
+        event(new ScheduledTaskSkipped($event));
+
+        $schedule->refresh();
+        $this->assertSame('running', $schedule->last_status);
+        $this->assertSame('2026-10-16 10:00:00', $schedule->last_run_at?->toDateTimeString());
+        $this->assertSame('2026-10-16 10:02:00', $schedule->last_skipped_at?->toDateTimeString());
+        $this->assertSame(2, $schedule->skipped_count);
+
+        $this->travelTo('2026-10-16 10:02:30');
+        $event->exitCode = 0;
+        event(new ScheduledTaskFinished($event, 150));
+
+        $schedule->refresh();
+        $this->assertSame('success', $schedule->last_status);
+        $this->assertSame('2026-10-16 10:00:00', $schedule->last_run_at?->toDateTimeString());
+        $this->assertSame(2, $schedule->skipped_count);
+
+        // The next run starts the count again
+        $this->travelTo('2026-10-16 10:03:00');
+        event(new ScheduledTaskStarting($event));
+
+        $schedule->refresh();
+        $this->assertSame(0, $schedule->skipped_count);
+        $this->assertSame('2026-10-16 10:02:00', $schedule->last_skipped_at?->toDateTimeString());
+    }
+
     public function testSkippedByFilters(): void
     {
         [$schedule, $event] = $this->createSchedule();
 
         event(new ScheduledTaskSkipped($event));
 
-        $this->assertSame('skipped', $schedule->refresh()->last_status);
-        $this->assertNotNull($schedule->last_run_at);
+        $schedule->refresh();
+        $this->assertNull($schedule->last_status);
+        $this->assertNull($schedule->last_run_at);
+        $this->assertNotNull($schedule->last_skipped_at);
+        $this->assertSame(1, $schedule->skipped_count);
     }
 
     public function testBackground(): void

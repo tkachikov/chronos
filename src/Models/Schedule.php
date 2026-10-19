@@ -28,6 +28,8 @@ use Tkachikov\LaravelWithtrashed\WithTrashedTrait;
  * @property-read Carbon|null $last_run_at
  * @property-read Carbon|null $last_finished_at
  * @property-read string|null $last_status
+ * @property-read Carbon|null $last_skipped_at
+ * @property-read int|null $skipped_count
  * @property-read Carbon|null $created_at
  * @property-read Carbon|null $updated_at
  */
@@ -42,6 +44,8 @@ final class Schedule extends Model
         'time_params' => 'array',
         'last_run_at' => 'datetime',
         'last_finished_at' => 'datetime',
+        'last_skipped_at' => 'datetime',
+        'skipped_count' => 'integer',
     ];
 
     public function preparedArgs(): Attribute

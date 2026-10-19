@@ -172,12 +172,14 @@ final class DashboardTest extends TestCase
                     'name' => null,
                     'command' => 'app:test',
                     'next_run_at' => '2026-10-16T10:01:00+00:00',
+                    'lock' => null,
                 ],
                 [
                     'id' => $hourly->id,
                     'name' => 'Hourly',
                     'command' => 'app:test',
                     'next_run_at' => '2026-10-16T11:00:00+00:00',
+                    'lock' => null,
                 ],
             ]);
     }

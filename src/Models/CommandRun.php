@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property-read int|null $state
  * @property-read string|null $memory
  * @property-read int|null $pid
+ * @property-read string|null $host
  * @property-read int|null $user_id
  * @property-read class-string|null $user_type
  * @property-read array|null $args

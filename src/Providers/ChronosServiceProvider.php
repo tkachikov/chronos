@@ -44,6 +44,7 @@ use Tkachikov\Chronos\Repositories\CommandRunRepository;
 use Tkachikov\Chronos\Repositories\CommandRunRepositoryInterface;
 use Tkachikov\Chronos\Repositories\TimeRepository;
 use Tkachikov\Chronos\Repositories\TimeRepositoryInterface;
+use Tkachikov\Chronos\Services\CommandRunReaperService;
 use Tkachikov\Chronos\Services\ScheduleMonitorService;
 use Tkachikov\Chronos\Services\SchedulerHeartbeatService;
 use Tkachikov\Chronos\Services\ScheduleService;
@@ -255,6 +256,11 @@ class ChronosServiceProvider extends ServiceProvider
                     ->app
                     ->make(SchedulerHeartbeatService::class)
                     ->beat());
+
+                rescue(fn () => $this
+                    ->app
+                    ->make(CommandRunReaperService::class)
+                    ->reap());
             },
         );
 

@@ -10,6 +10,7 @@ use Illuminate\Console\Events\ScheduledTaskFinished;
 use Illuminate\Console\Events\ScheduledTaskSkipped;
 use Illuminate\Console\Events\ScheduledTaskStarting;
 use Illuminate\Console\Scheduling\Event;
+use Illuminate\Support\Facades\DB;
 use Tkachikov\Chronos\Enums\ScheduleStatusEnum;
 use Tkachikov\Chronos\Helpers\DatabaseHelper;
 use Tkachikov\Chronos\Models\Schedule;
@@ -24,6 +25,8 @@ class ScheduleTrackerService
     private WeakMap $schedules;
 
     private ?bool $hasColumns = null;
+
+    private ?bool $hasSkipColumns = null;
 
     public function __construct(
         private readonly DatabaseHelper $databaseHelper,
@@ -50,6 +53,12 @@ class ScheduleTrackerService
                 'last_run_at' => now(),
                 'last_finished_at' => null,
                 'last_status' => ScheduleStatusEnum::RUNNING,
+                ...($this->hasSkipColumns() ? ['skipped_count' => 0] : []),
+            ],
+            // E.g. withoutOverlapping while the previous run goes on: its status and start are kept, skips are counted
+            $event instanceof ScheduledTaskSkipped && $this->hasSkipColumns() => [
+                'last_skipped_at' => now(),
+                'skipped_count' => DB::raw('skipped_count + 1'),
             ],
             $event instanceof ScheduledTaskSkipped => [
                 'last_run_at' => now(),
@@ -70,7 +79,9 @@ class ScheduleTrackerService
             return;
         }
 
-        $values['last_status'] = $values['last_status']->value;
+        if (isset($values['last_status'])) {
+            $values['last_status'] = $values['last_status']->value;
+        }
 
         // Without touching updated_at: it is the time of the last change of the schedule
         Schedule::query()
@@ -109,5 +120,10 @@ class ScheduleTrackerService
     private function hasColumns(): bool
     {
         return $this->hasColumns ??= $this->databaseHelper->hasColumn(Schedule::class, 'last_status');
+    }
+
+    private function hasSkipColumns(): bool
+    {
+        return $this->hasSkipColumns ??= $this->databaseHelper->hasColumn(Schedule::class, 'skipped_count');
     }
 }
