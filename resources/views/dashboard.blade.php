@@ -343,12 +343,19 @@
                     const d = new Date(iso);
                     return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
                 };
+                // One unit, the biggest, rounded: 45s, 8m, 2h, 3d (as DurationHelper)
                 const duration = (seconds) => {
-                    seconds = Math.max(0, Math.round(seconds));
-                    if (seconds < 60) return seconds + 's';
-                    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + pad(seconds % 60) + 's';
-                    if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ' + pad(Math.floor(seconds % 3600 / 60)) + 'm';
-                    return Math.floor(seconds / 86400) + 'd ' + Math.floor(seconds % 86400 / 3600) + 'h';
+                    seconds = Math.max(0, seconds);
+                    const units = [['d', 86400], ['h', 3600], ['m', 60], ['s', 1]];
+                    for (let i = 0; i < units.length; i++) {
+                        const [unit, size] = units[i];
+                        if (seconds >= size || size === 1) {
+                            const value = Math.round(seconds / size);
+                            // Rounded up to the next unit (e.g. 59.6m): one of it
+                            return i > 0 && value * size >= units[i - 1][1] ? '1' + units[i - 1][0] : value + unit;
+                        }
+                    }
+                    return '0s';
                 };
                 const ago = (iso) => duration((now() - new Date(iso).getTime()) / 1000) + ' ago';
                 const elapsed = (iso) => duration((now() - new Date(iso).getTime()) / 1000);

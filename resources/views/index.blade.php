@@ -43,18 +43,7 @@
         2 => ['running', 'Running'],
         3 => ['killed', 'Killed'],
     ];
-    $seconds = function ($value): string {
-        if ($value === null || $value === '') {
-            return '—';
-        }
-        $value = (int) round((float) $value);
-
-        return match (true) {
-            $value < 60 => $value . 's',
-            $value < 3600 => intdiv($value, 60) . 'm ' . str_pad((string) ($value % 60), 2, '0', STR_PAD_LEFT) . 's',
-            default => intdiv($value, 3600) . 'h ' . str_pad((string) intdiv($value % 3600, 60), 2, '0', STR_PAD_LEFT) . 'm',
-        };
-    };
+    $seconds = fn ($value): string => \Tkachikov\Chronos\Helpers\DurationHelper::format($value);
 @endphp
 
 @section('styles')
@@ -400,8 +389,8 @@
                                 <span>Time</span>
                                 <div title="Average, min–max">
                                     {{ $seconds($metrics->time_avg) }}
-                                    @if($metrics->time_min != $metrics->time_max)
-                                        <small>{{ $seconds($metrics->time_min) }}–{{ $seconds($metrics->time_max) }}</small>
+                                    @if($seconds($metrics->time_min) !== $seconds($metrics->time_max))
+                                        <small>{{ \Tkachikov\Chronos\Helpers\DurationHelper::range($metrics->time_min, $metrics->time_max) }}</small>
                                     @endif
                                 </div>
                                 <span>Memory</span>

@@ -22,18 +22,7 @@
         3 => ['killed', 'Killed'],
     ];
     [$state, $stateTitle] = $states[$lastRun?->state] ?? [null, 'Never run'];
-    $seconds = function ($value): string {
-        if ($value === null || $value === '') {
-            return '—';
-        }
-        $value = (int) round((float) $value);
-
-        return match (true) {
-            $value < 60 => $value . 's',
-            $value < 3600 => intdiv($value, 60) . 'm ' . str_pad((string) ($value % 60), 2, '0', STR_PAD_LEFT) . 's',
-            default => intdiv($value, 3600) . 'h ' . str_pad((string) intdiv($value % 3600, 60), 2, '0', STR_PAD_LEFT) . 'm',
-        };
-    };
+    $seconds = fn ($value): string => \Tkachikov\Chronos\Helpers\DurationHelper::format($value);
     $range = fn ($min, $max): string => $min === $max ? (string) $min : "{$min} – {$max}";
     $duration = fn ($run): int => (int) $run->state === 2
         ? $run->created_at->diffInSeconds(now())
@@ -420,7 +409,7 @@
             <span class="cx-k">Average</span>
             @if($metrics)
                 <b class="cx-tile-v">{{ $seconds($metrics->time_avg) }} <i>·</i> {{ $metrics->memory_avg ?? '—' }}</b>
-                <small title="Time and memory, min–max">{{ $range($seconds($metrics->time_min), $seconds($metrics->time_max)) }} · {{ $range($metrics->memory_min ?? '—', $metrics->memory_max ?? '—') }}</small>
+                <small title="Time and memory, min–max">{{ \Tkachikov\Chronos\Helpers\DurationHelper::range($metrics->time_min, $metrics->time_max) }} · {{ $range($metrics->memory_min ?? '—', $metrics->memory_max ?? '—') }}</small>
             @else
                 <b class="cx-tile-v muted">—</b>
                 <small>Counted by chronos:update-metrics</small>
