@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tkachikov\Chronos\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Tkachikov\Chronos\Helpers\ArgsHelper;
 use Tkachikov\Chronos\Models\Command;
 use Tkachikov\Chronos\Models\Schedule;
 
@@ -34,11 +35,7 @@ final class ScheduleSaveRequest extends FormRequest
             'without_overlapping' => $this->boolean('without_overlapping'),
             'run_in_background' => $this->boolean('run_in_background'),
         ]);
-        $args = [];
-        foreach ($this->collect('args') as $key => $value) {
-            $args[$key] = $value === 'on' ?: $value;
-        }
-        $this->merge(['args' => $args]);
+        $this->merge(['args' => ArgsHelper::clean($this->collect('args'))]);
         $this->merge(['time_params' => $this->input('time_params')[$this->input('time_method')] ?? null]);
     }
 

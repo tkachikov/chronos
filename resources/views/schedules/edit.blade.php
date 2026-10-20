@@ -1,177 +1,162 @@
+{{-- The form of a schedule in a window: a new one, or the one of ?schedule= --}}
 @php
     use Tkachikov\Chronos\Enums\TimeHelp;
-@endphp
 
-<div class="card shadow mb-5">
-    <div class="card-header">
-        <h2 class="h2 m-0 text-muted">
-            @if($schedule?->id)
-                Edit
-            @else
-                Create
-            @endif
-            schedule
-        </h2>
-    </div>
-    <div class="card-body">
-        @if($schedule?->id)
-            <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
-                <div class="col-4">
-                    <label>
-                        ID
-                    </label>
-                </div>
-                <div class="col-8">
-                    {{ $schedule->id }}
-                </div>
-            </div>
-        @endif
-        <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
-            <div class="col-4">
-                <label for="name">Name</label>
-            </div>
-            <div class="col-8">
-                <input id="name"
-                       class="form-control"
-                       type="text"
-                       name="name"
-                       maxlength="255"
-                       value="{{ old('name', $schedule?->name) }}"
-                       form="updateForm">
-            </div>
-        </div>
-        @foreach(['run', 'without_overlapping', 'run_in_background'] as $key)
-            <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
-                <div class="col-4">
-                    <label for="run">{{ str($key)->replace('_', ' ')->ucfirst() }}</label>
-                </div>
-                <div class="col-8 d-flex">
-                    <div class="col">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input"
-                                   type="checkbox"
-                                   role="switch"
-                                   id="{{ $key }}"
-                                   name="{{ $key }}"
-                                   form="updateForm"
-                                   onchange="changeSystem(this)">
-                            <label class="form-check-label"
-                                   for="{{ $key }}">{{ $schedule?->{$key} ?? null ? 'On' : 'Off' }}</label>
-                        </div>
-                    </div>
-                    @if($key === 'without_overlapping')
-                        <div clsas="col-6">
-                            <input id="{{ $key }}_time"
-                                   class="form-control"
-                                   type="integer"
-                                   name="without_overlapping_time"
-                                   value="{{ $schedule?->{$key.'_time'} ?? 1440 }}"
-                                   @style(['display: none' => !$schedule?->{$key}])
-                                   form="updateForm">
-                        </div>
+    $switches = [
+        'run' => ['Run', 'Off keeps the schedule, but it is not run'],
+        'without_overlapping' => ['Without overlapping', 'A run is skipped while the previous one is going on'],
+        'run_in_background' => ['In background', 'The scheduler does not wait for the command and starts the next tasks at once'],
+    ];
+    $editing = (bool) $schedule?->id;
+@endphp
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true" @if($formOpen) data-open @endif>
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="scheduleModalLabel">{{ $editing ? 'Edit schedule' : 'New schedule' }}</span>
+                @if($editing)
+                    <span class="cx-count">#{{ $schedule->id }}</span>
+                    @if($schedule->name)
+                        <span class="cx-modal-sub">{{ $schedule->name }}</span>
                     @endif
-                </div>
+                @endif
+                <button type="button" data-bs-dismiss="modal" class="btn-close" aria-label="Close"></button>
             </div>
-        @endforeach
-        <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
-            <div class="col-4">
-                <label for="time_method">
-                    Time
-                </label>
-            </div>
-            <div class="col-8 px-0">
-                <div class="row w-100 mx-auto">
-                    <div class="col">
-                        <select id="time_method" class="form-control" name="time_method" form="updateForm"
-                                oninput="changeMethod(this.value)">
+            <div class="modal-body">
+                @if(isset($errors) && $errors->any())
+                    <div class="cx-errors" role="alert">
+                        <ul>
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div class="cx-fields">
+                    <div class="cx-field">
+                        <label for="name">Name</label>
+                        <input id="name"
+                               class="form-control"
+                               type="text"
+                               name="name"
+                               maxlength="255"
+                               placeholder="e.g. Nightly import"
+                               value="{{ old('name', $schedule?->name) }}"
+                               form="updateForm">
+                        <small class="cx-field-hint">Optional, it tells the schedules of one command apart.</small>
+                    </div>
+
+                    <div class="cx-field">
+                        <label for="time_method">When</label>
+                        <select id="time_method" class="form-select" name="time_method" form="updateForm" oninput="changeMethod(this.value)">
                             @foreach($times as $method => $time)
-                                <option value="{{ $method }}" @selected($schedule?->time_method === $method)>
+                                <option value="{{ $method }}" @selected(old('time_method', $schedule?->time_method) === $method)>
                                     {{ $time->getTitle() }}
                                 </option>
                             @endforeach
                         </select>
+                        <div class="cx-params" id="time_params_container">
+                            @foreach($times as $method => $time)
+                                @if($time->params)
+                                    <div id="time_params_for_{{ $method }}">
+                                        @foreach($time->params as $key => $param)
+                                            <div>
+                                                <label for="time_params[{{ $method }}][{{ $key }}]">{{ $param->title }}</label>
+                                                @if($param->help === TimeHelp::Time)
+                                                    <input
+                                                            type="time"
+                                                            id="time_params[{{ $method }}][{{ $key }}]"
+                                                            name="time_params[{{ $method }}][{{ $key }}]"
+                                                            class="form-control"
+                                                            form="updateForm"
+                                                            value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
+                                                    >
+                                                @elseif($param->help instanceof TimeHelp)
+                                                    <select
+                                                            id="time_params[{{ $method }}][{{ $key }}]"
+                                                            name="time_params[{{ $method }}][{{ $key }}]"
+                                                            class="form-select"
+                                                            form="updateForm"
+                                                    >
+                                                        @foreach($param->help->getDictionary() as $value => $name)
+                                                            <option value="{{ $value }}" @selected(($schedule?->time_params[$key] ?? '') == $value)>
+                                                                {{ $name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                @else
+                                                    <input
+                                                            type="text"
+                                                            id="time_params[{{ $method }}][{{ $key }}]"
+                                                            name="time_params[{{ $method }}][{{ $key }}]"
+                                                            class="form-control"
+                                                            form="updateForm"
+                                                            value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
+                                                    >
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-                <div class="row w-100 mx-auto px-0 mt-3" id="time_params_container">
-                    <div class="col px-0">
-                        @foreach($times as $method => $time)
-                            @if($time->params)
-                                <div class="row w-100 mx-auto px-0" id="time_params_for_{{ $method }}">
-                                    @foreach($time->params as $key => $param)
-                                        <div class="col">
-                                            <label for="time_params[{{ $method }}][{{ $key }}]">
-                                                {{ $param->title }}
-                                            </label>
-                                            @if($param->help === TimeHelp::Time)
-                                                <input
-                                                        type="time"
-                                                        id="time_params[{{ $method }}][{{ $key }}]"
-                                                        name="time_params[{{ $method }}][{{ $key }}]"
-                                                        class="form-control"
-                                                        form="updateForm"
-                                                        value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
-                                                >
-                                            @elseif($param->help instanceof TimeHelp)
-                                                <select
-                                                        id="time_params[{{ $method }}][{{ $key }}]"
-                                                        name="time_params[{{ $method }}][{{ $key }}]"
-                                                        class="form-control"
-                                                        form="updateForm"
-                                                >
-                                                    @foreach($param->help->getDictionary() as $value => $name)
-                                                        <option
-                                                                value="{{ $value }}"
-                                                                @selected(($schedule?->time_params[$key] ?? '') == $value)
-                                                        >
-                                                            {{ $name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            @else
-                                                <input
-                                                        type="text"
-                                                        id="time_params[{{ $method }}][{{ $key }}]"
-                                                        name="time_params[{{ $method }}][{{ $key }}]"
-                                                        class="form-control"
-                                                        form="updateForm"
-                                                        value="{{ $schedule?->time_params[$key] ?? $param->default ?? '' }}"
-                                                >
-                                            @endif
+
+                    <div class="cx-field wide">
+                        <div class="cx-switches">
+                            @foreach($switches as $key => [$title, $hint])
+                                @php
+                                    $on = (bool) old($key, $schedule?->{$key} ?? ($key === 'run' && !$editing));
+                                @endphp
+                                <div @class(['cx-switch-box', 'on' => $on])>
+                                    <div class="cx-switch-row form-switch">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               role="switch"
+                                               id="{{ $key }}"
+                                               name="{{ $key }}"
+                                               form="updateForm"
+                                               onchange="changeSystem(this)"
+                                               @checked($on)>
+                                        <label for="{{ $key }}"><b>{{ $title }}</b><span data-state>{{ $on ? 'On' : 'Off' }}</span></label>
+                                    </div>
+                                    <small>{{ $hint }}</small>
+                                    @if($key === 'without_overlapping')
+                                        <div class="cx-minutes" id="without_overlapping_time_wrap" @style(['display: none' => !$on])>
+                                            <input id="without_overlapping_time"
+                                                   class="form-control"
+                                                   type="number"
+                                                   min="1"
+                                                   name="without_overlapping_time"
+                                                   value="{{ old('without_overlapping_time', $schedule?->without_overlapping_time ?? 1440) }}"
+                                                   form="updateForm">
+                                            <span>minutes until the lock expires</span>
                                         </div>
-                                    @endforeach
+                                    @endif
                                 </div>
-                            @endif
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
+
+                    @if(filled($command->getDefinition()->getOptions()) || $command->getDefinition()->getArgumentCount())
+                        <div class="cx-field wide">
+                            <span class="cx-label">Arguments</span>
+                            @include('chronos::args', ['command' => $command, 'form' => 'updateForm'])
+                        </div>
+                    @endif
                 </div>
             </div>
-        </div>
-        @if(filled($command->getDefinition()->getOptions()) || $command->getDefinition()->getArgumentCount())
-            <div class="row w-100 mx-auto py-3 border-bottom align-items-center">
-                <div class="col-4">
-                    <label for="args">Args</label>
-                </div>
-                <div class="col-8">
-                    @include('chronos::args', ['command' => $command, 'form' => 'updateForm'])
-                </div>
-            </div>
-        @endif
-        <div class="row w-100 mx-auto py-3 align-items-center justify-content-center">
-            @if($schedule?->id)
-                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-                    <a data-bs-toggle="modal" data-bs-target="#deleteModal_{{ $schedule->id }}"
-                       class="btn btn-danger w-100">
-                        Delete
-                    </a>
-                    @include('chronos::delete-modal', ['id' => 'deleteModal_has_'.$schedule->id, 'action' => route('chronos.schedules.destroy', ['command' => $command->getModel(), 'schedule' => $schedule->id])])
-                </div>
-                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-                    <a href="{{ route('chronos.edit', $command->getModel()) }}" class="btn btn-secondary w-100">New</a>
-                </div>
-            @endif
-            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-                <button type="submit" class="btn btn-primary w-100" form="updateForm">Save</button>
+            <div class="modal-footer">
+                @if($editing)
+                    <button type="button" class="cx-btn danger me-auto" data-bs-toggle="modal" data-bs-target="#deleteModal_form">Delete</button>
+                @endif
+                <button type="button" data-bs-dismiss="modal" class="cx-btn ghost">Cancel</button>
+                <button type="submit" class="cx-btn primary" form="updateForm">{{ $editing ? 'Save' : 'Add schedule' }}</button>
             </div>
         </div>
     </div>
 </div>
+@if($editing)
+    @include('chronos::delete-modal', ['id' => 'deleteModal_form', 'action' => route('chronos.schedules.destroy', ['command' => $command->getModel(), 'schedule' => $schedule->id])])
+@endif

@@ -23,6 +23,10 @@ final class DashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Running now')
             ->assertSeeInOrder(['data-theme-option="system"', 'data-theme-option="light"', 'data-theme-option="dark"'], false)
+            // The same bar as in the panel, the dashboard is active
+            ->assertSee('<header class="cx-bar">', false)
+            ->assertSee('href="' . route('chronos.dashboard') . '" class="active"', false)
+            ->assertSee('"chronos.dashboard.theme"', false)
             ->assertSee(json_encode(route('chronos.dashboard.data')), false);
     }
 
@@ -259,6 +263,10 @@ final class DashboardTest extends TestCase
         $this
             ->get('/chronos/dashboard?token=secret')
             ->assertOk()
+            // The panel is behind other middlewares: no links to it
+            ->assertSee('<header class="cx-bar">', false)
+            ->assertDontSee('<nav class="cx-nav">', false)
+            ->assertDontSee(route('chronos.main') . '"', false)
             ->assertSee(json_encode(route('chronos.dashboard.data', ['token' => 'secret'])), false);
 
         // The token of the dashboard does not open health and vice versa.

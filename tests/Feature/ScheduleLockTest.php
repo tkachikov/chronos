@@ -96,6 +96,32 @@ final class ScheduleLockTest extends TestCase
             ->assertSee('Lock is stuck, skipped 10 times');
     }
 
+    public function testNoLockAfterRunFinished(): void
+    {
+        $this->travelTo('2026-10-16 10:00:30');
+        $model = $this->model();
+        $this->app->make(SchedulerHeartbeatService::class)->beat();
+        $schedule = $this->createSkippedSchedule($model);
+
+        // The run finished after the skips (in the same second too), the next run has not started yet
+        DB::table('schedules')->where('id', $schedule->id)->update([
+            'last_status' => 'success',
+            'last_finished_at' => '2026-10-16 10:00:00',
+        ]);
+        $this->assertNull($this->lockState($schedule));
+
+        $this
+            ->getJson('/chronos/health')
+            ->assertOk()
+            ->assertJsonPath('schedules.stuck', []);
+
+        // A skip after the finish: the lock is held by nothing
+        DB::table('schedules')->where('id', $schedule->id)->update([
+            'last_skipped_at' => '2026-10-16 10:01:00',
+        ]);
+        $this->assertSame(ScheduleMonitorService::LOCK_STUCK, $this->lockState($schedule));
+    }
+
     public function testNoLockWithoutSkipsOrOverlapping(): void
     {
         $model = $this->model();

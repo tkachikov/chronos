@@ -22,7 +22,7 @@ final class ChronosFreeLogsCommand extends Command
 
     public function handle(ScheduleService $service): int
     {
-        foreach ($service->freeLogs() as $log) {
+        foreach ($service->freeLogs((int) $this->option('hours')) as $log) {
             $this->info($log);
         }
 

@@ -1,121 +1,52 @@
-@php
-    use Illuminate\Support\Str;
-@endphp
-
+{{-- The arguments and the options of the command as fields of the form $form (the schedule or a run) --}}
 @foreach(['arguments' => '', 'options' => '--'] as $key => $prefix)
-    @foreach($command->getDefinition()->{'get'.ucfirst($key)}() as $index => $input)
+    @foreach($command->getDefinition()->{'get'.ucfirst($key)}() as $input)
         @php
             $name = $prefix.$input->getName();
             $description = $input->getDescription();
             $default = $schedule?->args[$name] ?? $input->getDefault();
             $required = method_exists($input, 'isRequired') && $input->isRequired();
-            if (!$default) {
+            $withValue = $key === 'arguments' || $input->acceptValue();
+            $checked = is_bool($default) && $default;
+            // "0" is a value, only nothing is empty
+            if ($default === null || $default === false) {
                 $default = '';
             }
-            $descriptionAttributes = '';
-            if ($description) {
-                $descriptionAttributes = [
-                    'data-bs-toggle' => 'tooltip',
-                    'data-bs-title' => $description,
-                    'data-bs-placement' => 'top',
-                ];
-                $descriptionAttributes = implode(
-                    ' ',
-                    array_map(
-                        fn ($v, $k) => "$k=\"$v\"",
-                        $descriptionAttributes,
-                        array_keys($descriptionAttributes),
-                    ),
-                );
-            }
+            $values = $input->isArray() ? (is_array($default) && $default ? array_values($default) : ['']) : [$default];
         @endphp
-        <div class="row w-100 mx-auto align-items-center">
-            <div class="col">
-                <span {!! $descriptionAttributes !!} class="d-inline-block">
-                    @if($required)
-                        <span class="position-absolute translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-                    @endif
-                    {{ $name }}
-                </span>
+        <div class="cx-arg">
+            <div class="cx-arg-name">
+                <code class="cx-code">{{ $name }}</code>@if($required)<span class="cx-req" title="Required">*</span>@endif
+                @if($description)
+                    <div class="cx-arg-desc">{{ $description }}</div>
+                @endif
             </div>
-            <div class="col my-2">
-                @if($key === 'arguments' || ($key === 'options' && $input->acceptValue()))
-                    <div class="row w-100 mx-auto px-0">
-                        <div class="col px-0">
-                            @if($input->isArray() && is_array($default) && $default)
-                                @php($hashes = [])
-                                @foreach($default as $defaultValue)
-                                    @php($hashes[] = $hash = Str::random())
-                                    <input type="text"
-                                           name="args[{{ $name }}]{{ $input->isArray() ? '[]' : '' }}"
-                                           class="form-control mb-2"
-                                           value="{{ $defaultValue }}"
-                                           form="{{ $form }}"
-                                           hash="{{ $hash }}"
-                                            @required($required)
-                                    />
-                                @endforeach
-                            @else
+            <div>
+                @if($withValue)
+                    <div data-arg-list>
+                        @foreach($values as $value)
+                            <div class="cx-arg-item">
                                 <input type="text"
                                        name="args[{{ $name }}]{{ $input->isArray() ? '[]' : '' }}"
-                                       class="form-control mb-2"
-                                       value="{{ $default }}"
+                                       class="form-control"
+                                       value="{{ is_array($value) ? '' : $value }}"
                                        form="{{ $form }}"
-                                        @required($required)
+                                       @required($required)
                                 />
-                            @endif
-                        </div>
-                        @if($input->isArray())
-                            <div class="col-3 px-0">
-                                <div class="row w-100 mx-auto text-end">
-                                    <div class="col px-0 text-center">
-                                        <button class="btn btn-secondary mb-2"
-                                                onclick="appendArg('{{ $form }}')">
-                                            +
-                                        </button>
-                                        @if(is_array($default) && $default)
-                                            @foreach($default as $index => $defaultValue)
-                                                @if($index)
-                                                    <button class="btn btn-danger mb-2"
-                                                            onclick="removeArg('{{ $hashes[$index] }}')"
-                                                            hash="{{ $hashes[$index] }}">
-                                                        -
-                                                    </button>
-                                                @endif
-                                            @endforeach
-                                        @endif
-                                    </div>
-                                </div>
+                                @if($input->isArray())
+                                    <button type="button" class="cx-btn ghost small icon" data-arg-remove title="Remove the value" aria-label="Remove the value">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+                                    </button>
+                                @endif
                             </div>
-                            <script>
-                                function appendArg(form) {
-                                    let element = document.querySelectorAll(`[name*=args][form=${form}]`)[0],
-                                        cloneElement = element.cloneNode(true),
-                                        cloneButton = event.target.cloneNode(true),
-                                        hash = getHash();
-
-                                    cloneElement.setAttribute('hash', hash);
-                                    cloneElement.value = '';
-
-                                    cloneButton.setAttribute('hash', hash);
-                                    cloneButton.setAttribute('onclick', `removeArg('${hash}')`);
-                                    cloneButton.setAttribute('class', 'btn btn-danger mb-2');
-                                    cloneButton.textContent = '-';
-
-                                    element.parentElement.appendChild(cloneElement);
-                                    event.target.parentElement.appendChild(cloneButton);
-                                }
-                                function removeArg(hash) {
-                                    document
-                                        .querySelectorAll(`[hash='${hash}']`)
-                                        .forEach((v) => v.parentElement.removeChild(v));
-                                }
-                                function getHash() {
-                                    return (Math.random() + 1).toString(36).replace('1.', '');
-                                }
-                            </script>
-                        @endif
+                        @endforeach
                     </div>
+                    @if($input->isArray())
+                        <button type="button" class="cx-btn ghost small cx-arg-add" data-arg-add>
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                            Add a value
+                        </button>
+                    @endif
                 @else
                     <div class="form-check form-switch">
                         <input class="form-check-input"
@@ -123,6 +54,7 @@
                                role="switch"
                                name="args[{{ $name }}]"
                                form="{{ $form }}"
+                               @checked($checked)
                                @required($required)
                         />
                     </div>
@@ -131,3 +63,26 @@
         </div>
     @endforeach
 @endforeach
+@once
+    <script>
+        // The values of an array argument: a value is added or removed in its own list, the last one is only cleared
+        document.addEventListener('click', (event) => {
+            const add = event.target.closest('[data-arg-add]');
+            const remove = event.target.closest('[data-arg-remove]');
+
+            if (add) {
+                const list = add.previousElementSibling;
+                const item = list.lastElementChild.cloneNode(true);
+                item.querySelector('input').value = '';
+                list.append(item);
+                item.querySelector('input').focus();
+            }
+
+            if (remove) {
+                const item = remove.closest('.cx-arg-item');
+                const list = item.parentElement;
+                list.children.length > 1 ? item.remove() : (item.querySelector('input').value = '');
+            }
+        });
+    </script>
+@endonce
