@@ -10,12 +10,18 @@ use Tkachikov\Chronos\Helpers\DurationHelper;
 
 final class DurationHelperTest extends TestCase
 {
+    /**
+     * @dataProvider durations
+     */
     #[DataProvider('durations')]
     public function testFormat(int|float|string|null $seconds, string $expected): void
     {
         $this->assertSame($expected, DurationHelper::format($seconds));
     }
 
+    /**
+     * @dataProvider ranges
+     */
     #[DataProvider('ranges')]
     public function testRange(int|float|string|null $min, int|float|string|null $max, string $expected): void
     {
