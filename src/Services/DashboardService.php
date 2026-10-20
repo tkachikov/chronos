@@ -25,7 +25,7 @@ class DashboardService
 
     public const LIMIT = 20;
 
-    public const TOP = 8;
+    public const TOP = 5;
 
     private const STATES = [
         0 => 'success',

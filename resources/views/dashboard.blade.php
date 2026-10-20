@@ -289,7 +289,7 @@
                     <svg id="load-chart" role="img" aria-label="Load of commands by hours"></svg>
                 </div>
                 <div class="panel">
-                    <h2>Top commands, {{ \Tkachikov\Chronos\Services\DashboardService::HOURS }}h</h2>
+                    <h2>Top {{ \Tkachikov\Chronos\Services\DashboardService::TOP }} commands, {{ \Tkachikov\Chronos\Services\DashboardService::HOURS }}h</h2>
                     <table class="top">
                         <thead>
                             <tr><th>Command</th><th>Runs</th><th>Errors</th><th class="wide">Avg</th><th class="wide">Max mem</th><th>Total</th></tr>
