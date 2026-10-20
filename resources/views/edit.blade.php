@@ -100,8 +100,15 @@
 
         /* The overview: the last run, the next one, the runs, the averages */
         .cx-overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
-        .cx-tile { display: block; min-width: 0; padding: 14px 16px; background: var(--cx-surface); border: 1px solid var(--cx-border); border-radius: 14px; box-shadow: var(--cx-shadow); color: var(--cx-text); text-decoration: none; }
-        a.cx-tile:hover { border-color: var(--cx-faint); color: var(--cx-text); }
+        .cx-tile { min-width: 0; padding: 14px 16px; background: var(--cx-surface); border: 1px solid var(--cx-border); border-radius: 14px; box-shadow: var(--cx-shadow); }
+
+        /* On a narrow screen the blocks are tabs: one of them at a time */
+        .cx-sections { display: none; gap: 2px; margin-bottom: 12px; border-bottom: 1px solid var(--cx-border); }
+        .cx-sections button { display: inline-flex; align-items: center; gap: 7px; flex: 1; justify-content: center; padding: 10px 8px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--cx-muted); font-size: 14px; font-weight: 500; white-space: nowrap; }
+        .cx-sections button .cx-n { color: var(--cx-faint); background: transparent; padding: 0; min-width: 0; }
+        .cx-sections button .cx-n.bad { color: var(--cx-danger); }
+        .cx-sections button[aria-selected="true"] { color: var(--cx-primary); border-bottom-color: var(--cx-primary); font-weight: 600; }
+        .cx-sections button[aria-selected="true"] .cx-n { color: var(--cx-primary); }
         .cx-tile .cx-k { margin-bottom: 6px; }
         .cx-tile-v { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .cx-tile-v .cx-dot { width: 9px; height: 9px; box-shadow: none; }
@@ -273,10 +280,9 @@
         @media (max-width: 1100px) {
             .cx-page { grid-template-columns: minmax(0, 1fr); }
             .cx-main, .cx-aside { display: contents; }
-            .cx-schedules { order: 1; }
-            .cx-runs { order: 2; }
-            .cx-about { order: 3; }
             .cx-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .cx-sections { display: flex; }
+            .cx-page[data-section] > * > .cx-card:not(.is-section) { display: none; }
         }
 
         @media (max-width: 768px) {
@@ -362,7 +368,7 @@
     </div>
 
     <div class="cx-overview">
-        <a class="cx-tile" href="#runs">
+        <div class="cx-tile">
             <span class="cx-k">Last run</span>
             @if($lastRun)
                 <b class="cx-tile-v {{ $state }}"><span class="cx-dot {{ $state }}"></span>{{ $stateTitle }}</b>
@@ -373,8 +379,8 @@
                 <b class="cx-tile-v muted"><span class="cx-dot"></span>Never run</b>
                 <small>{{ $command->runInManual() ? 'Run it by the buttons above' : 'No runs yet' }}</small>
             @endif
-        </a>
-        <a class="cx-tile" href="#schedules">
+        </div>
+        <div class="cx-tile">
             <span class="cx-k">Next run</span>
             @if($next)
                 <b class="cx-tile-v">{{ $next['at']->diffForHumans(['parts' => 2]) }}</b>
@@ -388,8 +394,8 @@
                 <b class="cx-tile-v muted">Schedules are off</b>
                 <small>{{ $schedules->count() }} turned off</small>
             @endif
-        </a>
-        <a class="cx-tile" href="{{ $runCounts['failed'] ? request()->fullUrlWithQuery(['runs' => 'failed', 'page' => null]) . '#runs' : '#runs' }}">
+        </div>
+        <div class="cx-tile">
             <span class="cx-k">Runs</span>
             <b class="cx-tile-v">{{ $runCounts['all'] }}</b>
             <small>
@@ -404,7 +410,7 @@
                     · <span class="active">{{ $runCounts['running'] }} running</span>
                 @endif
             </small>
-        </a>
+        </div>
         <div class="cx-tile">
             <span class="cx-k">Average</span>
             @if($metrics)
@@ -441,6 +447,11 @@
         </div>
     @endif
 
+    <div class="cx-sections" role="tablist" aria-label="Sections">
+        <button type="button" role="tab" data-section="schedules">Schedules <span class="cx-n">{{ $schedules->count() }}</span></button>
+        <button type="button" role="tab" data-section="runs">Runs <span @class(['cx-n', 'bad' => $runCounts['failed']])>{{ $runCounts['failed'] ?: $runCounts['all'] }}</span></button>
+        <button type="button" role="tab" data-section="about">About</button>
+    </div>
     <div class="cx-page">
         <div class="cx-main">
             @include('chronos::schedules.table', ['command' => $command])
@@ -528,14 +539,41 @@
             button.setAttribute('aria-expanded', String(!code.hidden));
         }));
 
-        // A link to a run opens its output
+        // On a narrow screen the blocks are tabs; the one of the hash (#runs, #run-5, #about) or of the filter of runs is open
+        const page = document.querySelector('.cx-page');
+        const tabs = document.querySelectorAll('[data-section]');
+        const sections = { schedules: '.cx-schedules', runs: '.cx-runs', about: '.cx-about' };
+        const sectionOfHash = () => {
+            const hash = location.hash.replace('#', '');
+            return hash.startsWith('run') ? 'runs' : (sections[hash] ? hash : null);
+        };
+        const showSection = (name) => {
+            page.dataset.section = name;
+            Object.entries(sections).forEach(([key, selector]) => document.querySelector(selector).classList.toggle('is-section', key === name));
+            tabs.forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.section === name)));
+        };
+        tabs.forEach((tab) => tab.addEventListener('click', () => {
+            showSection(tab.dataset.section);
+            history.replaceState(null, '', '#' + tab.dataset.section);
+        }));
+        showSection(sectionOfHash() || (new URL(location.href).searchParams.has('runs') ? 'runs' : 'schedules'));
+
+        // A link to a run opens its output (and its tab)
         const openRun = () => {
             const run = location.hash.startsWith('#run-') && document.querySelector(location.hash);
             if (run) {
+                showSection('runs');
                 run.open = true;
+                run.scrollIntoView({ block: 'start', behavior: 'smooth' });
             }
         };
-        window.addEventListener('hashchange', openRun);
+        window.addEventListener('hashchange', () => {
+            const name = sectionOfHash();
+            if (name) {
+                showSection(name);
+            }
+            openRun();
+        });
         openRun();
 
         var logs = [];
