@@ -78,8 +78,11 @@
 
             h2 { margin: 0 0 12px; font-size: 15px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 
+            /* The clock and the age of the data: in the bar, on a phone under it (the bar does not shift) */
+            .status { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+            .status-page { display: none; }
             .clock { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
-            .updated { color: var(--muted); font-size: 13px; margin-left: 10px; }
+            .updated { color: var(--muted); font-size: 13px; }
             .updated.lost { color: var(--danger); font-weight: 600; }
 
             .banner {
@@ -220,6 +223,13 @@
                 .columns { grid-template-columns: minmax(0, 1fr); }
             }
 
+            @media (max-width: 768px) {
+                .status-bar { display: none; }
+                .status-page { display: flex; min-height: 24px; margin: -4px 0; }
+                .status-page .clock { font-size: 16px; }
+                .status-page .updated { margin-left: auto; }
+            }
+
             @media (max-width: 640px) {
                 .page { padding: 16px; }
                 .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -229,13 +239,17 @@
     </head>
     <body>
         @section('bar_extra')
-            <div>
-                <span class="clock" id="clock"></span>
-                <span class="updated" id="updated">Loading…</span>
+            <div class="status status-bar">
+                <span class="clock" data-clock></span>
+                <span class="updated" data-updated>Loading…</span>
             </div>
         @endsection
         @include('chronos::partials.bar', ['active' => 'dashboard'])
         <div class="page">
+            <div class="status status-page">
+                <span class="clock" data-clock></span>
+                <span class="updated" data-updated>Loading…</span>
+            </div>
 
             <div class="banner" id="banner"></div>
 
@@ -622,10 +636,16 @@
                     })), 'No runs yet');
                 }
 
+                const setUpdated = (text, lost) => document.querySelectorAll('[data-updated]').forEach((el) => {
+                    el.textContent = text;
+                    el.classList.toggle('lost', lost);
+                });
+
                 // Every second: the clock, elapsed time of running commands and the age of the data.
                 function tick() {
                     const d = new Date(now());
-                    $('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+                    const clock = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+                    document.querySelectorAll('[data-clock]').forEach((el) => el.textContent = clock);
 
                     document.querySelectorAll('[data-elapsed]').forEach((el) => {
                         el.textContent = elapsed(el.dataset.elapsed);
@@ -644,10 +664,7 @@
                     if (receivedAt) {
                         const age = Math.round((Date.now() - receivedAt) / 1000);
                         const lost = failedRequests > 0 && age * 1000 > refresh * 2;
-                        $('updated').textContent = lost
-                            ? 'No connection · data ' + duration(age) + ' old'
-                            : 'updated ' + duration(age) + ' ago';
-                        $('updated').classList.toggle('lost', lost);
+                        setUpdated(lost ? 'No connection · data ' + duration(age) + ' old' : 'updated ' + duration(age) + ' ago', lost);
                     }
                 }
 
@@ -677,8 +694,7 @@
                         failedRequests++;
 
                         if (!receivedAt) {
-                            $('updated').textContent = 'No connection: ' + e.message;
-                            $('updated').classList.add('lost');
+                            setUpdated('No connection: ' + e.message, true);
                         }
                     } finally {
                         tick();
