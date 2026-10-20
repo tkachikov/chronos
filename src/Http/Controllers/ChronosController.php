@@ -83,8 +83,17 @@ class ChronosController extends Controller
         $schedule = $request->has('schedule')
             ? Schedule::findOrFail($request->integer('schedule'))
             : null;
-        $runs = CommandRun::query()
-            ->whereCommandId($command->id)
+        // The runs: all of them, the failed (and killed) or the running ones
+        $runsFilter = (string) $request->query('runs');
+        $runsQuery = CommandRun::query()->whereCommandId($command->id);
+        $runCounts = [
+            'all' => (clone $runsQuery)->count(),
+            'failed' => (clone $runsQuery)->whereIn('state', [1, 3])->count(),
+            'running' => (clone $runsQuery)->where('state', 2)->count(),
+        ];
+        $runs = (clone $runsQuery)
+            ->when($runsFilter === 'failed', fn ($query) => $query->whereIn('state', [1, 3]))
+            ->when($runsFilter === 'running', fn ($query) => $query->where('state', 2))
             ->orderByDesc('id')
             ->paginate(10);
         $logs = [];
@@ -99,6 +108,8 @@ class ChronosController extends Controller
                 ->get(),
             'schedule' => $schedule,
             'runs' => $runs,
+            'runsFilter' => $runsFilter,
+            'runCounts' => $runCounts,
             'logs' => $logs,
         ]);
     }
