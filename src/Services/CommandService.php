@@ -44,22 +44,8 @@ class CommandService
 
         $filter ??= new FilterDto();
 
-        $lastRuns = $this
-            ->commandRunManager
-            ->getLastRunForEachCommand();
-
         return $this
-            ->getBaseCommands()
-            ->transform(function (CommandDecorator $decorator) use ($lastRuns) {
-                $decorator
-                    ->getModel()
-                    ->setRelation(
-                        'lastRun',
-                        $lastRuns->get($decorator->getModel()->id),
-                    );
-
-                return $decorator;
-            })
+            ->getWithLastRuns()
             ->when(
                 value: in_array($sort->column, CommandMetric::$sortKeys, true),
                 callback: fn (Collection $commands): Collection => $commands
@@ -75,79 +61,150 @@ class CommandService
                             ?? $decorator->getDirectory(),
                     ),
             )
-            ->filter(
-                function (
-                    CommandDecorator $decorator,
-                ) use (
-                    $filter,
-                ): bool {
-                    $isValid = true;
-
-                    if ($filter->search) {
-                        $isValid = str($decorator->getFullName())->contains($filter->search, true)
-                            || str($decorator->getSignature())->contains($filter->search, true)
-                            || str($decorator->getDescription())->contains($filter->search, true);
-                    }
-
-                    if ($filter->runsIn) {
-                        $isValid = $isValid && match ($filter->runsIn) {
-                            RunsInFilterEnum::MANUAL_ON => $decorator->runInManual(),
-                            RunsInFilterEnum::MANUAL_OFF => $decorator->notRunInManual(),
-                            RunsInFilterEnum::SCHEDULE_ON => $decorator->runInSchedule(),
-                            RunsInFilterEnum::SCHEDULE_OFF => $decorator->notRunInSchedule(),
-                            default => true,
-                        };
-                    }
-
-                    $schedules = $decorator
-                        ->getModel()
-                        ->schedules;
-
-                    if ($filter->scheduleMethod) {
-                        $isValid = $isValid
-                            && in_array(
-                                $filter->scheduleMethod,
-                                $schedules
-                                    ->pluck('time_method')
-                                    ->toArray(),
-                            );
-                    }
-
-                    if ($filter->schedulers) {
-                        $isValid = $isValid
-                            && match ($filter->schedulers) {
-                                SchedulersFilterEnum::MISSING => $schedules->count() === 0,
-                                SchedulersFilterEnum::HAS_ONE => $schedules->count() === 1,
-                                SchedulersFilterEnum::HAS_MANY => $schedules->count() > 1,
-                                SchedulersFilterEnum::SOME_OFF => $schedules
-                                    ->filter(fn (Schedule $schedule) => !$schedule->run)
-                                    ->count() > 0,
-                                SchedulersFilterEnum::ALL_OFF => $schedules
-                                    ->filter(fn (Schedule $schedule) => !$schedule->run)
-                                    ->count() === $schedules->count() && $schedules->count() > 0,
-                                default => true,
-                            };
-                    }
-
-                    if ($filter->lastRunState) {
-                        $lastRun = $decorator
-                            ->getModel()
-                            ->lastRun;
-
-                        $isValid = $isValid
-                            && match ($filter->lastRunState) {
-                                LastRunStateFilterEnum::NEVER_RUN => !$lastRun,
-                                LastRunStateFilterEnum::SUCCESS => $lastRun?->state === 0,
-                                LastRunStateFilterEnum::FAILED => $lastRun?->state === 1,
-                                LastRunStateFilterEnum::RUNNING => $lastRun?->state === 2,
-                                default => true,
-                            };
-                    }
-
-                    return $isValid;
-                }
-            )
+            ->filter(fn (CommandDecorator $decorator): bool => $this->matches($decorator, $filter))
             ->toArray();
+    }
+
+    /**
+     * Numbers of commands by the options of each filter with the other filters applied,
+     * so that it is seen how many commands an option gives before it is chosen.
+     *
+     * @param list<string> $methods Methods of schedules
+     *
+     * @return array{total: int, lastRunState: array<string, int>, runsIn: array<string, int>, schedulers: array<string, int>, scheduleMethod: array<string, int>}
+     */
+    public function getFacets(FilterDto $filter, array $methods): array
+    {
+        $commands = $this->getWithLastRuns();
+        $options = [
+            'lastRunState' => array_map(fn (LastRunStateFilterEnum $case): string => $case->value, LastRunStateFilterEnum::cases()),
+            'runsIn' => array_map(fn (RunsInFilterEnum $case): string => $case->value, RunsInFilterEnum::cases()),
+            'schedulers' => array_map(fn (SchedulersFilterEnum $case): string => $case->value, SchedulersFilterEnum::cases()),
+            'scheduleMethod' => $methods,
+        ];
+        $facets = ['total' => $commands->count()];
+
+        foreach ($options as $key => $values) {
+            $others = $this->withFilter($filter, $key, null);
+            $candidates = $commands->filter(fn (CommandDecorator $decorator): bool => $this->matches($decorator, $others));
+
+            foreach ($values as $value) {
+                $only = $this->withFilter(new FilterDto(), $key, $value);
+                $facets[$key][$value] = $candidates
+                    ->filter(fn (CommandDecorator $decorator): bool => $this->matches($decorator, $only))
+                    ->count();
+            }
+        }
+
+        /** @var array{total: int, lastRunState: array<string, int>, runsIn: array<string, int>, schedulers: array<string, int>, scheduleMethod: array<string, int>} $facets */
+        return $facets;
+    }
+
+    /**
+     * @return Collection<class-string, CommandDecorator>
+     */
+    private function getWithLastRuns(): Collection
+    {
+        $lastRuns = $this
+            ->commandRunManager
+            ->getLastRunForEachCommand();
+
+        return $this
+            ->getBaseCommands()
+            ->transform(function (CommandDecorator $decorator) use ($lastRuns) {
+                $decorator
+                    ->getModel()
+                    ->setRelation(
+                        'lastRun',
+                        $lastRuns->get($decorator->getModel()->id),
+                    );
+
+                return $decorator;
+            });
+    }
+
+    /**
+     * The filter with one of its values changed, a value is converted to the type of the filter.
+     */
+    private function withFilter(FilterDto $filter, string $key, ?string $value): FilterDto
+    {
+        $values = get_object_vars($filter);
+        $values[$key] = match ($key) {
+            'runsIn' => RunsInFilterEnum::tryFrom((string) $value),
+            'schedulers' => SchedulersFilterEnum::tryFrom((string) $value),
+            'lastRunState' => LastRunStateFilterEnum::tryFrom((string) $value),
+            default => $value,
+        };
+
+        return new FilterDto(...$values);
+    }
+
+    private function matches(CommandDecorator $decorator, FilterDto $filter): bool
+    {
+        $isValid = true;
+
+        if ($filter->search) {
+            $isValid = str($decorator->getFullName())->contains($filter->search, true)
+                || str($decorator->getSignature())->contains($filter->search, true)
+                || str($decorator->getDescription())->contains($filter->search, true);
+        }
+
+        if ($filter->runsIn) {
+            $isValid = $isValid && match ($filter->runsIn) {
+                RunsInFilterEnum::MANUAL_ON => $decorator->runInManual(),
+                RunsInFilterEnum::MANUAL_OFF => $decorator->notRunInManual(),
+                RunsInFilterEnum::SCHEDULE_ON => $decorator->runInSchedule(),
+                RunsInFilterEnum::SCHEDULE_OFF => $decorator->notRunInSchedule(),
+                default => true,
+            };
+        }
+
+        $schedules = $decorator
+            ->getModel()
+            ->schedules;
+
+        if ($filter->scheduleMethod) {
+            $isValid = $isValid
+                && in_array(
+                    $filter->scheduleMethod,
+                    $schedules
+                        ->pluck('time_method')
+                        ->toArray(),
+                );
+        }
+
+        if ($filter->schedulers) {
+            $isValid = $isValid
+                && match ($filter->schedulers) {
+                    SchedulersFilterEnum::MISSING => $schedules->count() === 0,
+                    SchedulersFilterEnum::HAS_ONE => $schedules->count() === 1,
+                    SchedulersFilterEnum::HAS_MANY => $schedules->count() > 1,
+                    SchedulersFilterEnum::SOME_OFF => $schedules
+                        ->filter(fn (Schedule $schedule) => !$schedule->run)
+                        ->count() > 0,
+                    SchedulersFilterEnum::ALL_OFF => $schedules
+                        ->filter(fn (Schedule $schedule) => !$schedule->run)
+                        ->count() === $schedules->count() && $schedules->count() > 0,
+                    default => true,
+                };
+        }
+
+        if ($filter->lastRunState) {
+            $lastRun = $decorator
+                ->getModel()
+                ->lastRun;
+
+            $isValid = $isValid
+                && match ($filter->lastRunState) {
+                    LastRunStateFilterEnum::NEVER_RUN => !$lastRun,
+                    LastRunStateFilterEnum::SUCCESS => $lastRun?->state === 0,
+                    LastRunStateFilterEnum::FAILED => $lastRun?->state === 1,
+                    LastRunStateFilterEnum::RUNNING => $lastRun?->state === 2,
+                    default => true,
+                };
+        }
+
+        return $isValid;
     }
 
     /**

@@ -4,31 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Chronos dashboard</title>
-        <script>
-            // The theme before the first paint: ?theme= (e.g. for a monitor) or the saved choice, system by default.
-            (function () {
-                const themes = ['system', 'light', 'dark'];
-                let theme = new URLSearchParams(location.search).get('theme');
-
-                try {
-                    if (themes.includes(theme)) {
-                        localStorage.setItem('chronos.dashboard.theme', theme);
-                    } else {
-                        theme = localStorage.getItem('chronos.dashboard.theme');
-                    }
-                } catch (e) {
-                    //
-                }
-
-                theme = themes.includes(theme) ? theme : 'system';
-
-                if (theme !== 'system') {
-                    document.documentElement.dataset.theme = theme;
-                }
-            })();
-        </script>
+        @include('chronos::partials.theme', ['themeKey' => 'chronos.dashboard.theme', 'themeQuery' => true])
         <style>
-            /* Dark by default, light by the choice or by the system when nothing is chosen. */
+            /* Dark by default, light by the theme (partials.theme sets data-bs-theme by the choice or the system). */
             :root {
                 --bg: #0e1116;
                 --panel: #161b22;
@@ -51,7 +29,7 @@
                 color-scheme: dark;
             }
 
-            :root[data-theme="light"] {
+            :root[data-bs-theme="light"] {
                 --bg: #f6f8fa;
                 --panel: #ffffff;
                 --border: #d0d7de;
@@ -73,35 +51,14 @@
                 color-scheme: light;
             }
 
-            @media (prefers-color-scheme: light) {
-                :root:not([data-theme="dark"]) {
-                    --bg: #f6f8fa;
-                    --panel: #ffffff;
-                    --border: #d0d7de;
-                    --text: #1f2328;
-                    --muted: #59636e;
-                    --success: #1a7f37;
-                    --danger: #cf222e;
-                    --warning: #9a6700;
-                    --primary: #0969da;
-                    --danger-soft: rgba(207, 34, 46, .12);
-                    --warning-soft: rgba(154, 103, 0, .14);
-                    --primary-soft: rgba(9, 105, 218, .12);
-                    --accent: #8250df;
-                    --banner: rgba(207, 34, 46, .08);
-                    --banner-pulse: rgba(207, 34, 46, .16);
-                    --banner-text: #82071e;
-                    --flash: rgba(9, 105, 218, .16);
-                    --shadow: 0 1px 2px rgba(31, 35, 40, .06);
-                    color-scheme: light;
-                }
-            }
-
             * { box-sizing: border-box; }
 
             html, body { height: 100%; }
 
+            /* The bar and a screen without scrolling under it */
             body {
+                display: flex;
+                flex-direction: column;
                 margin: 0;
                 background: var(--bg);
                 color: var(--text);
@@ -114,23 +71,15 @@
                 flex-direction: column;
                 gap: 16px;
                 /* A screen without scrolling: long lists are cut by their panels. */
-                height: 100vh;
+                flex: 1;
+                min-height: 0;
                 padding: 20px 24px;
             }
 
-            header {
-                display: flex;
-                align-items: baseline;
-                justify-content: space-between;
-                gap: 16px;
-            }
-
-            h1 { margin: 0; font-size: 26px; font-weight: 600; }
-            h1 small { color: var(--muted); font-weight: 400; }
             h2 { margin: 0 0 12px; font-size: 15px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 
-            .clock { font-size: 26px; font-weight: 600; }
-            .updated { color: var(--muted); font-size: 14px; margin-left: 12px; }
+            .clock { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+            .updated { color: var(--muted); font-size: 13px; margin-left: 10px; }
             .updated.lost { color: var(--danger); font-weight: 600; }
 
             .banner {
@@ -249,29 +198,6 @@
             .tag.missed { background: var(--warning-soft); color: var(--warning); }
             .tag.held { background: var(--primary-soft); color: var(--primary); }
 
-            .header-right { display: flex; align-items: baseline; gap: 16px; }
-
-            .themes {
-                display: inline-flex;
-                align-self: center;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                overflow: hidden;
-            }
-
-            .themes button {
-                background: transparent;
-                border: 0;
-                color: var(--muted);
-                padding: 5px 8px;
-                line-height: 0;
-                cursor: pointer;
-            }
-
-            .themes button + button { border-left: 1px solid var(--border); }
-            .themes button:hover { color: var(--text); }
-            .themes button[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary); }
-
             /* Narrower screens: the main columns of the top and smaller numbers of the tiles */
             @media (max-width: 1600px) {
                 .top .wide { display: none; }
@@ -280,7 +206,8 @@
             }
 
             @media (max-width: 1500px), (max-height: 700px) {
-                .page { height: auto; min-height: 100%; }
+                html, body { height: auto; }
+                .page { flex: none; }
             }
 
             @media (max-width: 1500px) {
@@ -297,32 +224,18 @@
                 .page { padding: 16px; }
                 .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
                 .tile .value { font-size: 34px; }
-                header { flex-direction: column; }
             }
         </style>
     </head>
     <body>
+        @section('bar_extra')
+            <div>
+                <span class="clock" id="clock"></span>
+                <span class="updated" id="updated">Loading…</span>
+            </div>
+        @endsection
+        @include('chronos::partials.bar', ['active' => 'dashboard'])
         <div class="page">
-            <header>
-                <h1>{{ config('app.name') }} <small>/ Chronos</small></h1>
-                <div class="header-right">
-                    <div class="themes" role="group" aria-label="Theme">
-                        <button type="button" data-theme-option="system" title="System" aria-label="System theme">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                        </button>
-                        <button type="button" data-theme-option="light" title="Light" aria-label="Light theme">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-                        </button>
-                        <button type="button" data-theme-option="dark" title="Dark" aria-label="Dark theme">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                        </button>
-                    </div>
-                    <div>
-                        <span class="clock" id="clock"></span>
-                        <span class="updated" id="updated">Loading…</span>
-                    </div>
-                </div>
-            </header>
 
             <div class="banner" id="banner"></div>
 
@@ -766,35 +679,6 @@
                     }
                 }
 
-                // The switch of the theme, the choice is saved in the browser of the screen.
-                function renderThemes() {
-                    const current = document.documentElement.dataset.theme || 'system';
-                    document.querySelectorAll('[data-theme-option]').forEach((button) => {
-                        button.setAttribute('aria-pressed', String(button.dataset.themeOption === current));
-                    });
-                }
-
-                document.querySelectorAll('[data-theme-option]').forEach((button) => {
-                    button.addEventListener('click', () => {
-                        const theme = button.dataset.themeOption;
-
-                        if (theme === 'system') {
-                            delete document.documentElement.dataset.theme;
-                        } else {
-                            document.documentElement.dataset.theme = theme;
-                        }
-
-                        try {
-                            localStorage.setItem('chronos.dashboard.theme', theme);
-                        } catch (e) {
-                            //
-                        }
-
-                        renderThemes();
-                    });
-                });
-
-                renderThemes();
                 window.addEventListener('resize', () => data && renderChart());
                 setInterval(tick, 1000);
                 setTimeout(() => location.reload(), reloadAfter);

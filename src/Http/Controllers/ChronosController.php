@@ -61,9 +61,14 @@ class ChronosController extends Controller
             ->timeRepository
             ->get();
 
+        $facets = $this
+            ->commandService
+            ->getFacets($filterDto, array_keys($times));
+
         return view('chronos::index', compact(
             'commands',
             'times',
+            'facets',
         ));
     }
 
