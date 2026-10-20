@@ -59,6 +59,15 @@ final class ScheduleArgsTest extends TestCase
 
         $this->assertStringEndsWith("app:args 0 'x' 'y' --flag --opt='v' --multi='1' --multi='2'", $event->command);
         $this->assertSame('app:args 0 x y --flag --opt=v --multi=1 --multi=2', $decorator->getNameWithArguments($schedule->args));
+
+        // The page shows the schedule, in code too
+        $this
+            ->get(route('chronos.edit', $model))
+            ->assertOk()
+            // The quotes are escaped by Blade, the arrow is the text of the template
+            ->assertSee('&#039;--multi&#039; => [1, 2],', false)
+            ->assertSee('[&#039;x&#039;, &#039;y&#039;],', false)
+            ->assertSee('&#039;--flag&#039;,', false);
     }
 
     public function testCommandLineOfRealTimeHasOneTokenPerValue(): void
