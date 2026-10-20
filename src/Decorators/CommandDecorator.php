@@ -9,6 +9,7 @@ use ReflectionException;
 use ReflectionObject;
 use Symfony\Component\Console\Command\Command;
 use Tkachikov\Chronos\Attributes\ChronosCommand;
+use Tkachikov\Chronos\Helpers\ArgsHelper;
 use Tkachikov\Chronos\Helpers\PhpHelper;
 use Tkachikov\Chronos\Models\Command as CommandModel;
 
@@ -47,16 +48,20 @@ class CommandDecorator
         );
     }
 
+    /**
+     * The tokens of the command line: a value of an array gives a token each (x y, --ids=1 --ids=2).
+     *
+     * @return list<string>
+     */
     public function getArgumentsForExecToArray(array $args = []): array
     {
-        return array_filter(
-            array_map(
-                fn ($v, $k) => $this->prepareArgs($k, $v),
-                $args,
-                array_keys($args),
-            ),
-            fn ($v) => $v,
-        );
+        $tokens = [];
+
+        foreach ($args as $key => $value) {
+            $tokens = [...$tokens, ...$this->prepareArgs((string) $key, $value)];
+        }
+
+        return $tokens;
     }
 
     public function getCliCommandToArray(
@@ -249,10 +254,13 @@ class CommandDecorator
             || $this->command->$method();
     }
 
-    private function prepareArgs(string $key, mixed $value): string
+    /**
+     * @return list<string>
+     */
+    private function prepareArgs(string $key, mixed $value): array
     {
-        if (!$value) {
-            return '';
+        if (ArgsHelper::isEmpty($value)) {
+            return [];
         }
 
         return isset($this->command->getDefinition()->getArguments()[$key])
@@ -260,35 +268,48 @@ class CommandDecorator
             : $this->prepareOption($key, $value);
     }
 
-    private function prepareArgument(mixed $value): string
+    /**
+     * @return list<string>
+     */
+    private function prepareArgument(mixed $value): array
     {
-        return is_array($value)
-            ? implode(' ', $value)
-            : (string) $value;
+        return array_map(
+            fn ($v) => (string) $v,
+            $this->values($value),
+        );
     }
 
-    private function prepareOption(string $key, mixed $value): string
+    /**
+     * @return list<string>
+     */
+    private function prepareOption(string $key, mixed $value): array
     {
         if (str_starts_with($key, '--')) {
             $key = substr($key, 2);
         }
-        $input = $this->command->getDefinition()->getOptions()[$key];
+        $input = $this->command->getDefinition()->getOptions()[$key] ?? null;
 
-        if (is_bool($input->getDefault()) && $value) {
-            return "--$key";
+        if ($input !== null && !$input->acceptValue()) {
+            return $value ? ["--$key"] : [];
         }
 
-        if (!is_array($value)) {
-            $value = [$value];
-        }
-
-        return implode(
-            ' ',
-            array_map(
-                fn ($v) => "--$key=$v",
-                $value,
-            ),
+        return array_map(
+            fn ($v) => "--$key=$v",
+            $this->values($value),
         );
+    }
+
+    /**
+     * The values of an argument without the empty ones; "0" is a value.
+     *
+     * @return list<string|int|float>
+     */
+    private function values(mixed $value): array
+    {
+        return array_values(array_filter(
+            is_array($value) ? $value : [$value],
+            fn ($v) => !ArgsHelper::isEmpty($v),
+        ));
     }
 
     /**

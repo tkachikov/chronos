@@ -101,6 +101,10 @@ class ScheduleMonitorService
             || !$schedule->without_overlapping
             || !$this->hasSkipColumns()
             || !$schedule->skipped_count
+            // The run that held the lock finished after the last skip: the lock is released, the next run starts it again
+            || ($schedule->last_finished_at
+                && $schedule->last_skipped_at
+                && $schedule->last_finished_at->greaterThanOrEqualTo($schedule->last_skipped_at))
         ) {
             return null;
         }

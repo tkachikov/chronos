@@ -1,9 +1,21 @@
+@php
+    // A value as in PHP: a number, null, a string in quotes, an array of them
+    $export = function ($value) use (&$export): string {
+        return match (true) {
+            is_array($value) => '[' . implode(', ', array_map($export, $value)) . ']',
+            is_null($value) => 'null',
+            is_bool($value) => $value ? 'true' : 'false',
+            is_numeric($value) => (string) $value,
+            default => "'" . addcslashes((string) $value, "'\\") . "'",
+        };
+    };
+@endphp
 <pre class="m-0">$schedule
     ->command(@if($item->preparedArgs)&nbsp;
         {{ $command->getShortName() . '::class'}},
         [
 @foreach($item->preparedArgs as $key => $arg)
-            @if(is_string($key))'{{ $key }}' => @endif{{ is_numeric($arg) ? $arg : (is_null($arg) ? 'null' : "'$arg'") }},
+            @if(is_string($key)){{ $export($key) }} => @endif{{ $export($arg) }},
 @endforeach
         ],
     )
