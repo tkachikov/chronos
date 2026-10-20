@@ -8,7 +8,8 @@
             $required = method_exists($input, 'isRequired') && $input->isRequired();
             $withValue = $key === 'arguments' || $input->acceptValue();
             $checked = is_bool($default) && $default;
-            if (!$default) {
+            // "0" is a value, only nothing is empty
+            if ($default === null || $default === false) {
                 $default = '';
             }
             $values = $input->isArray() ? (is_array($default) && $default ? array_values($default) : ['']) : [$default];

@@ -70,6 +70,41 @@ final class ScheduleArgsTest extends TestCase
             ->assertSee('&#039;--flag&#039;,', false);
     }
 
+    public function testFormOfTheScheduleIsFilledWithEveryKindOfArgument(): void
+    {
+        $model = $this->decorator()->getModel();
+        $schedule = Schedule::create([
+            'command_id' => $model->id,
+            'args' => [
+                ['key' => 'arg', 'value' => '0'],
+                ['key' => 'list', 'value' => ['x', 'y']],
+                ['key' => '--flag', 'value' => true],
+                ['key' => '--multi', 'value' => ['1', '2']],
+            ],
+            'time_method' => 'everyMinute',
+            'run' => true,
+        ]);
+
+        $html = $this
+            ->get(route('chronos.edit', [$model, 'schedule' => $schedule->id]))
+            ->assertOk()
+            ->getContent();
+
+        // The form of the window only: the forms of the runs have the same fields
+        $form = substr($html, strpos($html, 'id="scheduleModal"'));
+        $input = fn (string $name, string $value): string => '/name="' . preg_quote($name, '/') . '"\s+class="form-control"\s+value="' . $value . '"\s+form="updateForm"/';
+
+        $this->assertMatchesRegularExpression($input('args[arg]', '0'), $form);
+        $this->assertMatchesRegularExpression($input('args[list][]', 'x'), $form);
+        $this->assertMatchesRegularExpression($input('args[list][]', 'y'), $form);
+        $this->assertMatchesRegularExpression($input('args[--multi][]', '1'), $form);
+        $this->assertMatchesRegularExpression($input('args[--multi][]', '2'), $form);
+        // The option left empty keeps its default, the flag is on
+        $this->assertMatchesRegularExpression($input('args[--def]', '5'), $form);
+        $this->assertMatchesRegularExpression($input('args[--opt]', ''), $form);
+        $this->assertMatchesRegularExpression('/name="args\[--flag\]"\s+form="updateForm"\s+checked/', $form);
+    }
+
     public function testCommandLineOfRealTimeHasOneTokenPerValue(): void
     {
         $decorator = $this->decorator();
