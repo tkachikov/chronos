@@ -31,7 +31,19 @@ final class DashboardTest extends TestCase
             ->assertSee(json_encode(route('chronos.main')), false)
             ->assertSee('href="' . route('chronos.main', ['lastRunState' => 'Running']) . '"', false)
             ->assertSee('href="' . route('chronos.main', ['lastRunState' => 'Failed']) . '"', false)
-            ->assertSee('href="#problems"', false);
+            ->assertSee('href="#problems"', false)
+            // Long lists scroll inside Upcoming, Running now, Problems and Recent runs
+            ->assertSee('.columns .list { flex: 1 1 auto; min-height: 0; overflow-y: auto;', false)
+            ->assertSeeInOrder([
+                '<h2>Upcoming</h2>',
+                '<div class="list"><table><tbody id="upcoming-list">',
+                '<h2>Running now</h2>',
+                '<div class="list"><table><tbody id="running-list">',
+                'id="problems"',
+                '<div class="list"><table><tbody id="problems-list">',
+                '<h2>Recent runs</h2>',
+                '<div class="list"><table><tbody id="recent-list">',
+            ], false);
     }
 
     public function testEmpty(): void
