@@ -34,6 +34,16 @@ final class EditPageTest extends TestCase
         $response->assertDontSee('`/chronos/', false);
     }
 
+    public function testLongGroupWrapsBesideRuns(): void
+    {
+        $this
+            ->get(route('chronos.edit', $this->model()))
+            ->assertOk()
+            ->assertSee('class="cx-none cx-about-value">Application', false)
+            ->assertSee('grid-template-columns: minmax(0, 1fr) auto', false)
+            ->assertSee('.cx-about-value { display: block; overflow-wrap: anywhere; }', false);
+    }
+
     public function testRealTimeLogsFromOffset(): void
     {
         $model = $this->model();

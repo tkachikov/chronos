@@ -257,7 +257,9 @@
         .cx-about-list { display: flex; flex-direction: column; gap: 16px; padding: 16px 20px; font-size: 14px; }
         .cx-about-item { min-width: 0; }
         .cx-about-item .cx-k { margin-bottom: 6px; }
-        .cx-about-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; }
+        /* The runs keep their width. A long group wraps in the rest and does not cover them. */
+        .cx-about-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: start; }
+        .cx-about-value { display: block; overflow-wrap: anywhere; }
         .cx-about-code { display: block; padding: 8px 10px; border-radius: 8px; background: var(--cx-surface-2); border: 1px solid var(--cx-border); color: var(--cx-text); font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
         .cx-about-tags { display: flex; gap: 6px; flex-wrap: wrap; }
         .cx-arg-line { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid var(--cx-border); font-size: 13px; }
@@ -321,6 +323,7 @@
             .cx-log { flex-direction: column; gap: 2px; }
             .cx-card-foot { padding: 12px 16px; }
             .cx-about-list { padding: 14px 16px; }
+            .cx-about-row { grid-template-columns: minmax(0, 1fr); }
             .cx-terminal { height: 50vh; }
         }
     </style>

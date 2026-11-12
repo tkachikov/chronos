@@ -33,9 +33,9 @@
             <div class="cx-about-item">
                 <span class="cx-k">Group</span>
                 @if($command->getGroupName() ?? $command->getDirectory())
-                    <span>{{ $command->getGroupName() ?? $command->getDirectory() }}</span>
+                    <span class="cx-about-value">{{ $command->getGroupName() ?? $command->getDirectory() }}</span>
                 @else
-                    <span class="cx-none">Application</span>
+                    <span class="cx-none cx-about-value">Application</span>
                 @endif
             </div>
             <div class="cx-about-item">
