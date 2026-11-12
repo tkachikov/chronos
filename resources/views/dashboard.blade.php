@@ -70,7 +70,7 @@
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
-                /* A screen without scrolling: long lists are cut by their panels. */
+                /* A screen without scrolling: long lists scroll inside their panels. */
                 flex: 1;
                 min-height: 0;
                 padding: 20px 24px;
@@ -164,12 +164,16 @@
             .columns {
                 display: grid;
                 grid-template-columns: repeat(4, minmax(0, 1fr));
+                grid-template-rows: minmax(0, 1fr);
                 gap: 16px;
                 flex: 1;
                 min-height: 0;
             }
 
-            .columns .panel { overflow: hidden; }
+            /* The title stays. The rows scroll inside the block. */
+            .columns .panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+            .columns .panel h2 { flex: none; }
+            .columns .list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 
             table { width: 100%; border-collapse: collapse; }
             td { padding: 7px 6px; border-top: 1px solid var(--border); vertical-align: top; }
@@ -215,6 +219,7 @@
             @media (max-width: 1500px), (max-height: 700px) {
                 html, body { height: auto; }
                 .page { flex: none; }
+                .columns .list { max-height: 360px; }
             }
 
             @media (max-width: 1500px) {
@@ -336,19 +341,19 @@
             <section class="columns">
                 <div class="panel">
                     <h2>Upcoming</h2>
-                    <table><tbody id="upcoming-list"></tbody></table>
+                    <div class="list"><table><tbody id="upcoming-list"></tbody></table></div>
                 </div>
                 <div class="panel">
                     <h2>Running now</h2>
-                    <table><tbody id="running-list"></tbody></table>
+                    <div class="list"><table><tbody id="running-list"></tbody></table></div>
                 </div>
                 <div class="panel" id="problems">
                     <h2>Problems</h2>
-                    <table><tbody id="problems-list"></tbody></table>
+                    <div class="list"><table><tbody id="problems-list"></tbody></table></div>
                 </div>
                 <div class="panel">
                     <h2>Recent runs</h2>
-                    <table><tbody id="recent-list"></tbody></table>
+                    <div class="list"><table><tbody id="recent-list"></tbody></table></div>
                 </div>
             </section>
         </div>

@@ -125,8 +125,8 @@
         .cx-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: start; }
         .cx-body.flat { grid-template-columns: minmax(0, 1fr); }
 
-        /* Groups on the left, the current one is highlighted while scrolling */
-        .cx-side { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 2px; margin-top: 28px; }
+        /* Groups on the left. The list scrolls by itself, so a lower group stays reachable. */
+        .cx-side { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 2px; margin-top: 28px; max-height: calc(100vh - 84px - 28px - 16px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
         .cx-side-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--cx-faint); padding: 0 12px 8px; }
         .cx-side a { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; color: var(--cx-muted); text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; }
         .cx-side a:hover { color: var(--cx-text); background: var(--cx-surface); }
@@ -198,7 +198,7 @@
             .cx-tools-end { padding: 8px 0 0; margin-left: -10px; }
             .cx-applied { margin-top: 4px; }
             .cx-body { grid-template-columns: minmax(0, 1fr); gap: 0; }
-            .cx-side { position: static; flex-direction: row; overflow-x: auto; margin-top: 20px; }
+            .cx-side { position: static; flex-direction: row; max-height: none; overflow-x: auto; overflow-y: hidden; overscroll-behavior: auto; margin-top: 20px; }
             .cx-side-title { display: none; }
             .cx-side a { border-left: 0; flex: none; }
             .cx-cols { display: none; }
@@ -452,6 +452,45 @@
                 document.getElementById('search').focus();
             }
         });
+
+        // The sidebar keeps its own scroll and stays inside the screen, under the bar.
+        const side = document.querySelector('.cx-side');
+        const fitSide = () => {
+            if (!side) {
+                return;
+            }
+
+            if (window.matchMedia('(max-width: 1100px)').matches) {
+                side.style.maxHeight = '';
+                return;
+            }
+
+            const room = Math.max(160, window.innerHeight - side.getBoundingClientRect().top - 16);
+            const next = room + 'px';
+
+            if (side.style.maxHeight !== next) {
+                side.style.maxHeight = next;
+            }
+        };
+        const showCurrentGroup = () => {
+            const current = side?.querySelector('a[aria-current="true"]');
+
+            if (!side || !current || side.scrollHeight <= side.clientHeight) {
+                return;
+            }
+
+            const top = current.offsetTop;
+            const bottom = top + current.offsetHeight;
+
+            if (top < side.scrollTop || bottom > side.scrollTop + side.clientHeight) {
+                side.scrollTop = Math.max(0, top - (side.clientHeight - current.offsetHeight) / 2);
+            }
+        };
+
+        fitSide();
+        showCurrentGroup();
+        window.addEventListener('resize', fitSide);
+        window.addEventListener('scroll', fitSide, { passive: true });
 
         // A group opens only its commands, "All commands" opens all of them, without reloading the page
         const links = document.querySelectorAll('[data-group-link]');

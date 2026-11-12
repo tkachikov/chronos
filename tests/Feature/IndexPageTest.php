@@ -39,7 +39,10 @@ final class IndexPageTest extends TestCase
             ->assertSee(route('chronos.edit', $model))
             ->assertSee('data-theme-option="dark"', false)
             ->assertSee('href="' . route('chronos.main') . '" class="active"', false)
-            ->assertSee('"chronos.theme"', false);
+            ->assertSee('"chronos.theme"', false)
+            // The groups scroll inside the sidebar
+            ->assertSee('max-height: calc(100vh - 84px - 28px - 16px);', false)
+            ->assertSee('const fitSide = () => {', false);
     }
 
     public function testGroupOpensOnlyItsCommands(): void
