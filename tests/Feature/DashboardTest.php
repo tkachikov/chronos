@@ -27,7 +27,11 @@ final class DashboardTest extends TestCase
             ->assertSee('<header class="cx-bar">', false)
             ->assertSee('href="' . route('chronos.dashboard') . '" class="active"', false)
             ->assertSee('"chronos.dashboard.theme"', false)
-            ->assertSee(json_encode(route('chronos.dashboard.data')), false);
+            ->assertSee(json_encode(route('chronos.dashboard.data')), false)
+            ->assertSee(json_encode(route('chronos.main')), false)
+            ->assertSee('href="' . route('chronos.main', ['lastRunState' => 'Running']) . '"', false)
+            ->assertSee('href="' . route('chronos.main', ['lastRunState' => 'Failed']) . '"', false)
+            ->assertSee('href="#problems"', false);
     }
 
     public function testEmpty(): void
@@ -71,6 +75,7 @@ final class DashboardTest extends TestCase
             ->assertJsonPath('runs.memory', ['average' => '20 MB', 'max' => '30 MB', 'max_command' => 'app:test'])
             ->assertJsonPath('runs.top', [[
                 'command' => 'app:test',
+                'command_id' => $model->id,
                 'runs' => 4,
                 'errors' => 2,
                 // Without the running and the killed runs
@@ -98,6 +103,7 @@ final class DashboardTest extends TestCase
             ->assertJsonCount(1, 'runs.running')
             ->assertJsonPath('runs.running.0.id', $running->id)
             ->assertJsonPath('runs.running.0.command', 'app:test')
+            ->assertJsonPath('runs.running.0.command_id', $model->id)
             ->assertJsonPath('runs.running.0.state', 'running')
             ->assertJsonPath('runs.running.0.pid', 123)
             ->assertJsonPath('runs.running.0.duration', null)
@@ -143,10 +149,12 @@ final class DashboardTest extends TestCase
             ->assertJsonPath('schedules.missed.0.name', 'Import #1')
             ->assertJsonPath('schedules.missed.0.command', 'app:test')
             ->assertJsonPath('schedules.missed.0.missed_since', '2026-10-16T10:01:00+00:00')
+            ->assertJsonPath('schedules.missed.0.command_id', $model->id)
             ->assertJsonPath('schedules.failed', [[
                 'id' => $schedule->id,
                 'name' => 'Import #1',
                 'command' => 'app:test',
+                'command_id' => $model->id,
                 'class' => 'App\\Console\\Commands\\Test',
                 'last_run_at' => '2026-10-16T10:00:30+00:00',
             ]]);
@@ -237,6 +245,7 @@ final class DashboardTest extends TestCase
                     'id' => $everyMinute->id,
                     'name' => null,
                     'command' => 'app:test',
+                    'command_id' => $model->id,
                     'next_run_at' => '2026-10-16T10:01:00+00:00',
                     'lock' => null,
                 ],
@@ -244,6 +253,7 @@ final class DashboardTest extends TestCase
                     'id' => $hourly->id,
                     'name' => 'Hourly',
                     'command' => 'app:test',
+                    'command_id' => $model->id,
                     'next_run_at' => '2026-10-16T11:00:00+00:00',
                     'lock' => null,
                 ],
@@ -267,6 +277,10 @@ final class DashboardTest extends TestCase
             ->assertSee('<header class="cx-bar">', false)
             ->assertDontSee('<nav class="cx-nav">', false)
             ->assertDontSee(route('chronos.main') . '"', false)
+            ->assertDontSee(route('chronos.main', ['lastRunState' => 'Running']), false)
+            ->assertDontSee(route('chronos.main', ['lastRunState' => 'Failed']), false)
+            ->assertSee('const panelUrl = null', false)
+            ->assertSee('href="#problems"', false)
             ->assertSee(json_encode(route('chronos.dashboard.data', ['token' => 'secret'])), false);
 
         // The token of the dashboard does not open health and vice versa.

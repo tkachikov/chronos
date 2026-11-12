@@ -176,6 +176,10 @@
             tr:first-child td { border-top: 0; }
             td.num { text-align: right; white-space: nowrap; color: var(--muted); }
             .name { font-weight: 600; word-break: break-all; }
+            a.name { color: inherit; text-decoration: none; }
+            a.name:hover { color: var(--primary); }
+            a.panel.tile { color: inherit; text-decoration: none; }
+            a.panel.tile:hover { border-color: var(--primary); }
             .sub { color: var(--muted); font-size: 13px; }
             .empty { color: var(--muted); padding: 8px 0; }
 
@@ -259,21 +263,37 @@
                     <div class="value" id="scheduler">—</div>
                     <div class="hint" id="scheduler-hint">&nbsp;</div>
                 </div>
-                <div class="panel tile" id="tile-running">
+                @if($runningUrl)
+                    <a class="panel tile" id="tile-running" href="{{ $runningUrl }}">
+                @else
+                    <div class="panel tile" id="tile-running">
+                @endif
                     <div class="label">Running now</div>
                     <div class="value" id="running">—</div>
                     <div class="hint" id="running-hint">&nbsp;</div>
-                </div>
+                @if($runningUrl)
+                    </a>
+                @else
+                    </div>
+                @endif
                 <div class="panel tile">
                     <div class="label">Runs, {{ \Tkachikov\Chronos\Services\DashboardService::HOURS }}h</div>
                     <div class="value" id="total">—</div>
                     <div class="hint" id="total-hint">&nbsp;</div>
                 </div>
-                <div class="panel tile" id="tile-failed">
+                @if($failedUrl)
+                    <a class="panel tile" id="tile-failed" href="{{ $failedUrl }}">
+                @else
+                    <div class="panel tile" id="tile-failed">
+                @endif
                     <div class="label">Errors, {{ \Tkachikov\Chronos\Services\DashboardService::HOURS }}h</div>
                     <div class="value" id="failed">—</div>
                     <div class="hint" id="failed-hint">&nbsp;</div>
-                </div>
+                @if($failedUrl)
+                    </a>
+                @else
+                    </div>
+                @endif
                 <div class="panel tile">
                     <div class="label">Avg time, {{ \Tkachikov\Chronos\Services\DashboardService::HOURS }}h</div>
                     <div class="value" id="duration">—</div>
@@ -284,11 +304,11 @@
                     <div class="value" id="memory">—</div>
                     <div class="hint" id="memory-hint">&nbsp;</div>
                 </div>
-                <div class="panel tile" id="tile-missed">
+                <a class="panel tile" id="tile-missed" href="#problems">
                     <div class="label">Missed schedules</div>
                     <div class="value" id="missed">—</div>
                     <div class="hint" id="missed-hint">&nbsp;</div>
-                </div>
+                </a>
             </section>
 
             <section class="load">
@@ -322,7 +342,7 @@
                     <h2>Running now</h2>
                     <table><tbody id="running-list"></tbody></table>
                 </div>
-                <div class="panel">
+                <div class="panel" id="problems">
                     <h2>Problems</h2>
                     <table><tbody id="problems-list"></tbody></table>
                 </div>
@@ -336,6 +356,7 @@
         <script>
             (function () {
                 const dataUrl = @json($dataUrl);
+                const panelUrl = @json($panelUrl);
                 const refresh = @json($refresh) * 1000;
                 // Reload the page from time to time, so that a screen picks up a new version of the dashboard.
                 const reloadAfter = 6 * 60 * 60 * 1000;
@@ -351,6 +372,17 @@
                 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
                     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
                 })[c]);
+                // The command page of the panel. Empty on a screen opened by a token.
+                const commandHref = (commandId, suffix) => panelUrl && commandId
+                    ? panelUrl + '/' + commandId + (suffix || '')
+                    : '';
+                const nameHtml = (label, url, titled) => {
+                    const title = titled ? ' title="' + esc(label) + '"' : '';
+
+                    return url
+                        ? '<a class="name"' + title + ' href="' + esc(url) + '">' + esc(label) + '</a>'
+                        : '<span class="name"' + title + '>' + esc(label) + '</span>';
+                };
                 const now = () => Date.now() + offset;
                 const pad = (n) => String(n).padStart(2, '0');
                 const time = (iso) => {
@@ -550,7 +582,7 @@
 
                     $('top-list').innerHTML = top.length
                         ? top.map((item) => '<tr>'
-                            + '<td class="cmd"><span class="name" title="' + esc(item.command) + '">' + esc(item.command) + '</span>'
+                            + '<td class="cmd">' + nameHtml(item.command, commandHref(item.command_id), true)
                             + '<div class="share" style="width:' + (total(item) / max * 100) + '%"></div></td>'
                             + '<td class="num">' + esc(item.runs) + '</td>'
                             + '<td class="num' + (item.errors ? ' bad' : '') + '">' + esc(item.errors) + '</td>'
@@ -570,7 +602,7 @@
 
                     list('upcoming-list', data.schedules.upcoming.map((schedule) => ({
                         key: schedule.id + '@' + schedule.next_run_at,
-                        html: '<td><span class="dot upcoming" data-due="' + esc(schedule.next_run_at) + '"></span><span class="name">' + esc(schedule.name || schedule.command) + '</span>'
+                        html: '<td><span class="dot upcoming" data-due="' + esc(schedule.next_run_at) + '"></span>' + nameHtml(schedule.name || schedule.command, commandHref(schedule.command_id, '?schedule=' + schedule.id))
                             + lockTag(schedule.lock)
                             + '<div class="sub">' + (schedule.name ? esc(schedule.command) + ' · ' : '') + 'at ' + esc(time(schedule.next_run_at))
                             + (schedule.lock && schedule.lock.since ? ' · locked since ' + esc(time(schedule.lock.since)) : '') + '</div></td>'
@@ -579,7 +611,7 @@
 
                     list('running-list', data.runs.running.map((run) => ({
                         key: run.id,
-                        html: '<td><span class="dot running"></span><span class="name">' + esc(run.command) + '</span>'
+                        html: '<td><span class="dot running"></span>' + nameHtml(run.command, commandHref(run.command_id, '#run-' + run.id))
                             + '<div class="sub">since ' + esc(time(run.started_at)) + (run.pid ? ' · pid ' + esc(run.pid) : '') + '</div></td>'
                             + '<td class="num" data-elapsed="' + esc(run.started_at) + '">' + esc(elapsed(run.started_at)) + '</td>',
                     })), 'Nothing is running');
@@ -587,14 +619,14 @@
                     const problems = [];
                     data.schedules.stuck.forEach((schedule) => problems.push({
                         key: 'stuck' + schedule.id + '@' + schedule.skipped,
-                        html: '<td><span class="dot failed"></span><span class="name">' + esc(schedule.name || schedule.command) + '</span><span class="tag stuck">lock stuck · skipped ×' + esc(schedule.skipped) + '</span>'
+                        html: '<td><span class="dot failed"></span>' + nameHtml(schedule.name || schedule.command, commandHref(schedule.command_id, '?schedule=' + schedule.id)) + '<span class="tag stuck">lock stuck · skipped ×' + esc(schedule.skipped) + '</span>'
                             + '<div class="sub">' + (schedule.name ? esc(schedule.command) + ' · ' : '')
                             + 'nothing is running, but the runs are skipped by withoutOverlapping · <code>schedule:clear-cache</code></div></td>'
                             + '<td class="num">' + (schedule.last_run_at ? 'since ' + esc(time(schedule.last_run_at)) : '') + '</td>',
                     }));
                     data.schedules.missed.forEach((schedule) => problems.push({
                         key: 'missed' + schedule.id + '@' + schedule.missed_since,
-                        html: '<td><span class="dot missed"></span><span class="name">' + esc(schedule.name || schedule.command) + '</span><span class="tag missed">missed</span>'
+                        html: '<td><span class="dot missed"></span>' + nameHtml(schedule.name || schedule.command, commandHref(schedule.command_id, '?schedule=' + schedule.id)) + '<span class="tag missed">missed</span>'
                             + '<div class="sub">due at ' + esc(time(schedule.missed_since)) + '</div></td>'
                             + '<td class="num">' + esc(ago(schedule.missed_since)) + '</td>',
                     }));
@@ -608,7 +640,7 @@
                         problems.push({
                             // Changes with each new error, so that the row is highlighted when the counter grows.
                             key: 'command' + group.class + '@' + last.id,
-                            html: '<td><span class="dot ' + esc(last.state) + '"></span><span class="name">' + esc(group.command) + '</span>'
+                            html: '<td><span class="dot ' + esc(last.state) + '"></span>' + nameHtml(group.command, commandHref(group.command_id, '?runs=failed'))
                                 + (group.failed ? '<span class="tag failed">failed' + (group.failed > 1 ? ' ×' + esc(group.failed) : '') + '</span>' : '')
                                 + (group.killed ? '<span class="tag killed">killed' + (group.killed > 1 ? ' ×' + esc(group.killed) : '') + '</span>' : '')
                                 + (schedules.length ? '<span class="tag schedule">schedule failed</span>' : '')
@@ -622,7 +654,7 @@
                     // Failed schedules of commands without runs, e.g. without ChronosRunnerTrait.
                     failedSchedules.forEach((schedule) => problems.push({
                         key: 'schedule' + schedule.id + '@' + schedule.last_run_at,
-                        html: '<td><span class="dot failed"></span><span class="name">' + esc(schedule.name || schedule.command) + '</span><span class="tag schedule">schedule failed</span>'
+                        html: '<td><span class="dot failed"></span>' + nameHtml(schedule.name || schedule.command, commandHref(schedule.command_id, '?schedule=' + schedule.id)) + '<span class="tag schedule">schedule failed</span>'
                             + '<div class="sub">' + esc(schedule.command) + '</div></td>'
                             + '<td class="num">' + (schedule.last_run_at ? esc(ago(schedule.last_run_at)) : '') + '</td>',
                     }));
@@ -630,7 +662,7 @@
 
                     list('recent-list', data.runs.recent.map((run) => ({
                         key: run.id,
-                        html: '<td><span class="dot ' + esc(run.state) + '"></span><span class="name">' + esc(run.command) + '</span>'
+                        html: '<td><span class="dot ' + esc(run.state) + '"></span>' + nameHtml(run.command, commandHref(run.command_id, '#run-' + run.id))
                             + '<div class="sub">' + esc(time(run.started_at)) + (run.memory ? ' · ' + esc(run.memory) : '') + '</div></td>'
                             + '<td class="num">' + (run.duration !== null ? esc(duration(run.duration)) : '') + '</td>',
                     })), 'No runs yet');

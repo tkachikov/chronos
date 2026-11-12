@@ -39,6 +39,11 @@ class DashboardService
      */
     private ?array $names = null;
 
+    /**
+     * @var array<string, int>|null
+     */
+    private ?array $commandIds = null;
+
     public function __construct(
         private readonly HealthService $healthService,
         private readonly ScheduleMonitorService $scheduleMonitor,
@@ -61,11 +66,11 @@ class DashboardService
             'schedules' => [
                 'enabled' => $health['schedules']['enabled'],
                 'missed' => array_map(
-                    fn (array $missed): array => ['command' => $this->getName($missed['command'])] + $missed,
+                    fn (array $missed): array => $this->mapHealthItem($missed),
                     $health['schedules']['missed'],
                 ),
                 'stuck' => array_map(
-                    fn (array $stuck): array => ['command' => $this->getName($stuck['command'])] + $stuck,
+                    fn (array $stuck): array => $this->mapHealthItem($stuck),
                     $health['schedules']['stuck'],
                 ),
                 'failed' => $this->getFailedSchedules(),
@@ -290,6 +295,7 @@ class DashboardService
         return $groups
             ->map(fn (object $group): array => [
                 'command' => $this->getName($classes->get((int) $group->command_id)),
+                'command_id' => (int) $group->command_id,
                 'runs' => (int) $group->runs,
                 'errors' => (int) $group->errors,
                 'total_time' => isset($group->total_time) ? (int) round((float) $group->total_time) : null,
@@ -340,6 +346,7 @@ class DashboardService
 
                 return [
                     'command' => $this->getName($lastRun->command?->class),
+                    'command_id' => (int) $group->command_id,
                     'class' => $lastRun->command?->class,
                     'total' => (int) $group->total,
                     'failed' => (int) $group->failed,
@@ -508,6 +515,7 @@ class DashboardService
         return [
             'id' => (int) $run->id,
             'command' => $this->getName($run->command?->class),
+            'command_id' => $run->command_id !== null ? (int) $run->command_id : null,
             'class' => $run->command?->class,
             'state' => self::STATES[(int) $run->state] ?? 'unknown',
             'started_at' => $run->created_at?->toIso8601String(),
@@ -536,6 +544,7 @@ class DashboardService
                 'id' => (int) $schedule->id,
                 'name' => $schedule->name,
                 'command' => $this->getName($schedule->command?->class),
+                'command_id' => $schedule->command_id !== null ? (int) $schedule->command_id : null,
                 'class' => $schedule->command?->class,
                 'last_run_at' => $schedule->last_run_at?->toIso8601String(),
             ])
@@ -565,6 +574,7 @@ class DashboardService
                 'id' => (int) $item['schedule']->id,
                 'name' => $item['schedule']->name,
                 'command' => $this->getName($item['schedule']->command?->class),
+                'command_id' => $item['schedule']->command_id !== null ? (int) $item['schedule']->command_id : null,
                 'next_run_at' => $item['next_run_at']->toIso8601String(),
                 'lock' => $this->getLock($item['schedule']),
             ])
@@ -586,6 +596,40 @@ class DashboardService
                 'since' => $schedule->last_run_at?->toIso8601String(),
                 'skipped' => (int) $schedule->skipped_count,
             ];
+    }
+
+    /**
+     * A schedule from health: its command is the class, the panel links by the id.
+     *
+     * @param array<string, mixed> $item
+     *
+     * @return array<string, mixed>
+     */
+    private function mapHealthItem(array $item): array
+    {
+        $class = isset($item['command']) && is_string($item['command']) ? $item['command'] : null;
+
+        return [
+            'command' => $this->getName($class),
+            'command_id' => $this->getCommandId($class),
+        ] + $item;
+    }
+
+    private function getCommandId(?string $class): ?int
+    {
+        if (!$class) {
+            return null;
+        }
+
+        if ($this->commandIds === null) {
+            $this->commandIds = [];
+
+            foreach (Command::query()->pluck('id', 'class') as $commandClass => $id) {
+                $this->commandIds[(string) $commandClass] = (int) $id;
+            }
+        }
+
+        return $this->commandIds[$class] ?? null;
     }
 
     private function getName(?string $class): string
