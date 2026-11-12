@@ -273,10 +273,10 @@
         /* Running in real time */
         .cx-rt-args { margin-bottom: 16px; max-width: 720px; }
         .cx-rt-args .cx-arg { grid-template-columns: 200px minmax(0, 1fr); }
-        .cx-terminal { width: 100%; height: min(60vh, 560px); padding: 12px 14px; border-radius: 10px; background: var(--cx-terminal); color: #e6edf3; overflow: auto; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+        .cx-terminal { width: 100%; height: min(60vh, 560px); padding: 12px 14px; border-radius: 10px; background: var(--cx-terminal); color: #e6edf3; overflow: auto; cursor: text; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
         .cx-terminal:empty::before { content: "The output appears here"; color: #6e7681; }
         .cx-terminal pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; color: inherit; }
-        .cx-terminal .entering { outline: 0; margin-left: 10px; border-bottom: 1px dashed #6e7681; min-width: 40px; display: inline-block; }
+        .cx-terminal .entering { outline: 0; margin: 0 0 0 10px; border: 0; border-bottom: 1px dashed #6e7681; border-radius: 0; min-width: 8ch; max-width: 100%; padding: 0; background: transparent; color: inherit; font: inherit; line-height: inherit; caret-color: #e6edf3; vertical-align: baseline; }
         .cx-rt-error { margin-right: auto; font-size: 13px; color: var(--cx-danger); }
 
         @media (max-width: 1100px) {
@@ -655,6 +655,12 @@
                         });
 
                         if (data.status) {
+                            const pending = terminal.querySelector('input.entering');
+
+                            if (pending && pending.dataset.sent !== undefined) {
+                                finishAnswer(pending);
+                            }
+
                             clearInterval(timer);
                             $('#sigterm').hide();
                             $('#sigkill').hide();
@@ -669,44 +675,100 @@
         }
         function setLog(message) {
             if (message === ':wait:') {
-                let entering = document.createElement('span');
-                entering.contentEditable = 'true';
-                entering.tabIndex = 0;
-                entering.className = 'entering';
-                entering.onkeyup = sendAnswer;
+                openAnswer();
 
-                document.querySelector('#terminal > div:last-child > pre').append(entering);
-                entering.focus();
-            } else {
-                let row = document.createElement('div');
-                let pre = document.createElement('pre');
+                return;
+            }
 
-                pre.textContent = message;
-                row.append(pre);
-                terminal.append(row);
+            if (message === '') {
+                return;
+            }
 
-                if (autoScroll) {
-                    row.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'end',
-                    });
-                }
+            const pending = terminal.querySelector('input.entering');
+
+            if (pending && pending.dataset.sent !== undefined) {
+                finishAnswer(pending);
+            }
+
+            let row = document.createElement('div');
+            let pre = document.createElement('pre');
+
+            pre.textContent = message;
+            row.append(pre);
+            terminal.append(row);
+
+            if (autoScroll) {
+                row.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'end',
+                });
             }
         }
-        function sendAnswer(event) {
-            if (event.code === 'Enter') {
-                event.target.blur();
-                event.target.setAttribute('contenteditable', false);
-                var xhr = new XMLHttpRequest();
+        // Enter inside a contenteditable splits the prompt line: the question stays twice and the field stops taking text.
+        function openAnswer() {
+            const pre = document.querySelector('#terminal > div:last-child > pre');
 
-                xhr.open('POST', {{ Js::from(route('chronos.runInRealTime.answer', $model)) }}, true);
-
-                var formData = new FormData();
-                formData.append('_token', '{{ csrf_token() }}');
-                formData.append('answer', event.target.textContent);
-
-                xhr.send(formData);
+            if (!pre) {
+                return;
             }
+
+            const existing = pre.querySelector('input.entering');
+
+            if (existing) {
+                existing.focus();
+
+                return;
+            }
+
+            const previous = terminal.querySelector('input.entering');
+
+            if (previous) {
+                finishAnswer(previous);
+            }
+
+            const entering = document.createElement('input');
+
+            entering.type = 'text';
+            entering.className = 'entering';
+            entering.autocomplete = 'off';
+            entering.spellcheck = false;
+            entering.setAttribute('aria-label', 'Answer');
+            entering.size = 8;
+            entering.addEventListener('input', () => {
+                entering.size = Math.max(entering.value.length + 1, 8);
+            });
+            entering.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter') {
+                    return;
+                }
+
+                event.preventDefault();
+                sendAnswer(entering);
+            });
+            pre.append(entering);
+            entering.focus();
+        }
+        function finishAnswer(input) {
+            if (!input.isConnected) {
+                return;
+            }
+
+            const answer = input.dataset.sent !== undefined ? input.dataset.sent : input.value;
+
+            input.replaceWith(document.createTextNode(answer === '' ? '' : ' ' + answer));
+        }
+        function sendAnswer(input) {
+            input.dataset.sent = input.value;
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('POST', {{ Js::from(route('chronos.runInRealTime.answer', $model)) }}, true);
+
+            var formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('answer', input.value);
+
+            xhr.send(formData);
         }
         function sigterm() {
             var xhr = new XMLHttpRequest();
@@ -732,6 +794,21 @@
         const terminal = document.getElementById('terminal');
 
         if (terminal) {
+            terminal.addEventListener('click', (event) => {
+                const input = terminal.querySelector('input.entering');
+
+                if (!input || event.target === input) {
+                    return;
+                }
+
+                const selection = window.getSelection();
+
+                if (selection && !selection.isCollapsed) {
+                    return;
+                }
+
+                input.focus();
+            });
             terminal.addEventListener('scroll', () => {
                 autoScroll = terminal.scrollTop + terminal.clientHeight >= terminal.scrollHeight - 10;
             });

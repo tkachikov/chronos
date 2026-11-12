@@ -44,6 +44,20 @@ final class EditPageTest extends TestCase
             ->assertSee('.cx-about-value { display: block; overflow-wrap: anywhere; }', false);
     }
 
+    public function testRealTimeAnswerKeepsOnePromptAndFocusesFromTheTerminal(): void
+    {
+        $html = $this
+            ->get(route('chronos.edit', $this->model()))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString("document.createElement('input')", $html);
+        $this->assertStringContainsString("terminal.addEventListener('click'", $html);
+        $this->assertStringContainsString('event.preventDefault()', $html);
+        $this->assertStringNotContainsString('contentEditable', $html);
+        $this->assertStringNotContainsString("setAttribute('contenteditable'", $html);
+    }
+
     public function testRealTimeLogsFromOffset(): void
     {
         $model = $this->model();
